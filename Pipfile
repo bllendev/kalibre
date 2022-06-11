@@ -8,6 +8,7 @@ django = "==2.2.7"
 psycopg2-binary = "==2.8.4"
 django-crispy-forms = "*"
 crispy-bootstrap5 = "*"
+django-allauth = "==0.40.0"
 
 [dev-packages]
 
