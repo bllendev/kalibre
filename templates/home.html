@@ -1,7 +1,9 @@
-<!-- templates/home.html -->
-{% extends '_base.html' %}
+{% extends "_base.html" %}
+{% load static %}
+
 {% block title %}Home{% endblock title %}
 
 {% block content %}
-    <h1>Homepage</h1>
+  <h1>This is our home page.</h1>
+  <img class="bookcover" src="{% static 'images/dfp.jpg' %}">
 {% endblock content %}

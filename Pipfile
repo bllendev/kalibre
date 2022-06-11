@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 django = "==2.2.7"
 psycopg2-binary = "==2.8.4"
+django-crispy-forms = "*"
+crispy-bootstrap5 = "*"
 
 [dev-packages]
 
