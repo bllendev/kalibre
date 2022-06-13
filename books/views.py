@@ -31,3 +31,26 @@ class SearchResultsListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         return Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
+
+
+def _search_results(request):
+    from books.utils import LibgenAPI
+
+    query = request.GET.get('q')
+    choices = None
+    link = None
+
+    if request.method == "POST":
+        pass
+
+    if query:
+        print(f"QUERY MADE: {query}")
+        libgen = LibgenAPI(query)
+        choices = libgen.get_title_choices()[0]["Mirror_1"]
+        print(f"choices: {choices}")
+
+        # link = libgen.get_first_download_link()
+
+    return render(request, 'books/_search_results.html', {'link': link, 'title_choices': choices})
+
+

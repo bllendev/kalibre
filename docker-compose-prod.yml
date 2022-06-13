@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+   web:
+      build: .
+      command: python /code/manage.py runserver 0.0.0.0:8000
+      environment:
+         - ENVIRONMENT=production
+         - SECRET_KEY=qd+g@h5h%^mc@n2ft(ac14uw=b204o=b33q!v7ri3s2j-y1c=6
+         - DEBUG=0
+         - STRIPE_TEST_PUBLISHABLE_KEY=pk_live_51L9dwkKGldTEkx9qbOQyNLUi8qJIemlumUkT4njmZ5mblWAmgxJmVe8eqzBsQ5A8VtsGC7SQVZ9UV2VfILAuwwRB002xIedMY7
+         - STRIPE_TEST_SECRET_KEY=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
+      volumes:
+         - .:/code
+      ports:
+         - 8000:8000
+      depends_on:
+         - db
+
+   db:
+      image: 'postgres:12-alpine'
