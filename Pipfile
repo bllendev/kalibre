@@ -12,6 +12,7 @@ django-allauth = "==0.40.0"
 pillow = "*"
 django-debug-toolbar = "==2.2"
 libgen-api = "*"
+whitenoise = "*"
 
 [dev-packages]
 
