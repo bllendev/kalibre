@@ -13,6 +13,7 @@ pillow = "*"
 django-debug-toolbar = "==2.2"
 libgen-api = "*"
 whitenoise = "*"
+gunicorn = "*"
 
 [dev-packages]
 
