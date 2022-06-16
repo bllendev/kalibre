@@ -9,14 +9,17 @@
 
         <table class='table striped'>
             <thead>
-                <td>author</td>
-                <td>title</td>
-                <td style="white-space:nowrap">file type</td>
-                <td>link</td>
+                <th></th>
+                <th style="width:20%">author</th>
+                <th style="width:50%">title</th>
+                <th style="white-space:nowrap">file type</th>
+                <th>links</th>
+                <th></th>
             </thead>
             <br>
             {% for book in libgen.get_book_list %}
                 <tr>
+                    <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>   {%comment%} NOTE: wire this up {%endcomment%}
                     <td>{{book.author}}</td>
                     <td>{{book.title}}</td>
                     <td>{{book.file_type}}</td>
@@ -25,6 +28,7 @@
                             <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
                         {% endfor %}
                     </td>
+                    <td><button class='btn-sm btn-primary' style='white-space:nowrap'>queue</button>
                 </tr>
             {% endfor %}
         </table>
