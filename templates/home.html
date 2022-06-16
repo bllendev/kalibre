@@ -1,15 +1,15 @@
 {% extends "_base.html" %}
 {% load static %}
 
-{% block title %}Home{% endblock title %}
+{% block title %}kalibre{% endblock title %}
 
 {% block content %}
-  <h1>home</h1>
+  <h1>kalibre</h1>
     {% comment %} <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}"method="get">
         <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search"aria-label="Search">
     </form> {% endcomment %}
     
     <form class="form-inline mt-2 mt-md-0" action="{% url '_search_results' %}"method="get">
-      <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search"aria-label="Search">
+      <input name="q" class="form-control mr-sm-2" type="text" placeholder="search!"aria-label="search">
   </form>
 {% endblock content %}

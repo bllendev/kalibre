@@ -3,10 +3,31 @@
 {% block title %}Search{% endblock title %}
 {% block content %}
 
-    <h1>Search Results</h1>
+    <h1><a href="{% url 'home' %}">Search Results</a></h1>
+    
+    <div>
 
-    {{ title_choices }}
-
-    {% comment %} {{ link }} {% endcomment %}
+        <table class='table striped'>
+            <thead>
+                <td>author</td>
+                <td>title</td>
+                <td style="white-space:nowrap">file type</td>
+                <td>link</td>
+            </thead>
+            <br>
+            {% for book in libgen.get_book_list %}
+                <tr>
+                    <td>{{book.author}}</td>
+                    <td>{{book.title}}</td>
+                    <td>{{book.file_type}}</td>
+                    <td>
+                        {% for link in book.links %}
+                            <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 
 {% endblock content %}

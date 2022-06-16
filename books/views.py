@@ -37,7 +37,7 @@ def _search_results(request):
     from books.utils import LibgenAPI
 
     query = request.GET.get('q')
-    choices = None
+    choices_list = None
     link = None
 
     if request.method == "POST":
@@ -45,12 +45,14 @@ def _search_results(request):
 
     if query:
         print(f"QUERY MADE: {query}")
-        libgen = LibgenAPI(query)
-        choices = libgen.get_title_choices()[0]["Mirror_1"]
-        print(f"choices: {choices}")
-
+        libgen = LibgenAPI(str(query))
+        choices_list = libgen._get_title_choices()
+        # [0]["Mirror_1"]
+        print(f"choices: {choices_list}")
         # link = libgen.get_first_download_link()
 
-    return render(request, 'books/_search_results.html', {'link': link, 'title_choices': choices})
+        print(f"books: {libgen.get_book_list()}")
+
+    return render(request, 'books/_search_results.html', {'link': link, 'choices_list': choices_list, 'libgen': libgen,})
 
 

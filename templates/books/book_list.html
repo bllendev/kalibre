@@ -3,9 +3,22 @@
 {% block title %}Books{% endblock title %}
 
 {% block content %}
-    {% for book in book_list %}
-        <div>
-            <h4><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h4>
+
+
+    <div>
+        <h2>Saved Books</h2>
+        <div class="ml-2">
+            {% for book in book_list %}
+                <h6 class='ml-5'style="color:magenta"><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h6>
+            {% endfor %}
         </div>
-    {% endfor %}
+    </div>
+    <div>
+        <h2>Sent Books</h2>
+        {% comment %} <div class="ml-2">    not made yet...
+            {% for book in book_list %}
+                <h6 class='ml-5'style="color:magenta"><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h6>
+            {% endfor %}
+        </div> {% endcomment %}
+    </div>
 {% endblock content %}
