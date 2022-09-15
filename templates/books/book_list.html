@@ -6,15 +6,17 @@
 
 
     <div>
-        <h2>Saved Books</h2>
-        <div class="ml-2">
+        <h3>Saved Books</h3>
+        <ul>
             {% for book in book_list %}
-                <h6 class='ml-5'style="color:magenta"><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h6>
+                <li>
+                    <a href="{{ book.get_absolute_url }}">{{ book.title }}</a>
+                </li>
             {% endfor %}
-        </div>
+        </ul>
     </div>
     <div>
-        <h2>Sent Books</h2>
+        <h3>Sent Books</h3>
         {% comment %} <div class="ml-2">    not made yet...
             {% for book in book_list %}
                 <h6 class='ml-5'style="color:magenta"><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h6>

@@ -1,11 +1,17 @@
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse, resolve
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
 )
 from django.views.generic import ListView, DetailView
+from django.contrib.auth import get_user_model
 from books.models import Book
+from users.models import Email
+
+
+CustomUser = get_user_model()
 
 
 class BookListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -33,7 +39,7 @@ class SearchResultsListView(ListView):
         return Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
 
 
-def _search_results(request):
+def search_results(request):
     from books.utils import LibgenAPI
 
     query = request.GET.get('q')
@@ -41,18 +47,56 @@ def _search_results(request):
     link = None
 
     if request.method == "POST":
-        pass
+        for key, val in request.POST.items():
+            if "book" in key:
+                book_title = key.replace("book_", "")
+                username = request.user.username
+                user = CustomUser.objects.get(username=username)
+                libgen = LibgenAPI()
+                libgen.download_book(user, val, book_title)
+                return redirect(reverse("home"))
 
     if query:
-        print(f"QUERY MADE: {query}")
         libgen = LibgenAPI(str(query))
         choices_list = libgen._get_title_choices()
-        # [0]["Mirror_1"]
-        print(f"choices: {choices_list}")
-        # link = libgen.get_first_download_link()
 
-        print(f"books: {libgen.get_book_list()}")
+    return render(
+        request,
+        'books/search_results.html',
+        {
+            'link': link,
+            'choices_list': choices_list,
+            'libgen': libgen,
+        }
+    )
 
-    return render(request, 'books/_search_results.html', {'link': link, 'choices_list': choices_list, 'libgen': libgen,})
 
+def my_emails(request):
+    email_addresses = []
+    if request.user.is_authenticated:
+        username = request.user.username
+        user = CustomUser.objects.get(username=username)
+        email_addresses = user.email_address.all()
+
+    if request.method == "POST":
+        if user:
+            email = request.POST.get('email')
+            new_email = Email(address=email)
+            new_email.save()
+            if user.email_address.exists():
+                user.email_address.add(new_email)
+            else:
+                user.email_address.set({new_email})
+            user.save()
+            print("POST REQUEST HIT YUP")
+            return redirect(reverse("my_emails"))
+
+    print(CustomUser.__dict__)
+    return render(
+        request,
+        'books/my_emails.html',
+        {
+            'email_addresses': email_addresses,
+        }
+    )
 

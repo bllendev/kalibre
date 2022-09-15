@@ -7,6 +7,9 @@ services:
       environment:
          - ENVIRONMENT=development
          - SECRET_KEY=qd+g@h5h%^mc@n2ft(ac14uw=b204o=b33q!v7ri3s2j-y1c=6
+         - EMAIL_HOST=smtp.gmail.com
+         - EMAIL_USER=bllendev@gmail.com
+         - EMAIL_PASS=ncrjjmstjcswaxtw
          - DEBUG=1
       volumes:
          - .:/code

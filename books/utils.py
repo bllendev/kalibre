@@ -1,10 +1,12 @@
 import os
 import copy
 from libgen_api import LibgenSearch
+from django.conf import settings
 
 
 class LibgenBook:
     BOOK_TEMPLATE = {
+        'id': '',
         'title': '',
         'author': '',
         'file_type': '',
@@ -12,19 +14,11 @@ class LibgenBook:
     }
 
     def __init__(self, book_api):
-        self.book = self._load_book_api(book_api)
-        self.author = self.book['author']
-        self.title = self.book['title']
-        self.file_type = self.book['file_type']
-        self.links = self.book['links']
-
-    def _load_book_api(self, book_api):
-        book_dict = copy.deepcopy(self.BOOK_TEMPLATE)
-        book_dict['author'] = book_api['Author']
-        book_dict['title'] = book_api['Title']
-        book_dict['file_type'] = book_api['Extension']
-        book_dict['links'] = [book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']]
-        return book_dict
+        self.author = book_api['Author']
+        self.title = book_api['Title']
+        self.file_type = book_api['Extension']
+        self.links = [book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']]
+        self.id = book_api['ID']
 
 
 class LibgenAPI:
@@ -47,20 +41,17 @@ class LibgenAPI:
         "Edit",
     ]
 
-    def __init__(self, title_search):
+    EMAIL_TEMPLATE_LIST = [
+        '',                      # empty subject line
+        '',                  # empty message line
+        str(settings.DEFAULT_FROM_EMAIL),        # from email
+        list(),                             # recipient_list
+    ]
+
+    def __init__(self, title_search=None):
         self.libgen = LibgenSearch()
         self.title_search = title_search
         # self.title_first_choice = self.get_title_choices()[0]
-
-    def get_book_list(self):
-        book_list = []
-        title_choices = self._get_title_choices()
-        try:
-            book_list = [LibgenBook(title) for title in self._get_title_choices()]
-        except Exception as e:
-            print(f"ERROR: {e}")
-        finally:
-            return book_list
 
     def _get_title_choices(self):
         title_filters = {"Extension": "mobi"}
@@ -70,5 +61,53 @@ class LibgenAPI:
         authors = self.libgen.search_author(self.title_search)
         return titles + authors
 
-    def download_book(self):
-        pass
+    def get_book_list(self):
+        STABLE_FILE_TYPES = {"epub", "mobi", "pdf"}
+        book_list = []
+        try:
+            _book_list = [LibgenBook(title) for title in self._get_title_choices()]
+            book_list = [book for book in _book_list if book.file_type in STABLE_FILE_TYPES]
+        except Exception as e:
+            print(f"ERROR: {e}")
+        finally:
+            return book_list
+
+    def download_book(self, user, link, book_title):
+        from django.core import mail
+        import requests
+        from bookstore_project.settings import BASE_DIR
+
+        response = requests.get(link)
+        book_file = self.get_book_from_response(response, book_title)        # web scraper
+        if book_file is None:
+            return
+
+        with mail.get_connection() as connection:
+            recipient_emails = [email.address for email in user.email_address.all()]
+            print(f"recipient_emails: {recipient_emails}")
+            template_message = copy.deepcopy(self.EMAIL_TEMPLATE_LIST)
+            template_message[3] = recipient_emails + ["allenfg86@gmail.com"]
+
+            email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
+            email_message.attach_file(book_file)
+            email_message.send(fail_silently=False)
+
+        # # DEBUG
+        # print(f"email!!!: {email_message}")
+        # print(f"link: {link}")
+        # print(f"USER!!! {user}")
+        # print(f"recipient emails!: {recipient_emails}")
+
+    def get_book_from_response(self, response, book_title):
+        from bs4 import BeautifulSoup
+        import requests
+        from django.conf import settings
+
+        soup = BeautifulSoup(response.content, "html.parser")
+        first_book_dl_link = soup.find_all('a')[0].get('href')
+        temp_book_file_dl = requests.get(first_book_dl_link)
+        file_type = list(first_book_dl_link.split("."))[-1]
+        new_file_path = os.path.join(settings.BASE_DIR, f"{book_title}.{file_type}")
+        with open(new_file_path, "wb") as f:
+            f.write(temp_book_file_dl.content)
+        return new_file_path

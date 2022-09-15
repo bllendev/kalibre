@@ -22,6 +22,9 @@
             <a class="nav-link" href="{% url 'book_list' %}">my books</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="{% url 'my_emails' %}">my emails</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="{% url 'about' %}">about</a>
           </li>
           {% if user.is_authenticated %}

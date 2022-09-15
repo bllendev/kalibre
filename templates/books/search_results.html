@@ -3,14 +3,80 @@
 {% block title %}Search{% endblock title %}
 {% block content %}
 
-    <h1>Search Results</h1>
+    <h1><a href="{% url 'home' %}" class="link-secondary">Search Results</a></h1>
+    
+    <div>
 
-    {% for book in book_list %}
-        <div>
-        <h3><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h3>
-        <p>Author: {{ book.author }}</p>
-        <p>Price: $ {{ book.price }}</p>
-        </div>
-    {% endfor %}
+        <table class='table striped sortable'>
+            <thead>
+
+                <th></th> <!--save book for later button-->
+                <th style="width:20%">author</th>
+                <th style="width:50%">title</th>
+                <th style="white-space:nowrap">file-type</th>
+                <th>links</th>
+                <th></th> <!--Queue/add-to-cart button-->
+                <th></th> <!--send now button-->
+
+            </thead>
+            <br>
+            <form method="POST">
+                {% csrf_token %}
+                {% for book in libgen.get_book_list %}
+                    <tr>
+                        <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>   {%comment%} NOTE: wire this up {%endcomment%}
+                        <td>{{book.author}}</td>
+                        <td>{{book.title}}</td>
+                        <td>{{book.file_type}}</td>
+                        <td>
+                            {% for link in book.links %}
+                                <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
+                            {% endfor %}
+                        </td>
+                        <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td>
+                            {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
+                        <td><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
+                    </tr>
+                {% endfor %}
+            </form>
+        </table>
+
+    </div>
 
 {% endblock content %}
+<script>
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify({payload: payload,}),
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
+        },
+        success: (data) => {
+          console.log(data);
+        },
+        error: (error) => {
+          console.log(error);
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+    }
+
+</script>
