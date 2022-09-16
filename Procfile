@@ -1,1 +1,1 @@
-web: gunicorn kalibre-bllen:app
+web: gunicorn bookstore_project:app
