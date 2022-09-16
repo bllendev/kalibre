@@ -74,12 +74,9 @@ class LibgenAPI:
 
     def download_book(self, user, link, book_title):
         from django.core import mail
-        import requests
-        from bookstore_project.settings import BASE_DIR
 
-        response = requests.get(link)
-        book_file = self.get_book_from_response(response, book_title)        # web scraper
-        if book_file is None:
+        book_file_path = self.get_book_from_link(link, book_title)        # web scraper
+        if book_file_path is None:
             return
 
         with mail.get_connection() as connection:
@@ -89,25 +86,36 @@ class LibgenAPI:
             template_message[3] = recipient_emails + ["allenfg86@gmail.com"]
 
             email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
-            email_message.attach_file(book_file)
+            email_message.attach_file(book_file_path)
             email_message.send(fail_silently=False)
 
+        os.remove(book_file_path)
         # # DEBUG
         # print(f"email!!!: {email_message}")
         # print(f"link: {link}")
         # print(f"USER!!! {user}")
         # print(f"recipient emails!: {recipient_emails}")
 
-    def get_book_from_response(self, response, book_title):
+    def get_book_from_link(self, link, book_title):
         from bs4 import BeautifulSoup
         import requests
         from django.conf import settings
+        from books.models import Book
 
-        soup = BeautifulSoup(response.content, "html.parser")
-        first_book_dl_link = soup.find_all('a')[0].get('href')
-        temp_book_file_dl = requests.get(first_book_dl_link)
-        file_type = list(first_book_dl_link.split("."))[-1]
-        new_file_path = os.path.join(settings.BASE_DIR, f"{book_title}.{file_type}")
+        new_book, created = Book.objects.get_or_create(title=book_title)
+        book_dl_link = ""
+        book_dl_filetype = ""
+        if not new_book.link or not new_book.filetype:
+            response = requests.get(link)
+            soup = BeautifulSoup(response.content, "html.parser")
+            first_book_dl_link = soup.find_all('a')[0].get('href')
+            file_type = list(first_book_dl_link.split("."))[-1]
+            new_book.link = first_book_dl_link
+            new_book.file_type = file_type
+            new_book.save()
+
+        new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
         with open(new_file_path, "wb") as f:
+            temp_book_file_dl = requests.get(first_book_dl_link)
             f.write(temp_book_file_dl.content)
         return new_file_path

@@ -49,11 +49,12 @@ def search_results(request):
     if request.method == "POST":
         for key, val in request.POST.items():
             if "book" in key:
+                link = val
                 book_title = key.replace("book_", "")
                 username = request.user.username
                 user = CustomUser.objects.get(username=username)
                 libgen = LibgenAPI()
-                libgen.download_book(user, val, book_title)
+                libgen.download_book(user, link, book_title)
                 return redirect(reverse("home"))
 
     if query:
