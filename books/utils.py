@@ -114,6 +114,12 @@ class LibgenAPI:
             new_book.filetype = filetype
             new_book.save()
 
+        else:
+            print(f"new book has link AND filetype")
+            print(f"new book: {new_book}")
+            print(f"new_book: {new_book.link}")
+            print(f"new_book: {new_book.filetype}")
+
         new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
         with open(new_file_path, "wb") as f:
             if first_book_dl_link:
