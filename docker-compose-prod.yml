@@ -3,7 +3,8 @@ version: '3.7'
 services:
    web:
       build: .
-      command: python /code/manage.py runserver 0.0.0.0:8000
+      # command: python /code/manage.py runserver 0.0.0.0:8000
+      command: gunicorn bookstore_project.wsgi -v 0.0.0.0:8000
       environment:
          - ENVIRONMENT=production
          - SECRET_KEY=qd+g@h5h%^mc@n2ft(ac14uw=b204o=b33q!v7ri3s2j-y1c=6
@@ -16,6 +17,18 @@ services:
          - 8000:8000
       depends_on:
          - db
+      links:
+         - db:db
+      networks:
+         - djangonetwork
 
    db:
       image: 'postgres:12-alpine'
+      networks:
+         djangonetwork:
+      ports:
+         - '5432'
+
+ networks:
+    djangonetwork:
+       driver: bridge

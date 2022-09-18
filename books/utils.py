@@ -72,10 +72,10 @@ class LibgenAPI:
         finally:
             return book_list
 
-    def download_book(self, user, link, book_title):
+    def download_book(self, user, link, book_title, filetype):
         from django.core import mail
 
-        book_file_path = self.get_book_from_link(link, book_title)        # web scraper
+        book_file_path = self.get_book_from_link(link, book_title, filetype)        # web scraper
         if book_file_path is None:
             return
 
@@ -96,24 +96,24 @@ class LibgenAPI:
         # print(f"USER!!! {user}")
         # print(f"recipient emails!: {recipient_emails}")
 
-    def get_book_from_link(self, link, book_title):
+    def get_book_from_link(self, link, book_title, filetype):
         from bs4 import BeautifulSoup
         import requests
         from django.conf import settings
         from books.models import Book
 
-        new_book, created = Book.objects.get_or_create(title=book_title)
+        new_book, created = Book.objects.get_or_create(title=book_title, filetype=filetype)
         book_dl_link = ""
         book_dl_filetype = ""
         if not new_book.link or not new_book.filetype:
             response = requests.get(link)
             soup = BeautifulSoup(response.content, "html.parser")
             first_book_dl_link = soup.find_all('a')[0].get('href')
-            file_type = list(first_book_dl_link.split("."))[-1]
             new_book.link = first_book_dl_link
-            new_book.file_type = file_type
+            new_book.filetype = filetype
             new_book.save()
 
+        print(f"{new_book.title}.{new_book.filetype}")
         new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
         with open(new_file_path, "wb") as f:
             temp_book_file_dl = requests.get(first_book_dl_link)

@@ -15,6 +15,7 @@ libgen-api = "*"
 whitenoise = "*"
 gunicorn = "*"
 cornflake = "*"
+dj-database-url = "*"
 
 [dev-packages]
 

@@ -50,11 +50,15 @@ def search_results(request):
         for key, val in request.POST.items():
             if "book" in key:
                 link = val
-                book_title = key.replace("book_", "")
+                book_title, filetype = key.split("__")
+                book_title = book_title.replace("book_", "")
+                filetype = filetype.replace("type_", "")
                 username = request.user.username
                 user = CustomUser.objects.get(username=username)
                 libgen = LibgenAPI()
-                libgen.download_book(user, link, book_title)
+                libgen.download_book(user, link, book_title, filetype)
+                print(f"book_title: {book_title}")
+                print(f"filetype: {filetype}")
                 return redirect(reverse("home"))
 
     if query:
@@ -74,15 +78,19 @@ def search_results(request):
 
 def my_emails(request):
     email_addresses = []
+    username_str = ''
     if request.user.is_authenticated:
         username = request.user.username
         user = CustomUser.objects.get(username=username)
         email_addresses = user.email_address.all()
+        username_str = f"{username}'s emails!"
 
     if request.method == "POST":
         if user:
             email = request.POST.get('email')
             new_email = Email(address=email)
+
+            print(f"new_email: {new_email}")
             new_email.save()
             if user.email_address.exists():
                 user.email_address.add(new_email)
@@ -97,6 +105,7 @@ def my_emails(request):
         request,
         'books/my_emails.html',
         {
+            'username_str': username_str,
             'email_addresses': email_addresses,
         }
     )
