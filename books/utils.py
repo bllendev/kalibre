@@ -62,7 +62,7 @@ class LibgenAPI:
         return titles + authors
 
     def get_book_list(self):
-        STABLE_FILE_TYPES = {"epub", "mobi", "pdf"}
+        STABLE_FILE_TYPES = {"epub", "mobi"}
         book_list = []
         try:
             _book_list = [LibgenBook(title) for title in self._get_title_choices()]
@@ -113,9 +113,9 @@ class LibgenAPI:
             new_book.filetype = filetype
             new_book.save()
 
-        print(f"{new_book.title}.{new_book.filetype}")
         new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
         with open(new_file_path, "wb") as f:
-            temp_book_file_dl = requests.get(first_book_dl_link)
-            f.write(temp_book_file_dl.content)
+            if first_book_dl_link:
+                temp_book_file_dl = requests.get(first_book_dl_link)
+                f.write(temp_book_file_dl.content)
         return new_file_path

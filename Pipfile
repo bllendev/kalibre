@@ -16,6 +16,7 @@ whitenoise = "*"
 gunicorn = "*"
 cornflake = "*"
 dj-database-url = "*"
+"django.core" = "*"
 
 [dev-packages]
 
