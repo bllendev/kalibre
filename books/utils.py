@@ -105,6 +105,7 @@ class LibgenAPI:
         new_book, created = Book.objects.get_or_create(title=book_title, filetype=filetype)
         book_dl_link = ""
         book_dl_filetype = ""
+        first_book_dl_link = ""
         if not new_book.link or not new_book.filetype:
             response = requests.get(link)
             soup = BeautifulSoup(response.content, "html.parser")
