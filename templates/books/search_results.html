@@ -35,7 +35,7 @@
                         </td>
                         <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td>
                             {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
-                        <td><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
+                        <td><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
                     </tr>
                 {% endfor %}
             </form>
