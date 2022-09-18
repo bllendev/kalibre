@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'kalibre-bllen.herokuapp.com',
     'ancient-taiga-92969.herokuapp.com'
+    'kalibre-bllendev.herokuapp.com'
 ]
 
 STRIPE_LIVE_PUBLISHABLE_KEY = os.environ.get('STRIPE_LIVE_PUBLISHABLE_KEY')
