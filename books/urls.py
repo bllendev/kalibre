@@ -9,5 +9,4 @@ urlpatterns = [
 
     # email
     path("my_emails/", views.my_emails, name="my_emails"),
-    
 ]

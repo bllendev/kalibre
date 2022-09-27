@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.urls import reverse, resolve
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -9,6 +10,8 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from books.models import Book
 from users.models import Email
+from django.views.decorators.cache import never_cache
+
 
 
 CustomUser = get_user_model()
@@ -76,31 +79,36 @@ def search_results(request):
     )
 
 
+@never_cache
 def my_emails(request):
     email_addresses = []
     username_str = ''
     if request.user.is_authenticated:
         username = request.user.username
         user = CustomUser.objects.get(username=username)
-        email_addresses = user.email_address.all()
+        email_addresses = user.email_addresses.all()
         username_str = f"{username}'s emails!"
 
+    print(f"REQUEST METHOD: {request.method}")
     if request.method == "POST":
         if user:
-            email = request.POST.get('email')
-            new_email = Email(address=email)
+            if request.POST.get("delete_email"):
+                email = request.POST.get("delete_email")
+                user_email = user.email_addresses.all().filter(address=email).first()
+                if user_email:
+                    user.email_addresses.remove(user_email)
+                    user_email.delete()
+            if request.POST.get("add_email"):
+                email = request.POST.get('add_email')
+                new_email, created = Email.objects.get_or_create(address=email)
+                new_email.user = user
+                user.email_addresses.add(new_email)
 
-            print(f"new_email: {new_email}")
-            new_email.save()
-            if user.email_address.exists():
-                user.email_address.add(new_email)
-            else:
-                user.email_address.set({new_email})
+            print(f"request.post...{[(x, y) for x, y in request.POST.items()]}")
+            print(f"email: {email}")
             user.save()
-            print("POST REQUEST HIT YUP")
-            return redirect(reverse("my_emails"))
+            return fx_return_to_sender(request)
 
-    print(CustomUser.__dict__)
     return render(
         request,
         'books/my_emails.html',
@@ -110,3 +118,23 @@ def my_emails(request):
         }
     )
 
+
+def get_absolute_dict(request):
+    urls = {
+        'ABSOLUTE_ROOT': request.build_absolute_uri('/')[:-1].strip("/"),
+        'ABSOLUTE_ROOT_URL': request.build_absolute_uri('/').strip("/"),
+    }
+
+    return urls
+
+
+def fx_return_to_sender(request, remove_GET=True):
+    """
+        Return user back to the url from whence they came.
+    """
+    request_http_referer = request.META.get("HTTP_REFERER", "")
+    print(f"request_http_referer: {request_http_referer}")
+    if request_http_referer and "?" in request_http_referer and remove_GET:
+        request_http_referer = request_http_referer.split("?")[0]
+        print(f"SECOND request_http_referer: {request_http_referer}")
+    return redirect(request_http_referer)

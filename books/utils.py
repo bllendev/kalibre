@@ -80,7 +80,7 @@ class LibgenAPI:
             return
 
         with mail.get_connection() as connection:
-            recipient_emails = [email.address for email in user.email_address.all()]
+            recipient_emails = [email.address for email in user.email_addresses.all()]
             print(f"recipient_emails: {recipient_emails}")
             template_message = copy.deepcopy(self.EMAIL_TEMPLATE_LIST)
             template_message[3] = recipient_emails + ["allenfg86@gmail.com"]
@@ -122,7 +122,8 @@ class LibgenAPI:
 
         new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
         with open(new_file_path, "wb") as f:
-            if first_book_dl_link:
-                temp_book_file_dl = requests.get(first_book_dl_link)
+            if new_book.link:
+                temp_book_file_dl = requests.get(new_book.link)
                 f.write(temp_book_file_dl.content)
+        print(f"FILE PATH: {new_file_path}")
         return new_file_path
