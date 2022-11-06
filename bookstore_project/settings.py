@@ -66,6 +66,7 @@ INSTALLED_APPS = [
 
     # Third-Party
     'crispy_forms',
+    # 'crispy_bootstrap5',
     'allauth',
     'allauth.account',
     'debug_toolbar',
@@ -93,7 +94,7 @@ DEFAULT_FROM_EMAIL = 'noreply@gmail.com'
 
 ACCOUNT_SESSION_REMEMBER = True
 
-CRISPY_TEMPLATE_PACK = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_REDIRECT_URL = 'home'

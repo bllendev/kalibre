@@ -1,4 +1,6 @@
 {% extends '_base.html' %}
+{% load static %}
+
 
 {% block title %}Search{% endblock title %}
 {% block content %}
@@ -14,13 +16,13 @@
                 <th style="width:20%">author</th>
                 <th style="width:50%">title</th>
                 <th style="white-space:nowrap">file-type</th>
-                <th>links</th>
-                <th></th> <!--Queue/add-to-cart button-->
+                {% comment %} <th>links</th>
+                <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
                 <th></th> <!--send now button-->
 
             </thead>
             <br>
-            <form method="POST">
+            <form method="POST" id="book_send_form">
                 {% csrf_token %}
                 {% for book in libgen.get_book_list %}
                     <tr>
@@ -28,14 +30,14 @@
                         <td>{{book.author}}</td>
                         <td>{{book.title}}</td>
                         <td>{{book.file_type}}</td>
-                        <td>
+                        {% comment %} <td>
                             {% for link in book.links %}
                                 <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
                             {% endfor %}
-                        </td>
-                        <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td>
+                        </td> {% endcomment %}
+                        {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
                             {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
-                        <td><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
+                        <td><button id="book_{{forloop.counter}}" class='btn-sm btn-primary' type="button" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
                     </tr>
                 {% endfor %}
             </form>
@@ -44,7 +46,31 @@
     </div>
 
 {% endblock content %}
+
+<div id="img"><img src="{% static '/images/loading_snail.gif' %}"></div>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+
 <script>
+
+    window.onload = function() {
+        if (window.jQuery) {  
+            // jQuery is loaded  
+            alert("Yeah!");
+        } else {
+            // jQuery is not loaded
+            alert("Doesn't Work");
+        }
+    }
+
+    {% comment %} $('#buttonID').click(function(){
+        $('#img').show(); //<----here
+        $.ajax({
+          ....
+         success:function(result){
+             $('#img').hide();  //<--- hide again
+         }
+    }
 
     $.ajax({
         url: url,
@@ -61,7 +87,24 @@
         error: (error) => {
           console.log(error);
         }
-    });
+    }); {% endcomment %}
+
+    function get_loading_img(button_id) {
+        button = $(button_id);
+        loading_img = $("#img");
+        button.replaceWith(loading_img);
+        $('#book_send_form').trigger('submit');
+    }
+
+    {% for book in libgen.get_book_list %}
+        $('#button{{forloop.counter}}').click(function(){
+            loading_img = $("#img");
+            button.replaceWith(loading_img);
+            $('#book_send_form').trigger('submit');        });
+    {% endfor %}
+    
+    
+
 
     function getCookie(name) {
         let cookieValue = null;

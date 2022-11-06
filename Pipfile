@@ -17,6 +17,7 @@ gunicorn = "*"
 cornflake = "*"
 dj-database-url = "*"
 "django.core" = "*"
+django-bootstrap4 = "*"
 
 [dev-packages]
 

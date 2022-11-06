@@ -1,18 +1,18 @@
-# from django.urls import reverse_lazy
-# from django.views import generic
-# from django.shortcuts import redirect, reverse
-# from django.contrib.auth import get_user_model
-# from accounts.forms import CustomUserCreationForm
-# from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views import generic
+from django.shortcuts import redirect, reverse
+from django.contrib.auth import get_user_model
+from accounts.forms import CustomUserCreationForm
+from django.shortcuts import render
 
 
-# CustomUser = get_user_model()
+CustomUser = get_user_model()
 
 
-# class SignupPageView(generic.CreateView):
-#     form_class = CustomUserCreationForm
-#     success_url = reverse_lazy("login")
-#     template_name = "registration/signup.html"
+class SignupPageView(generic.CreateView):
+    form_class = CustomUserCreationForm
+    success_url = reverse_lazy("login")
+    template_name = "accounts/signup.html"
 
 
 # # def add_email(request):

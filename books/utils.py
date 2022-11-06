@@ -52,6 +52,7 @@ class LibgenAPI:
         self.libgen = LibgenSearch()
         self.title_search = title_search
         # self.title_first_choice = self.get_title_choices()[0]
+        # self._dev_debug()
 
     def _get_title_choices(self):
         title_filters = {"Extension": "mobi"}
@@ -60,6 +61,9 @@ class LibgenAPI:
         titles = self.libgen.search_title(self.title_search)
         authors = self.libgen.search_author(self.title_search)
         return titles + authors
+
+    def _dev_debug(self):
+        pass
 
     def get_book_list(self):
         STABLE_FILE_TYPES = {"epub", "mobi"}
@@ -79,9 +83,9 @@ class LibgenAPI:
         if book_file_path is None:
             return
 
+        # 
         with mail.get_connection() as connection:
             recipient_emails = [email.address for email in user.email_addresses.all()]
-            print(f"recipient_emails: {recipient_emails}")
             template_message = copy.deepcopy(self.EMAIL_TEMPLATE_LIST)
             template_message[3] = recipient_emails + ["allenfg86@gmail.com"]
 
@@ -89,6 +93,7 @@ class LibgenAPI:
             email_message.attach_file(book_file_path)
             email_message.send(fail_silently=False)
 
+        # delete file after sending!
         os.remove(book_file_path)
         # # DEBUG
         # print(f"email!!!: {email_message}")
