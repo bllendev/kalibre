@@ -16,8 +16,7 @@
                 <th style="width:20%">author</th>
                 <th style="width:50%">title</th>
                 <th style="white-space:nowrap">file-type</th>
-                {% comment %} <th>links</th>
-                <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
+                {% comment %} <th>links</th> <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
                 <th></th> <!--send now button-->
 
             </thead>
@@ -37,7 +36,8 @@
                         </td> {% endcomment %}
                         {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
                             {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
-                        <td><button id="book_{{forloop.counter}}" class='btn-sm btn-primary' type="button" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
+
+                        <td><input type="hidden" id="book_{{forloop.counter}}" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
                     </tr>
                 {% endfor %}
             </form>
@@ -48,78 +48,3 @@
 {% endblock content %}
 
 {% comment %} <div id="img"><img src="{% static '/images/loading_snail.gif' %}"></div> {% endcomment %}
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-
-
-<script>
-
-    window.onload = function() {
-        if (window.jQuery) {  
-            // jQuery is loaded  
-            alert("Yeah!");
-        } else {
-            // jQuery is not loaded
-            alert("Doesn't Work");
-        }
-    }
-
-    {% comment %} $('#buttonID').click(function(){
-        $('#img').show(); //<----here
-        $.ajax({
-          ....
-         success:function(result){
-             $('#img').hide();  //<--- hide again
-         }
-    }
-
-    $.ajax({
-        url: url,
-        type: "POST",
-        dataType: "json",
-        data: JSON.stringify({payload: payload,}),
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
-        },
-        success: (data) => {
-          console.log(data);
-        },
-        error: (error) => {
-          console.log(error);
-        }
-    }); {% endcomment %}
-
-    function get_loading_img(button_id) {
-        button = $(button_id);
-        loading_img = $("#img");
-        button.replaceWith(loading_img);
-        $('#book_send_form').trigger('submit');
-    }
-
-    {% for book in libgen.get_book_list %}
-        $('#button{{forloop.counter}}').click(function(){
-            loading_img = $("#img");
-            button.replaceWith(loading_img);
-            $('#book_send_form').trigger('submit');        });
-    {% endfor %}
-    
-    
-
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-          const cookies = document.cookie.split(";");
-          for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
-            }
-          }
-        }
-        return cookieValue;
-    }
-
-</script>

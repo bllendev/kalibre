@@ -1,20 +1,31 @@
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import JsonResponse
+from books.utils import LibgenAPI
+from django.contrib.auth import get_user_model
 
-from todos.models import Todo
+
+CustomUser = get_user_model()
 
 
-def todos(request):
-    # request.is_ajax() is deprecated since django 3.1
+def send_book(request):
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    if is_ajax and request.method == 'POST':
+        # organize
+        post_dict = {key: val for key, val in request.POST.items() if "book" in key}
+        post_dict_keys = list(post_dict.keys())
 
-    if is_ajax:
-        if request.method == 'POST':
-            username = request.user.username
-            user = CustomUser.objects.get(username=username)
-            libgen = LibgenAPI()
-            book_link = request.POST.get('book')
-            libgen.download_book(user, book_link)
-            return JsonResponse({'context': todos})
-        return JsonResponse({'status': 'Invalid request'}, status=400)
-    else:
-        return HttpResponseBadRequest('Invalid request')
+        # extract book info
+        link = post_dict[post_dict_keys[0]]
+        book_title, filetype = post_dict_keys[0].split("__")
+        book_title = book_title.replace("book_", "")
+        filetype = filetype.replace("type_", "")
+
+        # extract user info
+        username = request.user.username
+        user = CustomUser.objects.get(username=username)
+
+        # send book file
+        libgen = LibgenAPI()
+        libgen.send_book_file(user, link, book_title, filetype)
+        return JsonResponse({'status': True}, status=200)
+
+    return JsonResponse({'status': False}, status=400)

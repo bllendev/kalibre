@@ -21,7 +21,7 @@ class Book(models.Model):
     filetype = models.CharField(max_length=60, default="")
 
     def __str__(self):
-        return self.title
+        return f"{self.title} - {self.filetype} - {self.link}"
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])

@@ -13,7 +13,6 @@ from users.models import Email
 from django.views.decorators.cache import never_cache
 
 
-
 CustomUser = get_user_model()
 
 
@@ -42,6 +41,7 @@ class SearchResultsListView(ListView):
         return Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
 
 
+@never_cache
 def search_results(request):
     from books.utils import LibgenAPI
 
@@ -49,20 +49,8 @@ def search_results(request):
     choices_list = None
     link = None
 
-    if request.method == "POST":
-        for key, val in request.POST.items():
-            if "book" in key:
-                link = val
-                book_title, filetype = key.split("__")
-                book_title = book_title.replace("book_", "")
-                filetype = filetype.replace("type_", "")
-                username = request.user.username
-                user = CustomUser.objects.get(username=username)
-                libgen = LibgenAPI()
-                libgen.download_book(user, link, book_title, filetype)
-                print(f"book_title: {book_title}")
-                print(f"filetype: {filetype}")
-                return redirect(reverse("home"))
+    if request.method == "POST":        # see books.ajax.send_book
+        return redirect(reverse("home"))
 
     if query:
         libgen = LibgenAPI(str(query))
@@ -89,7 +77,6 @@ def my_emails(request):
         email_addresses = user.email_addresses.all()
         username_str = f"{username}'s emails!"
 
-    print(f"REQUEST METHOD: {request.method}")
     if request.method == "POST":
         if user:
             if request.POST.get("delete_email"):
@@ -103,9 +90,6 @@ def my_emails(request):
                 new_email, created = Email.objects.get_or_create(address=email)
                 new_email.user = user
                 user.email_addresses.add(new_email)
-
-            print(f"request.post...{[(x, y) for x, y in request.POST.items()]}")
-            print(f"email: {email}")
             user.save()
             return fx_return_to_sender(request)
 

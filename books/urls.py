@@ -1,5 +1,6 @@
 from django.urls import path
 from books import views
+from books import ajax
 
 
 urlpatterns = [
@@ -9,4 +10,7 @@ urlpatterns = [
 
     # email
     path("my_emails/", views.my_emails, name="my_emails"),
+
+    # ajax
+    path("send_book/", ajax.send_book, name="send_book"),
 ]
