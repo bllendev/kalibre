@@ -23,6 +23,8 @@
           {% comment %} <li class="nav-item">
             <a class="nav-link" href="{% url 'book_list' %}">my books</a>
           </li> {% endcomment %}
+          {{ user.is_authenticated|json_script:"valid_user" }}
+
           {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'my_emails' %}">my emails</a>
@@ -53,26 +55,29 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
-
     <script>
   
       $(document).ready(function () {
+          const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
           var token = '{{csrf_token}}';
-          console.log('hello world');
 
           $("#book_send_form").on("submit", function(event) {
             // stop prop
             event.stopPropagation();
             event.preventDefault();
 
-            // show loading screen
+            // TODO: show loading screen 
             
             
             // serialize the form data 
             var data = $(this).serialize();
-            console.log("form ajax setup");
 
-            if (confirm("do you want to send this book to your emails?")) {
+            if (!valid_user) {
+              alert("you must be logged in to send books!");
+              return
+            }
+
+            if (valid_user && confirm("do you want to send this book to your emails?")) {
               $("#dim_wrapper").animate({ 
                 "background-color": "gray", 
                 "opacity": .5,

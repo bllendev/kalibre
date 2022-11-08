@@ -13,7 +13,7 @@
             <table class='table striped sortable'>
                 <thead>
 
-                    <th></th> <!--save book for later button-->
+                    {% comment %} <th></th> <!--save book for later button--> {% endcomment %}
                     <th style="width:20%">author</th>
                     <th style="width:50%">title</th>
                     <th style="white-space:nowrap">file-type</th>
@@ -26,7 +26,7 @@
                     {% csrf_token %}
                     {% for book in libgen.get_book_list %}
                         <tr>
-                            <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>   {%comment%} NOTE: wire this up {%endcomment%}
+                            {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
                             <td>{{book.author}}</td>
                             <td>{{book.title}}</td>
                             <td>{{book.file_type}}</td>
