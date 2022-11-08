@@ -23,9 +23,11 @@
           {% comment %} <li class="nav-item">
             <a class="nav-link" href="{% url 'book_list' %}">my books</a>
           </li> {% endcomment %}
+          {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'my_emails' %}">my emails</a>
           </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'about' %}">how to use?</a>
           </li>

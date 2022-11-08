@@ -47,10 +47,6 @@ def search_results(request):
 
     query = request.GET.get('q')
     choices_list = None
-    link = None
-
-    if request.method == "POST":        # see books.ajax.send_book
-        return redirect(reverse("home"))
 
     if query:
         libgen = LibgenAPI(str(query))
@@ -60,7 +56,6 @@ def search_results(request):
         request,
         'books/search_results.html',
         {
-            'link': link,
             'choices_list': choices_list,
             'libgen': libgen,
         }
