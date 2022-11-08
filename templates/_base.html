@@ -53,30 +53,42 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 
     <script>
-
-      var token = '{{csrf_token}}';
   
       $(document).ready(function () {
+          var token = '{{csrf_token}}';
           console.log('hello world');
 
           $("#book_send_form").on("submit", function(event) {
+            // stop prop
             event.stopPropagation();
+            event.preventDefault();
+
+            // show loading screen
+            
+            
             // serialize the form data 
             var data = $(this).serialize();
             console.log("form ajax setup");
-            console.log(data);
-            $.ajax({
+
+            if (confirm("do you want to send this book to your emails?")) {
+              $("#dim_wrapper").animate({ 
+                "background-color": "gray", 
+                "opacity": .5,
+              }, 'slow');
+              $.ajax({
                 type : 'POST',
                 url :  "{% url 'send_book' %}",
                 data : data,
                 headers: { "X-CSRFToken": token },
                 success : function(response){
-                    console.log("success!!!");
+                    $("#dim_wrapper").removeAttr('style');
+                    alert("your book has been successfully sent!");
                 },
                 error : function(response){
-                    console.log("fail!!!");
+                    alert("hmmm, there seems to have been an error sending your book!");
                 },
-            });
+              }); 
+            }
           });
       });
   

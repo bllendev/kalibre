@@ -7,43 +7,47 @@
 
     <h1><a href="{% url 'home' %}" class="link-secondary">Search Results</a></h1>
     
-    <div>
+    <div id='dim_wrapper' style='width:100%; height:100%; z-index:10'>
+        <div>
 
-        <table class='table striped sortable'>
-            <thead>
+            <table class='table striped sortable'>
+                <thead>
 
-                <th></th> <!--save book for later button-->
-                <th style="width:20%">author</th>
-                <th style="width:50%">title</th>
-                <th style="white-space:nowrap">file-type</th>
-                {% comment %} <th>links</th> <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
-                <th></th> <!--send now button-->
+                    <th></th> <!--save book for later button-->
+                    <th style="width:20%">author</th>
+                    <th style="width:50%">title</th>
+                    <th style="white-space:nowrap">file-type</th>
+                    {% comment %} <th>links</th> <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
+                    <th></th> <!--send now button-->
 
-            </thead>
-            <br>
-            <form method="POST" id="book_send_form">
-                {% csrf_token %}
-                {% for book in libgen.get_book_list %}
-                    <tr>
-                        <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>   {%comment%} NOTE: wire this up {%endcomment%}
-                        <td>{{book.author}}</td>
-                        <td>{{book.title}}</td>
-                        <td>{{book.file_type}}</td>
-                        {% comment %} <td>
-                            {% for link in book.links %}
-                                <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
-                            {% endfor %}
-                        </td> {% endcomment %}
-                        {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
-                            {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
+                </thead>
+                <br>
+                <form method="POST" id="book_send_form">
+                    {% csrf_token %}
+                    {% for book in libgen.get_book_list %}
+                        <tr>
+                            <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>   {%comment%} NOTE: wire this up {%endcomment%}
+                            <td>{{book.author}}</td>
+                            <td>{{book.title}}</td>
+                            <td>{{book.file_type}}</td>
+                            {% comment %} <td>
+                                {% for link in book.links %}
+                                    <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
+                                {% endfor %}
+                            </td> {% endcomment %}
+                            {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
+                                {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
 
-                        <td><input type="hidden" id="book_{{forloop.counter}}" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
-                    </tr>
-                {% endfor %}
-            </form>
-        </table>
+                            <td><input type="hidden" id="book_{{forloop.counter}}" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
+                        </tr>
+                    {% endfor %}
+                </form>
+            </table>
+
+        </div>
 
     </div>
+
 
 {% endblock content %}
 
