@@ -62,15 +62,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
 
 
-
-
-
     <script>
   
        $(document).ready(function () {
           const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
           const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
           var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
+          $('#loading_div').hide();
 
           var token = '{{csrf_token}}';
 
@@ -118,9 +116,12 @@
                 }, 'slow'); {% endcomment %}
 
                 var timeout = setTimeout(function() {
+                $('#loading_div').show();
                  // $.blockUI({message: '<img id="loading" style="width:400px;height:400px" src="{% static "images/loading.gif" %}">'});
                  $.blockUI({message: $('#loading_div')});
                 }, 1000);
+
+              
                 
                 $.ajax({
                   type : 'POST',
@@ -138,6 +139,7 @@
                     //   in less than 1000 milliseconds
                     clearTimeout(timeout);
                     $.unblockUI();
+                    $('#loading_div').hide();
                   }
                 });
             } 
