@@ -17,7 +17,7 @@ class Book(models.Model):
     author = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
     cover = models.ImageField(upload_to='covers/', blank=True)
-    link = models.CharField(max_length=280, default="")
+    link = models.CharField(max_length=562, default="")
     filetype = models.CharField(max_length=60, default="")
 
     def __str__(self):
