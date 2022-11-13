@@ -118,7 +118,8 @@
                 var timeout = setTimeout(function() {
                 $('#loading_div').show();
                  // $.blockUI({message: '<img id="loading" style="width:400px;height:400px" src="{% static "images/loading.gif" %}">'});
-                 $.blockUI({message: $('#loading_div')});
+                 {% comment %} $.blockUI({message: $('#loading_div')}); {% endcomment %}
+                 $.blockUI({message: "One moment please !"});
                 }, 1000);
 
               
