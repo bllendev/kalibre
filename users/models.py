@@ -17,3 +17,16 @@ class Email(models.Model):
 
 class CustomUser(AbstractUser):
     email_addresses = models.ManyToManyField(Email)
+
+    @property
+    def emails_exist(self):
+        return self.email_addresses.all().exists()
+
+    @property
+    def email_addresses_str(self):
+        email_list = list(self.email_addresses.all())
+        email_str = ""
+        if email_list:
+            for email in email_list:
+                email_str += f"{email}\n"
+        return email_str

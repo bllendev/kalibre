@@ -24,6 +24,7 @@
             <a class="nav-link" href="{% url 'book_list' %}">my books</a>
           </li> {% endcomment %}
           {{ user.is_authenticated|json_script:"valid_user" }}
+          {{ user.email_addresses_str|json_script:"email_address_list" }}
 
           {% if user.is_authenticated %}
           <li class="nav-item">
@@ -52,52 +53,97 @@
   <div class="container">
     {% block content %}
     {% endblock content %}
+    <div id="loading_div"><img id="loading" style="width:400px;height:400px" src="{% static "images/loading.gif" %}"></div>
+
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+
+
+
+
+
     <script>
   
-      $(document).ready(function () {
+       $(document).ready(function () {
           const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
+          const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
+          var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
+
           var token = '{{csrf_token}}';
+
+          function user_has_emails_bln() {
+            console.log($("#email_address_list"));
+            return $("#email_address_list").length > 0
+          }
 
           $("#book_send_form").on("submit", function(event) {
             // stop prop
             event.stopPropagation();
             event.preventDefault();
-
-            // TODO: show loading screen 
-            
             
             // serialize the form data 
             var data = $(this).serialize();
 
+            // case 0: invalid user
             if (!valid_user) {
               alert("you must be logged in to send books!");
               return
             }
 
-            if (valid_user && confirm("do you want to send this book to your emails?")) {
-              $("#dim_wrapper").animate({ 
-                "background-color": "gray", 
-                "opacity": .5,
-              }, 'slow');
-              $.ajax({
-                type : 'POST',
-                url :  "{% url 'send_book' %}",
-                data : data,
-                headers: { "X-CSRFToken": token },
-                success : function(response){
-                    $("#dim_wrapper").removeAttr('style');
-                    alert("your book has been successfully sent!");
-                },
-                error : function(response){
-                    alert("hmmm, there seems to have been an error sending your book!");
-                },
-              }); 
+            // case 1: no email list ! tell the user to add emails !
+            if (!emails_exist) {
+              var alert_email_confirm = "you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!";
+              alert(alert_email_confirm);
+              return
             }
-          });
-      });
+
+            // case 2: valid user and email list
+            if (emails_exist) {
+              var alert_email_confirm = "do you want to send this book to the following emails?...";
+              alert_email_confirm = alert_email_confirm + "\n" + email_address_list
+
+
+              // case 2-a: user confirms
+              if (valid_user && confirm(alert_email_confirm)) {
+                // show loading cursor
+                $("body").css("cursor", "progress");
+
+                {% comment %} // dim background
+                $("#dim_wrapper").animate({ 
+                  "background-color": "gray", 
+                  "opacity": .5,
+                }, 'slow'); {% endcomment %}
+
+                var timeout = setTimeout(function() {
+                 // $.blockUI({message: '<img id="loading" style="width:400px;height:400px" src="{% static "images/loading.gif" %}">'});
+                 $.blockUI({message: $('#loading_div')});
+                }, 1000);
+                
+                $.ajax({
+                  type : 'POST',
+                  url :  "{% url 'send_book' %}",
+                  data : data,
+                  headers: { "X-CSRFToken": token },
+                  success : function(response){
+                      alert("your book has been successfully sent!");
+                  },
+                  error : function(response){
+                      alert("hmmm, there seems to have been an error sending your book!");
+                  },
+                  complete: function() {
+                    // Clear the timeout just in case the response came back
+                    //   in less than 1000 milliseconds
+                    clearTimeout(timeout);
+                    $.unblockUI();
+                  }
+                });
+            } 
+          }
+        });
+       });
   
     </script>
   </div>

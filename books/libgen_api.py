@@ -124,6 +124,7 @@ class SearchRequest:
 
         # Libgen results contain 3 tables
         # Table2: Table of data to scrape.
+        information_table = []
         try:
             information_table = soup.find_all("table")[2]
         except Exception as e:

@@ -76,7 +76,7 @@ def my_emails(request):
         if user:
             if request.POST.get("delete_email"):
                 email = request.POST.get("delete_email")
-                user_email = user.email_addresses.all().filter(address=email).first()
+                user_email = user.email_addresses.all().filter(address__contains=email).first()
                 if user_email:
                     user.email_addresses.remove(user_email)
                     user_email.delete()
