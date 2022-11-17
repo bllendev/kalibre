@@ -34,7 +34,7 @@
                             {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
                             <td>{{book.author}}</td>
                             <td>{{book.title}}</td>
-                            <td>{{book.file_type}}</td>
+                            <td>{{book.filetype}}</td>
                             {% comment %} <td>
                                 {% for link in book.links %}
                                     <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
@@ -43,7 +43,7 @@
                             {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
                                 {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
 
-                            <td><input type="hidden" id="book_{{forloop.counter}}" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.file_type}}" value="{{book.links.0}}" style='white-space:nowrap'>send</button></td> 
+                            <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.link}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.link}}" style='white-space:nowrap'>send</button></td> 
                         </tr>
                     {% endfor %}
                 </form>

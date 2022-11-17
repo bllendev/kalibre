@@ -53,7 +53,7 @@
   <div class="container">
     {% block content %}
     {% endblock content %}
-    <div id="loading_div"></div>
+    <div id="loading_div" style="background-color:transparent;"></div>
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -65,32 +65,42 @@
     <script>
   
        $(document).ready(function () {
+
+          // setup
           const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
           const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
           var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
           var img = $('<img id="dynamic">'); //Equivalent: $(document.createElement('img'))
-          img.attr('src', '{% static "images/loading.GIF" %}');
-          img.attr('style', 'max-width:100%;max-height:100%;');
+          img.attr('src', '{% static "images/loading_no_background.GIF" %}');
+          img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+          var token = '{{csrf_token}}';
 
+          // hide our gif div on loadup
+          $('#loading_div').hide();
 
+          // handy centering function (centering our gif)
           $.fn.center = function () {
             this.css("position","absolute");
             this.css("top", ($(window).height() - this.height()) / 2+$(window).scrollTop() + "px");
             this.css("left", ( $(window).width() - this.width() ) / 2+$(window).scrollLeft() + "px");
             return this;
-        }
+          }
 
-          $('#loading_div').hide();
+          // handy func to make div transparent
+          $.fn.transparent = function () {
+            this.css("background-color", "transparent");
+            this.css("border", "0px");
+            return this;
+          }
 
-          var token = '{{csrf_token}}';
-
+          // handy func to check if user actually has emails
           function user_has_emails_bln() {
-            console.log($("#email_address_list"));
             return $("#email_address_list").length > 0
           }
 
+          // ajax submit form and gif loading screen
           $("#book_send_form").on("submit", function(event) {
-            // stop prop
+            // stop propogation 
             event.stopPropagation();
             event.preventDefault();
             
@@ -121,43 +131,45 @@
                 // show loading cursor
                 $("body").css("cursor", "progress");
 
-                {% comment %} // dim background
-                $("#dim_wrapper").animate({ 
-                  "background-color": "gray", 
-                  "opacity": .5,
-                }, 'slow'); {% endcomment %}
-
+                // timeout func to show our gif for a moment and do ajax !
                 var timeout = setTimeout(function() {
-                img.appendTo('#loading_div');
-                $('#loading_div').show();
-                 // $.blockUI({message: '<img id="loading" style="width:400px;height:400px" src="{% static "images/loading.gif" %}">'});
-                 $.blockUI({message: $('#loading_div')});
-                 $('.blockUI.blockMsg').center();
-                 // $.blockUI({message: "One moment please !"});
-                }, 1000);
+                  img.appendTo('#loading_div');
+                  $('#loading_div').show()
+                  $.blockUI({
+                    message: $('#loading_div'),
+                    css: { 
+                      padding: 0,
+                      margin: 0,
+                    }
+                  });
+                  // $.blockUI({message: "One moment please !"});     //@AG+++ @review - replace this back (gifs don't work on prod yet)
 
-              
-                
-                $.ajax({
-                  type : 'POST',
-                  url :  "{% url 'send_book' %}",
-                  data : data,
-                  headers: { "X-CSRFToken": token },
-                  success : function(response){
-                      alert("your book has been successfully sent!");
-                  },
-                  error : function(response){
-                      alert("hmmm, there seems to have been an error sending your book!");
-                  },
-                  complete: function() {
-                    // Clear the timeout just in case the response came back
-                    //   in less than 1000 milliseconds
-                    clearTimeout(timeout);
-                    $.unblockUI();
-                    $("#loading_div img:last-child").remove()
-                    $('#loading_div').hide();
-                  }
-                });
+                  // center message and make transparent for aesthetic gif
+                  $('.blockUI.blockMsg').center();
+                  $('.blockUI.blockMsg.blockPage').transparent();
+
+                  // ajax ! - note: we are clearing our timeout func
+                  $.ajax({
+                    type : 'POST',
+                    url :  "{% url 'send_book' %}",
+                    data : data,
+                    headers: { "X-CSRFToken": token },
+                    success : function(response){
+                        alert("your book has been successfully sent!");
+                    },
+                    error : function(response){
+                        alert("hmmm, there seems to have been an error sending your book!");
+                    },
+                    complete: function() {
+                      clearTimeout(timeout);
+                      $.unblockUI();
+                      $("#loading_div img:last-child").remove();
+                      $('#loading_div').hide();
+                      $("body").css("cursor", "default");
+                    }
+                  });
+
+                }, 1000);   // end timeout
             } 
           }
         });
