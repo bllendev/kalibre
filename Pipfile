@@ -18,6 +18,7 @@ cornflake = "*"
 dj-database-url = "*"
 "django.core" = "*"
 django-bootstrap4 = "*"
+flake8 = "*"
 
 [dev-packages]
 
