@@ -46,17 +46,13 @@ def search_results(request):
     from books.utils import LibgenAPI
 
     query = request.GET.get('q')
-    choices_list = None
-
     if query:
         libgen = LibgenAPI(str(query))
-        choices_list = libgen._get_title_choices()
 
     return render(
         request,
         'books/search_results.html',
         {
-            'choices_list': choices_list,
             'libgen': libgen,
         }
     )
@@ -66,6 +62,7 @@ def search_results(request):
 def my_emails(request):
     email_addresses = []
     username_str = ''
+
     if request.user.is_authenticated:
         username = request.user.username
         user = CustomUser.objects.get(username=username)

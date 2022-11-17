@@ -15,9 +15,10 @@ def send_book(request):
 
         # extract book info
         link = post_dict[post_dict_keys[0]]
-        book_title, filetype = post_dict_keys[0].split("__")
+        book_title, filetype, isbn = post_dict_keys[0].split("__")
         book_title = book_title.replace("book_", "")
         filetype = filetype.replace("type_", "")
+        isbn = isbn.replace("isbn_", "")
 
         # extract user info
         username = request.user.username
@@ -25,7 +26,7 @@ def send_book(request):
 
         # send book file
         libgen = LibgenAPI()
-        libgen.send_book_file(user, link, book_title, filetype)
+        libgen.send_book_file(user, link, book_title, filetype, isbn)
         return JsonResponse({'status': True}, status=200)
 
     return JsonResponse({'status': False}, status=400)

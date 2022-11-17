@@ -1,24 +1,35 @@
 import os
 import copy
-from books.libgen_api import LibgenSearch
 from django.conf import settings
+from django.db.models import Q
+from django.db import transaction
+
+from books.models import Book
+from books.libgen_api import LibgenSearch
 
 
 class LibgenBook:
+    """
+        - a handy class that streamlines our scraped
+        libgen api books into a nice accessible class
+        for our Book model
+    """
+
     BOOK_TEMPLATE = {
         'id': '',
         'title': '',
         'author': '',
-        'file_type': '',
+        'filetype': '',
         'links': '',
     }
 
     def __init__(self, book_api):
         self.author = book_api['Author']
         self.title = book_api['Title']
-        self.file_type = book_api['Extension']
-        self.links = [book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']]
-        self.id = book_api['ID']
+        self.filetype = book_api['Extension']
+        # self.links = [book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']]
+        self.link = book_api['Mirror_1']
+        self.isbn = book_api['ID']
 
 
 class LibgenAPI:
@@ -48,44 +59,103 @@ class LibgenAPI:
         list(),                             # recipient_list
     ]
 
+    STABLE_FILE_TYPES = {"epub", "mobi"}
+
     def __init__(self, title_search=None):
         self.libgen = LibgenSearch()
-        self.title_search = title_search
+        self.search_query = title_search
         # self.title_first_choice = self.get_title_choices()[0]
         # self._dev_debug()
-
-    def _get_title_choices(self):
-        title_filters = {"Extension": "mobi"}
-        # titles = self.libgen.search_title_filtered(self.title_search, title_filters, exact_match=False)
-        # authors = self.libgen.search_author_filtered(self.title_search, title_filters, exact_match=False)
-        titles = []
-        authors = []
-        try:
-            titles = self.libgen.search_title(self.title_search)
-            authors = self.libgen.search_author(self.title_search)
-        except Exception as e:
-            print(f"_get_title_choices error: {e}")
-        return titles + authors
 
     def _dev_debug(self):
         pass
 
-    def get_book_list(self):
-        STABLE_FILE_TYPES = {"epub", "mobi"}
+    def _book_db_search(self):
+        """checks db first to see if we may already have a record (bypass api query)"""
+        books = Book.objects.filter(
+            Q(title__icontains=self.search_query) | Q(author__icontains=self.search_query) | Q(filetype__icontains=self.search_query)
+        )
+        return books
+
+    def _get_title_choices(self):
+        # title_filters = {"Extension": "mobi"}
+        # titles = self.libgen.search_title_filtered(self.search_query, title_filters, exact_match=False)
+        # authors = self.libgen.search_author_filtered(self.search_query, title_filters, exact_match=False)
+        titles = []
+        authors = []
+        try:
+            titles = self.libgen.search_title(self.search_query)
+            authors = self.libgen.search_author(self.search_query)
+            _book_list = titles + authors
+        except Exception as e:
+            print(f"_get_title_choices error: {e}")
+        return _book_list
+
+    def _get_book_list(self):
         book_list = []
         try:
-            _book_list = [LibgenBook(title) for title in self._get_title_choices()]
-            book_list = [book for book in _book_list if book.file_type in STABLE_FILE_TYPES]
+            # get libgen books
+            titles = self._get_title_choices()
+            _book_list = [LibgenBook(title) for title in titles]
+
+            # filter by stable files for now (epub, mobi) - will eventually add .pdf and filter/selection system to ui - @AG
+            book_list = [book for book in _book_list if book.filetype in self.STABLE_FILE_TYPES]
         except Exception as e:
             print(f"ERROR: {e}")
         finally:
             return book_list
 
-    def send_book_file(self, user, link, book_title, filetype):
+    def get_book_list(self):
+        # check books in db first
+        books = self._book_db_search()
+
+        # if not reasonable selection, do fresh query using libgen api
+        if len(books) < 5:
+            libgen_books = self._get_book_list()
+            books = []
+            for new_book in libgen_books:
+                new_book_dict = new_book.__dict__
+                books.append(Book(**new_book_dict))
+            bulk_save(books)
+        return books
+
+    def get_book_path_from_link(self, link, book_title, filetype, isbn):
+        from django.conf import settings
+        import requests
+
+        # get or create book (in db)
+        new_book = Book.objects.get(isbn=isbn)          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
+        if not new_book:
+            new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
+        book_download_link = ""
+
+        # get and assign book link
+        try:
+            if not new_book.link or not new_book.filetype:
+                # new book save
+                new_book.link = link
+                new_book.save()
+
+            # get book download link - this gives us the actual book file
+            book_download_link = new_book.get_book_download_link(link)
+        except Exception as e:
+            print(f"get_book_path_from_link error: {e}")
+
+        # write file to path (will use file to send - then we will delete file)
+        new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
+        with open(new_file_path, "wb") as f:
+            if book_download_link:
+                temp_book_file_dl = requests.get(book_download_link)
+                f.write(temp_book_file_dl.content)
+                f.close()
+        return new_file_path
+
+    def send_book_file(self, user, link, book_title, filetype, isbn):
+        """emails actual book file to recipient addresses"""
         from django.core import mail
 
         # get book file path
-        book_file_path = self.get_book_path_from_link(link, book_title, filetype)        # web scraper
+        book_file_path = self.get_book_path_from_link(link, book_title, filetype, isbn)        # web scraper
         if book_file_path is None:
             return
 
@@ -102,36 +172,9 @@ class LibgenAPI:
         # delete book_file after sending!
         os.remove(book_file_path)
 
-    def get_book_path_from_link(self, link, book_title, filetype):
-        from bs4 import BeautifulSoup
-        import requests
-        from django.conf import settings
-        from books.models import Book
 
-        # get or create book (in db)
-        _book_dict = {"title": book_title, "filetype": filetype}
-        new_book, created = Book.objects.get_or_create(**_book_dict)
-        book_dl_link = ""
-        book_dl_filetype = ""
-        first_book_dl_link = ""
-
-        # get and assign book link
-        try:
-            if not new_book.link or not new_book.filetype:
-                response = requests.get(link)
-                soup = BeautifulSoup(response.content, "html.parser")
-                first_book_dl_link = soup.find_all('a')[0].get('href')
-                new_book.link = first_book_dl_link
-                new_book.filetype = filetype
-                new_book.save()
-        except Exception as e:
-            print(f"get_book_path_from_link error: {e}")
-
-        # write file to path (will use file to send - then we will delete file)
-        new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
-        with open(new_file_path, "wb") as f:
-            if new_book.link:
-                temp_book_file_dl = requests.get(new_book.link)
-                f.write(temp_book_file_dl.content)
-                f.close()
-        return new_file_path
+@transaction.atomic
+def bulk_save(queryset):
+    """atomic save! prevent save issues when saving to db"""
+    for item in queryset:
+        item.save()
