@@ -61,9 +61,10 @@ class LibgenAPI:
 
     STABLE_FILE_TYPES = {"epub", "mobi"}
 
-    def __init__(self, title_search=None):
+    def __init__(self, title_search=None, force_api=False):
         self.libgen = LibgenSearch()
         self.search_query = title_search
+        self.force_api = force_api
         # self.title_first_choice = self.get_title_choices()[0]
         # self._dev_debug()
 
@@ -115,7 +116,7 @@ class LibgenAPI:
         # if not reasonable selection, do fresh query using libgen api
         isbn_log_dict = {book.isbn: book for book in books}
         new_isbn_dict = {}
-        if len(books) < 5:
+        if not books or (self.force_api and len(books) < 5):
             libgen_books = self._get_book_list()
             books = []
             for new_book in libgen_books:

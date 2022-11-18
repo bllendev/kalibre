@@ -31,23 +31,18 @@ class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     permission_required = 'books.special_status'
 
 
-class SearchResultsListView(ListView):
-    model = Book
-    context_object_name = 'book_list'
-    template_name = 'books/search_results.html'
-
-    def get_queryset(self):
-        query = self.request.GET.get('q')
-        return Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
-
 
 @never_cache
 def search_results(request):
     from books.utils import LibgenAPI
 
-    query = request.GET.get('q')
-    if query:
-        libgen = LibgenAPI(str(query))
+    db_query = request.GET.get('db_q')
+    if db_query:
+        libgen = LibgenAPI(str(db_query), force_api=False)
+
+    api_query = request.GET.get('api_q')
+    if api_query:
+        libgen = LibgenAPI(str(api_query), force_api=True)
 
     return render(
         request,
