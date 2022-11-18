@@ -19,6 +19,8 @@ dj-database-url = "*"
 "django.core" = "*"
 django-bootstrap4 = "*"
 flake8 = "*"
+cloudinary = "*"
+django-cloudinary-storage = "*"
 
 [dev-packages]
 

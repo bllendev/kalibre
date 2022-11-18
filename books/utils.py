@@ -81,6 +81,9 @@ class LibgenAPI:
         # title_filters = {"Extension": "mobi"}
         # titles = self.libgen.search_title_filtered(self.search_query, title_filters, exact_match=False)
         # authors = self.libgen.search_author_filtered(self.search_query, title_filters, exact_match=False)
+        import cloudinary.uploader
+        from django.conf import settings
+
         titles = []
         authors = []
         try:
