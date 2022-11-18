@@ -113,6 +113,7 @@ class LibgenAPI:
         books = self._book_db_search()
 
         # if not reasonable selection, do fresh query using libgen api
+        isbn_log_dict = {book.isbn: book for book in books}
         new_isbn_dict = {}
         if len(books) < 5:
             libgen_books = self._get_book_list()
@@ -120,11 +121,11 @@ class LibgenAPI:
             for new_book in libgen_books:
                 new_book_dict = new_book.__dict__
                 new_isbn_dict[new_book.isbn] = new_book_dict
-            for new_book_dict in new_isbn_dict.values():
-                books.append(Book(**new_book_dict))
+            for isbn, new_book_dict in new_isbn_dict.items():
+                if isbn not in isbn_log_dict:
+                    books.append(Book(**new_book_dict))
             bulk_save(books)
 
-        Book.objects.filter()
         return books
 
     def get_book_path_from_link(self, link, book_title, filetype, isbn):
