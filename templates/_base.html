@@ -20,7 +20,7 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav me-auto mb-2 mb-md-0">
-          {% comment %} <li class="nav-item">
+          {% comment %} <li class="nav-item"><
             <a class="nav-link" href="{% url 'book_list' %}">my books</a>
           </li> {% endcomment %}
           {{ user.is_authenticated|json_script:"valid_user" }}
@@ -50,7 +50,7 @@
       </div>
     </div>
   </nav>
-  <div class="container">
+  <div class="container mt-5">
     {% block content %}
     {% endblock content %}
     <div id="loading_div" style="background-color:transparent;"></div>
@@ -74,15 +74,51 @@
           const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
           const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
           var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
-          var img = $('<img id="dynamic">'); //Equivalent: $(document.createElement('img'))
-          img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
-          img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
           var token = '{{csrf_token}}';
 
+          // peas
+          var peas_img = $('<img id="peas">'); //Equivalent: $(document.createElement('img'))
+          peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668751442/Untitled-Artwork_2-removebg-preview_wnioxv.png");
+          peas_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+          peas_img.appendTo('#peas_div');
+          peas_img.show();
+
+          // dancing_bears
+          var dancing_bears_gif = $('<img id="dancing_bears">'); //Equivalent: $(document.createElement('img'))
+          dancing_bears_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
+          dancing_bears_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+
+          // coffee_nosip
+          var coffee_nosip_gif = $('<img id="coffee_nosip">'); //Equivalent: $(document.createElement('img'))
+          coffee_nosip_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
+          coffee_nosip_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+
+          // coffee_sip
+          var coffee_sip_gif = $('<img id="coffee_sip">'); //Equivalent: $(document.createElement('img'))
+          coffee_sip_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668751443/Untitled-Artwork_1-removebg-preview_rykbfo.png");
+          coffee_sip_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+
+          // flowers
+          var flowers_gif = $('<img id="blue_reading_gif">'); //Equivalent: $(document.createElement('img'))
+          flowers_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921385/blue_reading-removebg-preview_hnuxuo.png");
+          flowers_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+
+          // blue reading
+          var blue_reading_img = $('<img id="blue_reading_img">'); //Equivalent: $(document.createElement('img'))
+          blue_reading_img.addClass("background-image");
+          blue_reading_img.attr('src', "http://res.cloudinary.com/dmh0kulu1/image/upload/v1668922781/blue_reading-removebg-preview_hnuxuo.png");
+          blue_reading_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+          blue_reading_img.appendTo('#blue_reading_div');
+          blue_reading_img.show();
+
+          // loading gif
+          var loading_gif = $('<img id="loading_gif">'); //Equivalent: $(document.createElement('img'))
+          loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
+          loading_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+
           // hide our gif div on loadup
-          
           $('#loading_div').hide();
-          img.hide();
+          loading_gif.hide();
 
           // handy centering function (centering our gif)
           $.fn.center = function () {
@@ -139,8 +175,8 @@
 
                 // timeout func to show our gif for a moment and do ajax !
                 var timeout = setTimeout(function() {
-                  img.appendTo('#loading_div');
-                  img.show();
+                  loading_gif.appendTo('#loading_div');
+                  loading_gif.show();
                   $('#loading_div').show()
                   $.blockUI({
                     message: $('#loading_div'),
@@ -172,7 +208,7 @@
                       $.unblockUI();
                       $("#loading_div img:last-child").remove();
                       $('#loading_div').hide();
-                      img.hide();
+                      loading_gif.hide();
                       $("body").css("cursor", "default");
                     }
                   });
