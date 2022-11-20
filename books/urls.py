@@ -13,4 +13,7 @@ urlpatterns = [
 
     # ajax
     path("send_book/", ajax.send_book, name="send_book"),
+    path("add_email/", ajax.add_email, name="add_email"),
+    path("delete_email", ajax.delete_email, name="delete_email"),
+
 ]

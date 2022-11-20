@@ -4,7 +4,6 @@
 
 {% block title %}Search{% endblock title %}
 {% block content %}
-
 <div id='dim_wrapper' style='width:100%; height:100%; z-index:10'>
 
     <h1><a href="{% url 'home' %}" class="text-secondary">search results</a></h1>
@@ -13,9 +12,9 @@
         <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="search again!" aria-label="search again!">
     </form>
 
-        <div>
+        <div id="search_result_div">
 
-            <table class='table striped sortable'>
+            <table class='table table-striped table-sortable'>
                 <thead>
 
                     {% comment %} <th></th> <!--save book for later button--> {% endcomment %}
@@ -52,7 +51,6 @@
         </div>
 
 </div>
-
 
 {% endblock content %}
 

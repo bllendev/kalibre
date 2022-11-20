@@ -11,46 +11,137 @@ One of the emails should be the highest priority email, and a highest priority f
 to a single place they can. {% endcomment %}
 
 {% block content %}
-  <h2 class="p-2">add emails you'd like to send your books to!</h2>
-  <div class="mb-4">
-    <form method="POST">
-      {% csrf_token %}
-      <input id="email" type="text" name="add_email" placeholder="enter email here">
-      <input type="submit" value="submit">
+
+  <div class="row mb-3">
+      <div class="col-md-8"></div>
+      <div class="col-md-4" id="peas_div"></div>
+  </div>
+  <div class="row">
+    <div class="col-md-9">
+      <h2 class="p-2">add emails you'd like to send your books to!</h2>
+    </div>
+  </div>
+  <div>
+    <form method="POST" id="add_email_form">
+    {% csrf_token %}
+      <div class="input-group mb-3" style="width:75%">
+        <input id="email" name="email_input[]" type="text" class="form-control" placeholder="enter emails here!">
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="submit">submit</button>
+        </div>
+      </div>
     </form>
   </div>
 
 <br>
 
-<div class="mb-4">
-  <div class="row">
+<div>
+  <div class="row">  
     <div class="col-md-12">
-      <form method="POST">
+      <form method="POST" id="delete_email_form">
         {% csrf_token %} 
-        <table class="table striped">
+        <table class="table table-hover" id="email_table" style="width:66%">
           <thead>
             <th>my emails</th>
-            {% comment %} <th>use?</th> {% endcomment %}
-            <th style="width:5%"></th>
+            <th></th>
           </thead>
 
           {% for email in email_addresses %}
-          <tr>
+          <tr id="{{email.pk}}">
             <td>{{ email }}</td>
-            <td>
-              {% comment %} <input class="form-check-input" type="checkbox" id="use_{{email.id}}" this is unfinished{% endcomment %}
+            <td align="right">
+              <input type="hidden" name="delete_email_pk[]" value={{email.pk}}>
+              <button type="submit" class="button btn-sm btn-danger text-nowrap">delete</button>
             </td>
-            <td><button type="submit" class="button btn-sm btn-danger" name="delete_email" value={{email}} style="white-space: nowrap;">x</button></td>
           </tr>
           {% endfor %}
 
         </table>
       </form>
     </div>
+
     {% comment %} <div class="col-md-6 border border-secondary rounded">
       <h4>book cart !</h4>
     </div> {% endcomment %}
   </div>
 
 </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+
+<script>
+  
+  $(document).ready(function () {
+    var token = '{{csrf_token}}';
+
+    // -------------------- //
+    // -- add email ajax -- //
+    // -------------------- //
+    $("#add_email_form").on("submit", function(event) {
+        // stop propogation 
+        event.stopPropagation();
+        event.preventDefault();
+       
+        // serialize the form data 
+        var data = $(this).serializeArray();
+
+        // ajax ! - note: we are clearing our timeout func
+        $.ajax({
+          type : 'POST',
+          url :  "{% url 'add_email' %}",
+          data : data,
+          headers: { "X-CSRFToken": token },
+          success : function(response){
+            // update ui with jquery to reflect new addition of emails
+            var json_string = JSON.stringify(response);
+            var returned_data = JSON.parse(json_string)
+            const email_str = returned_data.email
+            const email_pk = returned_data.email_pk
+            $("#email_table tr:last").after('<tr id="' + email_pk + '"><td>' + email_str + '</td><td align="right"><input type="hidden" name="delete_email_pk[]" value="' + email_pk + '"><button type="submit" class="button btn-sm btn-danger text-nowrap">delete</button></td></tr>');
+
+            // clear text box
+            $('#email').val('');
+          },
+          error : function(response){
+              alert("hmmm, there seems to have been an error adding your email!");
+          },
+        }); 
+     });
+
+    // ----------------------- //
+    // -- delete email ajax -- //
+    // ----------------------- //
+    $("#delete_email_form").on("submit", function(event) {
+      // stop propogation 
+      event.stopPropagation();
+      event.preventDefault();
+     
+      // serialize the form data 
+      var data = $(this).serializeArray();
+
+      // ajax ! - note: we are clearing our timeout func
+      $.ajax({
+        type : 'POST',
+        url :  "{% url 'delete_email' %}",
+        data : data,
+        headers: { "X-CSRFToken": token },
+        success : function(response){
+          // update ui with jquery to reflect deletion of emails
+          var json_string = JSON.stringify(response);
+          var returned_data = JSON.parse(json_string);
+          const delete_email_pk = returned_data.delete_email_pk;
+          $("#" + delete_email_pk).remove();
+
+        },
+        error : function(response){
+            alert("hmmm, there seems to have been an error deleting your email!");
+        },
+      }); 
+   });
+   });
+</script>
+
 {% endblock content %}

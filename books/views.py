@@ -65,20 +65,7 @@ def my_emails(request):
         username_str = f"{username}'s emails!"
 
     if request.method == "POST":
-        if user:
-            if request.POST.get("delete_email"):
-                email = request.POST.get("delete_email")
-                user_email = user.email_addresses.all().filter(address__contains=email).first()
-                if user_email:
-                    user.email_addresses.remove(user_email)
-                    user_email.delete()
-            if request.POST.get("add_email"):
-                email = request.POST.get('add_email')
-                new_email, created = Email.objects.get_or_create(address=email)
-                new_email.user = user
-                user.email_addresses.add(new_email)
-            user.save()
-            return fx_return_to_sender(request)
+         return fx_return_to_sender(request)
 
     return render(
         request,
