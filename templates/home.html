@@ -4,13 +4,21 @@
 {% block title %}kalibre{% endblock title %}
 
 {% block content %}
-  <h1>kalibre</h1>
-    {% comment %} <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}"method="get">
-        <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search"aria-label="Search">
-    </form> {% endcomment %}
-    <div>
-      <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}" method="get">
-        <input name="db_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="search!"aria-label="search">
-      </form>
-    </div>
+<br>
+  <center>
+    <h1 style="font-size:100px">kalibre</h1>
+      {% comment %} <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}"method="get">
+          <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search"aria-label="Search">
+      </form> {% endcomment %}
+      <div class="row justify-content-center">
+        <div id="blue_reading_div" class="col-md-6"></div>
+      </div>
+      <div class="row justify-content-center">
+          <div class="col-md-6">
+            <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}" method="get">
+              <input name="db_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="search!"aria-label="search">
+            </form>
+          </div>
+      </div>
+    </center
 {% endblock content %}
