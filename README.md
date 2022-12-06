@@ -24,5 +24,5 @@ Visit here: https://kalibre-bllendev.herokuapp.com/
 - better account encryption
 
 ### How to run
-- run ~ docker compose up --build -d
+- $ docker compose up --build -d
 
