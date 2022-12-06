@@ -17,9 +17,10 @@ Visit here: https://kalibre-bllendev.herokuapp.com/
 ### Upcoming Features
 - run the website right in your kindle browser
 - massive aesthetic updates, working with __pine__ for custom art
-- custom file searching
+- custom search by filetype
 - account detail view
-- instant email change upon sending
+- book detail view
+- dynamic email change upon sending
 - better account encryption
 
 ### How to run
