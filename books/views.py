@@ -77,22 +77,11 @@ def my_emails(request):
     )
 
 
-def get_absolute_dict(request):
-    urls = {
-        'ABSOLUTE_ROOT': request.build_absolute_uri('/')[:-1].strip("/"),
-        'ABSOLUTE_ROOT_URL': request.build_absolute_uri('/').strip("/"),
-    }
-
-    return urls
-
-
 def fx_return_to_sender(request, remove_GET=True):
     """
         Return user back to the url from whence they came.
     """
     request_http_referer = request.META.get("HTTP_REFERER", "")
-    print(f"request_http_referer: {request_http_referer}")
     if request_http_referer and "?" in request_http_referer and remove_GET:
         request_http_referer = request_http_referer.split("?")[0]
-        print(f"SECOND request_http_referer: {request_http_referer}")
     return redirect(request_http_referer)

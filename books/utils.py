@@ -74,11 +74,11 @@ class LibgenAPI:
     def _book_db_search(self):
         """checks db first to see if we may already have a record (bypass api query)"""
         books = Book.objects.filter(
-            Q(title__icontains=self.search_query) | Q(author__icontains=self.search_query) | Q(filetype__icontains=self.search_query)
+            Q(title__icontains=self.search_query) | Q(author__icontains=self.search_query) | Q(filetype__icontains=self.search_query) | Q(isbn__icontains=self.search_query)
         )
         return books
 
-    def _get_title_choices(self):
+    def _get_api_book_choices(self):
         # title_filters = {"Extension": "mobi"}
         # titles = self.libgen.search_title_filtered(self.search_query, title_filters, exact_match=False)
         # authors = self.libgen.search_author_filtered(self.search_query, title_filters, exact_match=False)
@@ -92,15 +92,15 @@ class LibgenAPI:
             authors = self.libgen.search_author(self.search_query)
             _book_list = titles + authors
         except Exception as e:
-            print(f"_get_title_choices error: {e}")
+            print(f"_get_api_book_choices error: {e}")
         return _book_list
 
     def _get_book_list(self):
         book_list = []
         try:
             # get libgen books
-            titles = self._get_title_choices()
-            _book_list = [LibgenBook(title) for title in titles]
+            api_book = self._get_api_book_choices()
+            _book_list = [LibgenBook(api_book) for api_book in api_book]
 
             # filter by stable files for now (epub, mobi) - will eventually add .pdf and filter/selection system to ui - @AG
             book_list = [book for book in _book_list if book.filetype in self.STABLE_FILE_TYPES]
@@ -114,17 +114,19 @@ class LibgenAPI:
         books = self._book_db_search()
 
         # if not reasonable selection, do fresh query using libgen api
-        isbn_log_dict = {book.isbn: book for book in books}
-        new_isbn_dict = {}
         if not books or (self.force_api and len(books) < 5):
-            libgen_books = self._get_book_list()
-            books = []
-            for new_book in libgen_books:
-                new_book_dict = new_book.__dict__
-                new_isbn_dict[new_book.isbn] = new_book_dict
-            for isbn, new_book_dict in new_isbn_dict.items():
-                if isbn not in isbn_log_dict:
-                    books.append(Book(**new_book_dict))
+            db_books_by_id = {book.isbn: book for book in books}    
+            api_books_by_id = {book.isbn: book.__dict__ for book in self._get_book_list()}
+            created_books_by_id = {}
+
+            # filter books by what is already in our db (if any)
+            for isbn, new_book_dict in api_books_by_id.items():
+                if isbn not in db_books_by_id:
+                    book_obj = Book(**new_book_dict)
+                    created_books_by_id[isbn] = book_obj
+
+            # save filtered books
+            books = {book for isbn, book in created_books_by_id.items()}
             bulk_save(books)
 
         return books
@@ -133,38 +135,36 @@ class LibgenAPI:
         from django.conf import settings
         import requests
 
-        # get or create book (in db)
-        new_book = Book.objects.get(isbn=isbn)          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
+        # get book !
+        new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
         if not new_book:
             new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
         book_download_link = ""
 
-        # get and assign book link
+        # get book download link - this gives us the actual book file
         try:
-            if not new_book.link or not new_book.filetype:
-                # new book save
-                new_book.link = link
-                new_book.save()
-
-            # get book download link - this gives us the actual book file
             book_download_link = new_book.get_book_download_link(link)
         except Exception as e:
             print(f"get_book_path_from_link error: {e}")
 
         # write file to path (will use file to send - then we will delete file)
         new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
-        with open(new_file_path, "wb") as f:
-            if book_download_link:
-                temp_book_file_dl = requests.get(book_download_link)
-                f.write(temp_book_file_dl.content)
-                f.close()
+
+        try:
+            with open(new_file_path, "wb") as f:
+                if book_download_link:
+                    temp_book_file_dl = requests.get(book_download_link)
+                    f.write(temp_book_file_dl.content)
+                    f.close()
+        except Exception as e:
+            os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
         return new_file_path
 
     def send_book_file(self, user, link, book_title, filetype, isbn):
         """emails actual book file to recipient addresses"""
         from django.core import mail
 
-        # get book file path
+        # get book file path (safety bypass if no path)
         book_file_path = self.get_book_path_from_link(link, book_title, filetype, isbn)        # web scraper
         if book_file_path is None:
             return
@@ -172,7 +172,7 @@ class LibgenAPI:
         # send book as email to recipients
         with mail.get_connection() as connection:
             recipient_emails = [email.address for email in user.email_addresses.all()]
-            template_message = copy.deepcopy(self.EMAIL_TEMPLATE_LIST)
+            template_message = copy.deepcopy(self.EMAIL_TEMPLATE_LIST)                        # NOTE: deep copy
             template_message[3] = recipient_emails
 
             email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
@@ -180,7 +180,7 @@ class LibgenAPI:
             email_message.send(fail_silently=False)
 
         # delete book_file after sending!
-        os.remove(book_file_path)
+        os_silent_remove(book_file_path)
 
 
 @transaction.atomic
@@ -188,3 +188,11 @@ def bulk_save(queryset):
     """atomic save! prevent save issues when saving to db"""
     for item in queryset:
         item.save()
+
+
+def os_silent_remove(filename):
+    try:
+        os.remove(filename)
+    except OSError as e: # this would be "except OSError, e:" before Python 2.6
+        if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
+            raise # re-raise exception if a different error occurred
