@@ -135,27 +135,29 @@ class LibgenAPI:
 
     def get_book_file_path_from_links(self, links, book_title, filetype, isbn):
         from django.conf import settings
-        import requests
 
-        # get book !
+        # get book record from db!
         new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
         if not new_book:
             new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
 
         # write file to path (will use file to send - then we will delete file)
-        book_file_str = f"{new_book.title}.{new_book.filetype}"
-        new_file_path = os.path.join(settings.BASE_DIR, book_file_str)
+        new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
 
+        # get book file content
         i = 0
         temp_book_file_dl = None
         while not temp_book_file_dl and i < len(links):
             temp_book_file_dl = new_book.get_book_download_content(links[i])
             i += 1
+
+        # write book file content
         try:
-            with open(new_file_path, "wb") as f:
-                f.write(temp_book_file_dl.content)
+            with temp_book_file_dl and open(new_file_path, "w") as f:
+                f.write(temp_book_file_dl.content())
                 f.close()
         except Exception as e:
+            print(f"ERROR OCCURED: {e}")
             os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
         return new_file_path
 
@@ -192,6 +194,5 @@ def bulk_save(queryset):
 def os_silent_remove(filename):
     try:
         os.remove(filename)
-    except OSError as e: # this would be "except OSError, e:" before Python 2.6
-        if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
-            raise # re-raise exception if a different error occurred
+    except OSError as e:
+        print(f"os_silent_remove: {e}")

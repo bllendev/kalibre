@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 from django.contrib.postgres.fields import JSONField
+import urllib
 
 
 class Book(models.Model):
@@ -28,20 +29,35 @@ class Book(models.Model):
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
 
+    def _get_book_file_download_link(self, link):
+        from bs4 import BeautifulSoup
+        book_download_link = None
+        with urllib.request.urlopen(link) as response:
+            soup = BeautifulSoup(response.read(), "html.parser")
+            book_download_link = soup.find_all('a')[0].get('href')
+        return book_download_link
+
     def get_book_download_content(self, link):
         """
             - this takes scraps self.link, finding the
             specific download link to the book file.
         """
-        from bs4 import BeautifulSoup
         import requests
+        temp_book_file_dl = None
         try:
-            response = requests.get(link)
-            soup = BeautifulSoup(response.content, "html.parser")
-            book_download_link = soup.find_all('a')[0].get('href')
-            temp_book_file_dl = requests.get(book_download_link)
+            user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
+            values = {'name' : 'Michael Foord',
+                    'location' : 'Northampton',
+                    'language' : 'Python' }
+            headers = { 'User-Agent' : user_agent }
+
+            data = urllib.parse.urlencode(values)
+            data = data.encode('ascii')
+            book_download_link = self._get_book_file_download_link(link)
+            # request = urllib.request.Request(book_download_link, data, headers)
+            # temp_book_file_dl = urllib.request.urlopen(book_download_link, timeout=240)
+            temp_book_file_dl = requests.get(book_download_link, timeout=240)
         except Exception as e:
-            temp_book_file_dl = None
             print(f"BAD LINK: {e}")
         return temp_book_file_dl
 
