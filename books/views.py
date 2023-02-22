@@ -31,7 +31,6 @@ class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     permission_required = 'books.special_status'
 
 
-
 @never_cache
 def search_results(request):
     from books.utils import LibgenAPI

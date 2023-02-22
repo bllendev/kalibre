@@ -92,6 +92,15 @@ class SearchRequest:
         "Edit",
     ]
 
+    LIBGEN_MIRRORS = [
+        "https://libgen.is",
+        "http://libgen.gs",
+        "http://gen.lib.rus.ec",
+        "http://libgen.rs",
+        "https://libgen.st",
+        "https://libgen.li",
+    ]
+
     def __init__(self, query, search_type="title"):
         self.query = query
         self.search_type = search_type.lower()
@@ -104,17 +113,25 @@ class SearchRequest:
         for subheading in subheadings:
             subheading.decompose()
 
-    def get_search_url(self, query_parsed):
+    def get_search_url(self, libgen_mirror, query_parsed):
         SEARCH_TYPE_URL_DICT = {
-            "title": f"http://gen.lib.rus.ec/search.php?req={query_parsed}&column=title",
-            "author": f"http://gen.lib.rus.ec/search.php?req={query_parsed}&column=author",
+            "title": f"{libgen_mirror}/search.php?req={query_parsed}&column=title",
+            "author": f"{libgen_mirror}/search.php?req={query_parsed}&column=author",
         }
         return SEARCH_TYPE_URL_DICT[self.search_type]
 
     def get_search_page(self):
         query_parsed = "%20".join(self.query.split(" "))
-        search_url = self.get_search_url(query_parsed)
-        search_page = requests.get(search_url)
+        search_page = None
+
+        i = 0       # parse until real mirror is found or until we run out of mirrors !
+        while (search_page is None or search_page.status_code != 200) and i < len(self.LIBGEN_MIRRORS):
+            libgen_mirror = self.LIBGEN_MIRRORS[i]
+            search_url = self.get_search_url(libgen_mirror, query_parsed)
+            search_page = requests.get(search_url)
+
+            i += 1
+
         return search_page
 
     def aggregate_request_data(self):

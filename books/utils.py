@@ -3,6 +3,7 @@ import copy
 from django.conf import settings
 from django.db.models import Q
 from django.db import transaction
+import json
 
 from books.models import Book
 from books.libgen_api import LibgenSearch
@@ -20,15 +21,15 @@ class LibgenBook:
         'title': '',
         'author': '',
         'filetype': '',
-        'links': '',
+        'json_links': '',
     }
 
     def __init__(self, book_api):
         self.author = book_api['Author']
         self.title = book_api['Title']
         self.filetype = book_api['Extension']
-        # self.links = [book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']]
-        self.link = book_api['Mirror_1']
+        self.json_links = json.dumps([book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']])
+        # self.link = book_api['Mirror_1']
         self.isbn = book_api['ID']
 
 
@@ -82,11 +83,11 @@ class LibgenAPI:
         # title_filters = {"Extension": "mobi"}
         # titles = self.libgen.search_title_filtered(self.search_query, title_filters, exact_match=False)
         # authors = self.libgen.search_author_filtered(self.search_query, title_filters, exact_match=False)
-        import cloudinary.uploader
         from django.conf import settings
 
         titles = []
         authors = []
+        _book_list = []
         try:
             titles = self.libgen.search_title(self.search_query)
             authors = self.libgen.search_author(self.search_query)
@@ -104,6 +105,7 @@ class LibgenAPI:
 
             # filter by stable files for now (epub, mobi) - will eventually add .pdf and filter/selection system to ui - @AG
             book_list = [book for book in _book_list if book.filetype in self.STABLE_FILE_TYPES]
+
         except Exception as e:
             print(f"ERROR: {e}")
         finally:
@@ -114,7 +116,7 @@ class LibgenAPI:
         books = self._book_db_search()
 
         # if not reasonable selection, do fresh query using libgen api
-        if not books or (self.force_api and len(books) < 5):
+        if not books or self.force_api:
             db_books_by_id = {book.isbn: book for book in books}    
             api_books_by_id = {book.isbn: book.__dict__ for book in self._get_book_list()}
             created_books_by_id = {}
@@ -131,7 +133,7 @@ class LibgenAPI:
 
         return books
 
-    def get_book_path_from_link(self, link, book_title, filetype, isbn):
+    def get_book_file_path_from_links(self, links, book_title, filetype, isbn):
         from django.conf import settings
         import requests
 
@@ -139,33 +141,30 @@ class LibgenAPI:
         new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
         if not new_book:
             new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
-        book_download_link = ""
-
-        # get book download link - this gives us the actual book file
-        try:
-            book_download_link = new_book.get_book_download_link(link)
-        except Exception as e:
-            print(f"get_book_path_from_link error: {e}")
 
         # write file to path (will use file to send - then we will delete file)
-        new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
+        book_file_str = f"{new_book.title}.{new_book.filetype}"
+        new_file_path = os.path.join(settings.BASE_DIR, book_file_str)
 
+        i = 0
+        temp_book_file_dl = None
+        while not temp_book_file_dl and i < len(links):
+            temp_book_file_dl = new_book.get_book_download_content(links[i])
+            i += 1
         try:
             with open(new_file_path, "wb") as f:
-                if book_download_link:
-                    temp_book_file_dl = requests.get(book_download_link)
-                    f.write(temp_book_file_dl.content)
-                    f.close()
+                f.write(temp_book_file_dl.content)
+                f.close()
         except Exception as e:
             os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
         return new_file_path
 
-    def send_book_file(self, user, link, book_title, filetype, isbn):
+    def send_book_file(self, user, links, book_title, filetype, isbn):
         """emails actual book file to recipient addresses"""
         from django.core import mail
 
         # get book file path (safety bypass if no path)
-        book_file_path = self.get_book_path_from_link(link, book_title, filetype, isbn)        # web scraper
+        book_file_path = self.get_book_file_path_from_links(links, book_title, filetype, isbn)        # web scraper
         if book_file_path is None:
             return
 

@@ -11,6 +11,7 @@ services:
          - EMAIL_HOST=smtp.gmail.com
          - EMAIL_USER=bllendev@gmail.com
          - EMAIL_PASS=ncrjjmstjcswaxtw
+         - OPENAI_API_KEY=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
          - DEBUG=1
       volumes:
          - .:/code

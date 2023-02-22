@@ -8,6 +8,8 @@ CustomUser = get_user_model()
 
 
 def send_book(request):
+    import json
+
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if is_ajax and request.method == 'POST':
         # organize
@@ -15,7 +17,7 @@ def send_book(request):
         post_dict_keys = list(post_dict.keys())
 
         # extract book info
-        link = post_dict[post_dict_keys[0]]
+        json_links = json.loads(post_dict[post_dict_keys[0]])
         book_title, filetype, isbn = post_dict_keys[0].split("__")
         book_title = book_title.replace("book_", "")
         filetype = filetype.replace("type_", "")
@@ -27,7 +29,7 @@ def send_book(request):
 
         # send book file
         libgen = LibgenAPI()
-        libgen.send_book_file(user, link, book_title, filetype, isbn)
+        libgen.send_book_file(user, json_links, book_title, filetype, isbn)
         return JsonResponse({'status': True}, status=200)
 
     return JsonResponse({'status': False}, status=400)

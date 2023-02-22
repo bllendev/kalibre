@@ -9,7 +9,7 @@
     <h1><a href="{% url 'home' %}" class="text-secondary">search results</a></h1>
 
     <form class="form-inline mt-2 mt-md-0 mb-4" action="{% url 'search_results' %}" method="get">
-        <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="search again!" aria-label="search again!">
+        <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="try searching again here to make double sure!" aria-label="try searching again here to make double sure!">
     </form>
 
         <div id="search_result_div">
@@ -42,7 +42,7 @@
                             {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
                                 {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
 
-                            <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.link}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.link}}" style='white-space:nowrap'>send</button></td> 
+                            <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.json_links}}" style='white-space:nowrap'>send</button></td> 
                         </tr>
                     {% endfor %}
                 </form>
