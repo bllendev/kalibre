@@ -43,23 +43,13 @@ class Book(models.Model):
             specific download link to the book file.
         """
         import requests
-        temp_book_file_dl = None
         try:
-            user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
-            values = {'name' : 'Michael Foord',
-                    'location' : 'Northampton',
-                    'language' : 'Python' }
-            headers = { 'User-Agent' : user_agent }
-
-            data = urllib.parse.urlencode(values)
-            data = data.encode('ascii')
             book_download_link = self._get_book_file_download_link(link)
             # request = urllib.request.Request(book_download_link, data, headers)
             # temp_book_file_dl = urllib.request.urlopen(book_download_link, timeout=240)
-            temp_book_file_dl = requests.get(book_download_link, timeout=240)
         except Exception as e:
             print(f"BAD LINK: {e}")
-        return temp_book_file_dl
+        return book_download_link
 
     @property
     def ssn(self):

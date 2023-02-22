@@ -135,6 +135,7 @@ class LibgenAPI:
 
     def get_book_file_path_from_links(self, links, book_title, filetype, isbn):
         from django.conf import settings
+        import requests
 
         # get book record from db!
         new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
@@ -146,15 +147,17 @@ class LibgenAPI:
 
         # get book file content
         i = 0
-        temp_book_file_dl = None
-        while not temp_book_file_dl and i < len(links):
-            temp_book_file_dl = new_book.get_book_download_content(links[i])
+        temp_book_file_link = None
+        while not temp_book_file_link and i < len(links):
+            temp_book_file_link = new_book.get_book_download_content(links[i])
             i += 1
 
         # write book file content
         try:
-            with temp_book_file_dl and open(new_file_path, "w") as f:
-                f.write(temp_book_file_dl.content())
+            temp_book_file_dl = requests.get(temp_book_file_link)
+            print(f"temp_book_file_dl.status_code: {temp_book_file_dl.status_code}")
+            with temp_book_file_dl and open(new_file_path, "wb") as f:
+                f.write(temp_book_file_dl.content)
                 f.close()
         except Exception as e:
             print(f"ERROR OCCURED: {e}")
