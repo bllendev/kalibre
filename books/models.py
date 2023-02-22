@@ -23,7 +23,7 @@ class Book(models.Model):
     json_links = JSONField(null=True)
 
     def __str__(self):
-        return f"{self.title} - {self.filetype} - {self.links}"
+        return f"{self.title} - {self.filetype} - {self.isbn}"
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
