@@ -29,22 +29,22 @@ class Book(models.Model):
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
 
-    def _get_book_file_download_link(self, link):
+    def _get_book_file_download_link(self, link, inner_link_int):
         from bs4 import BeautifulSoup
         book_download_link = None
         with urllib.request.urlopen(link) as response:
             soup = BeautifulSoup(response.read(), "html.parser")
-            book_download_link = soup.find_all('a')[0].get('href')
+            book_download_link = soup.find_all('a')[inner_link_int].get('href')
+            print(f"book_download_link: {book_download_link}")
         return book_download_link
 
-    def get_book_download_content(self, link):
+    def get_book_download_content(self, link, inner_link_int=1):
         """
             - this takes scraps self.link, finding the
             specific download link to the book file.
         """
-        import requests
         try:
-            book_download_link = self._get_book_file_download_link(link)
+            book_download_link = self._get_book_file_download_link(link, inner_link_int)
             # request = urllib.request.Request(book_download_link, data, headers)
             # temp_book_file_dl = urllib.request.urlopen(book_download_link, timeout=240)
         except Exception as e:

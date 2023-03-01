@@ -147,21 +147,20 @@ class LibgenAPI:
 
         # get book file content
         i = 0
-        temp_book_file_link = None
-        while not temp_book_file_link and i < len(links):
+        temp_book_file_dl = None
+        while not temp_book_file_dl:
             temp_book_file_link = new_book.get_book_download_content(links[i])
-            i += 1
+            temp_book_file_dl = requests.get(temp_book_file_link)
 
         # write book file content
         try:
-            temp_book_file_dl = requests.get(temp_book_file_link)
-            print(f"temp_book_file_dl.status_code: {temp_book_file_dl.status_code}")
             with temp_book_file_dl and open(new_file_path, "wb") as f:
                 f.write(temp_book_file_dl.content)
                 f.close()
         except Exception as e:
             print(f"ERROR OCCURED: {e}")
             os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
+            raise e
         return new_file_path
 
     def send_book_file(self, user, links, book_title, filetype, isbn):
