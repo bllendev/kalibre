@@ -23,6 +23,7 @@ cloudinary = "*"
 django-cloudinary-storage = "*"
 django-nose = "*"
 factory-boy = "*"
+coverage = "*"
 
 [dev-packages]
 
