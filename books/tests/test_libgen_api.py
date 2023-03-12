@@ -1,10 +1,17 @@
+# from django.test import TestCase
+# from django.urls import reverse
+# from django.contrib.auth.models import User
+# import factory
 # import requests
+
+# from django.conf import settings
+
+# from books.libgen_api import LibgenSearch, SearchRequest
+
 # from bs4 import BeautifulSoup
+ 
 
-# MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Infura"]
-
-
-# class LibgenSearch:
+# class TestLibgenSearch:
 #     def search_title(self, query):
 #         search_request = SearchRequest(query, search_type="title")
 #         return search_request.aggregate_request_data()
@@ -66,9 +73,8 @@
 #                 filtered_list.append(result)
 #     return filtered_list
 
-# # ----------------------------------------------------- #
 
-# class SearchRequest:
+# class TestSearchRequest:
 #     """
 #         - USAGE: req = search_request.SearchRequest("[QUERY]", search_type="[title]")
 #     """
@@ -167,4 +173,3 @@
 
 #         output_data = [dict(zip(self.COLUMNS, row)) for row in raw_data]
 #         return output_data
-
