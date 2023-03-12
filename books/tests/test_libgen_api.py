@@ -23,10 +23,7 @@ class TestLibgenSearch:
         self.libgen_search = LibgenSearch()
         self.test_query = "harry potter"
         self.libgen_book = None
-
         self.results = self.libgen_search.search_title(self.test_query)
-
-
 
     def test_search_title(self):
         results = self.libgen_search.search_title(self.test_query)
@@ -40,39 +37,6 @@ class TestLibgenSearch:
         results = self.libgen_search.resolve_download_links(self.libgen_book)
         self.assertTrue(results)
 
-
-
-# def test_filter_results(results, filters, exact_match):
-#     """
-#     Returns a list of results that match the given filter criteria.
-#     When exact_match = true, we only include results that exactly match
-#     the filters (ie. the filters are an exact subset of the result).
-
-#     When exact-match = false,
-#     we run a case-insensitive check between each filter field and each result.
-
-#     exact_match defaults to TRUE -
-#     this is to maintain consistency with older versions of this library.
-#     """
-
-#     filtered_list = []
-#     if exact_match:
-#         for result in results:
-#             if filters.items() <= result.items():  # check whether a candidate result matches the given filters
-#                 filtered_list.append(result)
-
-#     else:
-#         filter_matches_result = False
-#         for result in results:
-#             for field, query in filters.items():
-#                 if query.casefold() in result[field].casefold():
-#                     filter_matches_result = True
-#                 else:
-#                     filter_matches_result = False
-#                     break
-#             if filter_matches_result:
-#                 filtered_list.append(result)
-#     return filtered_list
 
 
 class TestSearchRequest:
