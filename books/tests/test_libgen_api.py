@@ -79,6 +79,9 @@ class TestSearchRequest:
         "https://libgen.li",
     ]
 
+    _multiprocess_can_split_ = True
+    _multiprocess_shared_ = False
+
     def setUp(self):
         self.test_search_request = SearchRequest("harry potter")
     
@@ -103,8 +106,9 @@ class TestSearchRequest:
 # make a TestLibgenAPI class that inherits from TestCase and has a setUp method and tests that pertain to the LibgenAPI class
 
 class TestLibgenAPI(TestCase):
+
+    _multiprocess_can_split_ = True
+    _multiprocess_shared_ = False
     
     def setUp(self):
-        self.test_user = User.objects.create_user(
-            username="testuser",
-            email="test_em
+        self.test_user = 
