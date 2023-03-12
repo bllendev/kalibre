@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.shortcuts import redirect, reverse
 from django.contrib.auth import get_user_model
-from accounts.forms import CustomUserCreationForm
+from users.forms import CustomUserCreationForm
 from django.shortcuts import render
 
 
