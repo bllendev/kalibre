@@ -21,6 +21,7 @@ django-bootstrap4 = "*"
 flake8 = "*"
 cloudinary = "*"
 django-cloudinary-storage = "*"
+django-nose = "*"
 
 [dev-packages]
 

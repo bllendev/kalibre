@@ -65,9 +65,11 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django_nose',
 
     # Third-Party
     'crispy_forms',
+
     # 'crispy_bootstrap5',
     'allauth',
     'allauth.account',
