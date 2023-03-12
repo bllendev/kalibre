@@ -19,15 +19,23 @@ import json
 
 class TestLibgenSearch:
 
+    _multiprocess_can_split_ = True
+    _multiprocess_shared_ = False
+
     def setUp(self):
         self.libgen_search = LibgenSearch()
         self.test_query = "harry potter"
         self.libgen_book = None
-        self.results = self.libgen_search.search_title(self.test_query)
+
+        # open the file for reading in binary mode
+        with open(os.path.join(settings.BASE_DIR, "books", "tests", "pkl", "test_hp_book.pkl", "rb")) as pkl:
+            # unpickle the list object from the file
+            self.test_results = pickle.load(pkl)
 
     def test_search_title(self):
         results = self.libgen_search.search_title(self.test_query)
         self.assertTrue(results)
+        self.assertEquals(results, self.test_results)
 
     def test_search_author(self):
         results = self.libgen_search.search_author(self.test_query)

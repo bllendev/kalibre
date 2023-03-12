@@ -4,6 +4,30 @@ from django.urls import reverse, resolve
 from .forms import CustomUserCreationForm
 from accounts.views import SignupPageView
 
+import factory
+from django.contrib.auth import get_user_model
+
+
+class EmailFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = 'users.Email'
+
+    user = factory.SubFactory('users.tests.factories.UserFactory')
+    address = factory.Sequence(lambda n: f'email_{n}@email.com')
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = get_user_model()
+
+    username = factory.Sequence(lambda n: f'user_{n}')
+    first_name = 'John'
+    last_name = 'Doe'
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')
+    password = factory.PostGenerationMethodCall('set_password', 'password123')
+    is_active = True
+    is_staff = False
+
 
 class CustomUserTests(TestCase):
 
