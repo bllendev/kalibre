@@ -13,11 +13,17 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 import cloudinary
 import cloudinary_storage
+import django
+from os import listdir
+from os.path import (
+    basename,
+    normpath,
+)
+from pathlib import Path
+from sys import argv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEST_DISCOVER_ROOT = BASE_DIR
-TEST_DISCOVER_PATTERN = 'test_*.py'
 
 
 # Quick-start development settings - unsuitable for production
@@ -58,6 +64,15 @@ if ENVIRONMENT == 'production':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # new
 
 # Application definition
+EXCLUDED_APP_DIRECTORIES = [
+    'static', '.vscode', 'cover', 'media', 'staticfiles', 'templates',
+    'fixtures', '.git', '.idea', '.local', 'venv'
+]
+APP_DIRECTORIES_ABSOLUTE = [dir_ref for dir_ref in listdir(BASE_DIR) if Path(dir_ref).is_dir()]
+APP_DIRECTORIES_NAMES = [basename(normpath(dir_ref)) for dir_ref in APP_DIRECTORIES_ABSOLUTE]
+APP_DIRECTORIES = [dir_ref for dir_ref in APP_DIRECTORIES_NAMES if dir_ref not in EXCLUDED_APP_DIRECTORIES]
+APP_DIRECTORIES_COMMA_LIST = ",".join(APP_DIRECTORIES)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,7 +82,6 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django_nose',
 
     # Third-Party
     'crispy_forms',
@@ -86,18 +100,28 @@ INSTALLED_APPS = [
     # Media Cloudinary
     'cloudinary',
     'cloudinary_storage',
-]
+] # + APP_DIRECTORIES
 
 SITE_ID = 1
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+print(f"INSTALLED_APPS: {INSTALLED_APPS}")
 
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-inclusive',
-    '--cover-package=books',
-    '--cover-package=users',
-]
+if 'test' in argv or 'test_coverage' in argv:
+    INSTALLED_APPS.append('django_nose')
+    TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+    NOSE_ARGS = [
+        '--with-coverage',
+        '--cover-inclusive',
+        '--cover-erase',
+        '--cover-html',
+        f'--cover-package={APP_DIRECTORIES_COMMA_LIST}',
+        '--stop',
+        '--quiet',
+        '--logging-level=DEBUG',
+        '--debug=django_nose',
+        '--exe',
+        # '--debug-log=test.log',
+    ]
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -245,3 +269,5 @@ STATICFILES_FINDERS = [
 import socket
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
+
+django.setup()

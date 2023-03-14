@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.db import transaction
 import json
 
+from ebooklib import epub
 from books.models import Book
 from books.libgen_api import LibgenSearch
 
@@ -31,6 +32,7 @@ class LibgenBook:
         self.json_links = json.dumps([book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']])
         # self.link = book_api['Mirror_1']
         self.isbn = book_api['ID']
+
 
 
 class LibgenAPI:

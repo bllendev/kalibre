@@ -6,6 +6,7 @@ services:
       # command: python /code/manage.py runserver 0.0.0.0:8000
       command: gunicorn bookstore_project.wsgi -b 0.0.0.0:8000
       environment:
+         - DJANGO_SETTINGS_MODULE=bookstore_project.settings
          - ENVIRONMENT=development
          - SECRET_KEY=qd+g@h5h%^mc@n2ft(ac14uw=b204o=b33q!v7ri3s2j-y1c=6
          - EMAIL_HOST=smtp.gmail.com

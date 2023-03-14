@@ -24,6 +24,10 @@ django-cloudinary-storage = "*"
 django-nose = "*"
 factory-boy = "*"
 coverage = "*"
+pytest = "*"
+pytest-django = "*"
+ebooklib = "*"
+nose = "*"
 
 [dev-packages]
 

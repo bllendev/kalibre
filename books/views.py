@@ -1,7 +1,4 @@
-from django.db.models import Q
 from django.shortcuts import render, redirect
-from django.urls import reverse, resolve
-from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -9,7 +6,6 @@ from django.contrib.auth.mixins import (
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from books.models import Book
-from users.models import Email
 from django.views.decorators.cache import never_cache
 
 
