@@ -102,9 +102,9 @@ INSTALLED_APPS = [
     'cloudinary_storage',
 ] # + APP_DIRECTORIES
 
+
 SITE_ID = 1
 
-print(f"INSTALLED_APPS: {INSTALLED_APPS}")
 
 if 'test' in argv or 'test_coverage' in argv:
     INSTALLED_APPS.append('django_nose')
@@ -122,6 +122,7 @@ if 'test' in argv or 'test_coverage' in argv:
         '--exe',
         # '--debug-log=test.log',
     ]
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',

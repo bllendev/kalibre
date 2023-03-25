@@ -42,7 +42,11 @@
                             {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
                                 {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
 
-                            <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.json_links}}" style='white-space:nowrap'>send</button></td> 
+                            <td>
+                                <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
+                                <button class='btn-sm btn-primary' type="submit" style='white-space:nowrap'>send</button>
+                            </td> 
+                            {% comment %} <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.json_links}}" style='white-space:nowrap'>send</button></td>  {% endcomment %}
                         </tr>
                     {% endfor %}
                 </form>

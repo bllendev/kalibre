@@ -1,7 +1,174 @@
+# tools
 import requests
 from bs4 import BeautifulSoup
+from functools import reduce
+import json
+# from ebooklib import epub
+
+# django
+from django.conf import settings
+from django.db.models import Q
+
+# local
+from users.models import Email
+from books.models import Book
+from books.utils import (
+    bulk_save,
+    os_silent_remove,
+)
+
 
 MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Infura"]
+
+
+class LibgenBook:
+    """
+        - a handy class that streamlines our scraped
+        libgen api books into a nice accessible class
+        for our Book model
+    """
+    LIBGEN_KEY_DICT = {
+        "ID": "isbn",
+        "Author": "author",
+        "Title": "title",
+        "Extension": "filetype",
+    }
+    # def __init__(self, book_api):
+    #     self.author = book_api['Author']
+    #     self.title = book_api['Title']
+    #     self.filetype = book_api['Extension']
+    #     self.json_links = json.dumps([book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']])
+    #     # self.link = book_api['Mirror_1']
+    #     self.isbn = book_api['ID']
+
+    def __init__(self, **kwargs):
+        self.values = {}
+        for k, v in kwargs.items():
+            k = self.LIBGEN_KEY_DICT.get(k)
+            if k:
+                self.values.update({k: v})
+        self.values.update({
+            "json_links": json.dumps([
+                kwargs['Mirror_1'],
+                kwargs['Mirror_2'],
+                kwargs['Mirror_3'],
+            ]),
+        })
+
+    def __iter__(self):
+        return iter(self.values.items())
+
+    def __next__(self):
+        raise StopIteration()
+
+    def __getattr__(self, key):
+        try:
+            return self.values[key]
+        except KeyError:
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{key}'")
+
+    def __setattr__(self, key, value):
+        if key == 'values':
+            super().__setattr__(key, value)
+        else:
+            self.values[key] = value
+
+
+class LibgenAPI:
+
+    LIBGEN_COLS = [
+        "ID",
+        "Author",
+        "Title",
+        "Publisher",
+        "Year",
+        "Pages",
+        "Language",
+        "Size",
+        "Extension",
+        "Mirror_1",
+        "Mirror_2",
+        "Mirror_3",
+        "Mirror_4",
+        "Mirror_5",
+        "Edit",
+    ]
+
+    STABLE_FILE_TYPES = {"epub", "mobi"}
+
+    def __init__(self, title_search=None, force_api=False):
+        self.libgen = LibgenSearch()
+        self.search_query = title_search
+        self.force_api = force_api
+        # self._dev_debug()
+
+    def _dev_debug(self):
+        pass
+
+    def _book_db_search(self):
+        """checks db first to see if we may already have a record (bypass api query)"""
+        search_terms = [
+            Q(title__icontains=self.search_query),
+            Q(author__icontains=self.search_query),
+            Q(filetype__icontains=self.search_query),
+            Q(isbn__icontains=self.search_query),
+        ]
+
+        # combine the search terms with OR operator
+        search_query = reduce(lambda x, y: x | y, search_terms)
+
+        # return query the database to get matching books
+        return Book.objects.filter(search_query)
+
+    def _get_libgen_book_list(self):
+        try:
+            # get libgen book list
+            titles = self.libgen.search_title(self.search_query)
+            authors = self.libgen.search_author(self.search_query)
+            _libgen_book_list = [LibgenBook(**api_book) for api_book in titles + authors]
+
+            # filter list of LibgenBooks by stable files for now (epub, mobi)
+            libgen_book_list = [book for book in _libgen_book_list if book.filetype in self.STABLE_FILE_TYPES]
+
+        except Exception as e:
+            print(f"ERROR: {e}")
+            libgen_book_list = []
+
+        finally:
+            return libgen_book_list
+
+    def get_book_list(self):
+        # check books in db first
+        books = self._book_db_search()
+
+        # if not reasonable selection, do fresh query using libgen api
+        if not books or self.force_api:
+            db_books_by_id = {book.isbn: book for book in books}
+            api_books_by_id = {book.isbn: book for book in self._get_libgen_book_list()}
+            created_books_by_id = {}
+
+            # filter books by what is already in our db (if any)
+            for isbn, new_book in api_books_by_id.items():
+                if isbn not in db_books_by_id:
+
+                    book_obj = Book(**new_book.values)
+                    created_books_by_id[isbn] = book_obj            # NOTE: using isbn as key here - should be unique
+
+            # save newly created filtered books
+            books = {book for isbn, book in created_books_by_id.items()}
+            bulk_save(books)
+
+            # update db_books_by_id with newly created books
+            books.update({book for isbn, book in db_books_by_id.items()})
+
+        return books
+
+    def get_book(self, isbn, book_title, filetype):
+        # get book record from db!
+        new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
+        if not new_book:
+            new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
+        return new_book
 
 
 class LibgenSearch:

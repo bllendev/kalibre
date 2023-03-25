@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -29,7 +29,7 @@ class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 
 @never_cache
 def search_results(request):
-    from books.utils import LibgenAPI
+    from books.libgen_api import LibgenAPI
 
     db_query = request.GET.get('db_q')
     if db_query:
@@ -50,6 +50,8 @@ def search_results(request):
 
 @never_cache
 def my_emails(request):
+    from books.utils import fx_return_to_sender
+
     email_addresses = []
     username_str = ''
 
@@ -60,7 +62,7 @@ def my_emails(request):
         username_str = f"{username}'s emails!"
 
     if request.method == "POST":
-         return fx_return_to_sender(request)
+        return fx_return_to_sender(request)
 
     return render(
         request,
@@ -70,13 +72,3 @@ def my_emails(request):
             'email_addresses': email_addresses,
         }
     )
-
-
-def fx_return_to_sender(request, remove_GET=True):
-    """
-        Return user back to the url from whence they came.
-    """
-    request_http_referer = request.META.get("HTTP_REFERER", "")
-    if request_http_referer and "?" in request_http_referer and remove_GET:
-        request_http_referer = request_http_referer.split("?")[0]
-    return redirect(request_http_referer)

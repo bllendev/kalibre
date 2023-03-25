@@ -3,12 +3,6 @@
 
 {% block title %}{% endblock title %}
 
-{% comment %} It'd be cool if this page had a review bucket to see whats in your 'cart' of books you want to send yourself,
-on the cart you chose what file type you want for each, and also you could pick and choose which emails you want to
-use and send those books too.
-
-One of the emails should be the highest priority email, and a highest priority file type too, then if the user just wants to quick send
-to a single place they can. {% endcomment %}
 
 {% block content %}
 
@@ -38,31 +32,42 @@ to a single place they can. {% endcomment %}
 <div>
   <div class="row">  
     <div class="col-md-12">
-      <form method="POST" id="delete_email_form">
-        {% csrf_token %} 
         <table class="table table-hover" id="email_table" style="width:66%">
           <thead>
-            <th>my emails</th>
-            <th></th>
+            <tr>
+              <th>my emails</th>
+              <th></th>
+            </tr>
           </thead>
 
-          {% for email in email_addresses %}
-          <tr id="{{email.pk}}">
-            <td>{{ email }}</td>
-            <td align="right">
-              <input type="hidden" name="delete_email_pk[]" value={{email.pk}}>
-              <button type="submit" class="button btn-sm btn-danger text-nowrap">delete</button>
-            </td>
-          </tr>
-          {% endfor %}
+
+            {% for email in email_addresses %}
+              <tr id="{{email.pk}}">
+
+                <td>{{ email }}</td>
+
+                {% comment %} <td id="translate_email_check_row">
+                  <input class="form-check-input" type="checkbox" id="translate_email_check" name="translate_email_pk[]" value={{email.pk}} {% if email.translate_file %}checked{% endif %}>
+                </td> {% endcomment %}
+
+                {% comment %} <td>
+                  <input class="form-check-input" type="checkbox" id="translate_email_check_{{email.pk}}" {% if email.translate_file %}checked{% endif %}>
+                </td> {% endcomment %}
+
+                <form method="POST" id="delete_email_form_{{email.pk}}">
+                  {% csrf_token %} 
+                  <td align="right">
+                    <input type="hidden" name="delete_email_pk[]" value={{email.pk}}>
+                    <button type="submit" id="delete_email_{{email.pk}}" class="button btn-sm btn-danger text-nowrap">delete</button>
+                  </td>
+                </form>
+
+              </tr>
+            {% endfor %}
 
         </table>
-      </form>
     </div>
 
-    {% comment %} <div class="col-md-6 border border-secondary rounded">
-      <h4>book cart !</h4>
-    </div> {% endcomment %}
   </div>
 
 </div>
@@ -80,47 +85,146 @@ to a single place they can. {% endcomment %}
     // -------------------- //
     // -- add email ajax -- //
     // -------------------- //
+    add_email_form_onsubmit(token);
+
+    {% for email in email_addresses %}
+      // -------------------------- //
+      // -- translate email ajax -- //
+      // -------------------------- //
+      set_translate_form_onsubmit("{{email.pk}}", token);
+
+      // ----------------------- //
+      // -- delete email ajax -- //
+      // ----------------------- //
+      set_delete_form_onsubmit("{{email.pk}}", token);
+    {% endfor %}
+
+  });
+
+
+  function add_email_form_onsubmit(token) {
     $("#add_email_form").on("submit", function(event) {
-        // stop propogation 
-        event.stopPropagation();
-        event.preventDefault();
-       
-        // serialize the form data 
-        var data = $(this).serializeArray();
-
-        // ajax ! - note: we are clearing our timeout func
-        $.ajax({
-          type : 'POST',
-          url :  "{% url 'add_email' %}",
-          data : data,
-          headers: { "X-CSRFToken": token },
-          success : function(response){
-            // update ui with jquery to reflect new addition of emails
-            var json_string = JSON.stringify(response);
-            var returned_data = JSON.parse(json_string)
-            const email_str = returned_data.email
-            const email_pk = returned_data.email_pk
-            $("#email_table tr:last").after('<tr id="' + email_pk + '"><td>' + email_str + '</td><td align="right"><input type="hidden" name="delete_email_pk[]" value="' + email_pk + '"><button type="submit" class="button btn-sm btn-danger text-nowrap">delete</button></td></tr>');
-
-            // clear text box
-            $('#email').val('');
-          },
-          error : function(response){
-              alert("hmmm, there seems to have been an error adding your email!");
-          },
-        }); 
-     });
-
-    // ----------------------- //
-    // -- delete email ajax -- //
-    // ----------------------- //
-    $("#delete_email_form").on("submit", function(event) {
-      // stop propogation 
+      // stop propagation 
       event.stopPropagation();
       event.preventDefault();
      
       // serialize the form data 
       var data = $(this).serializeArray();
+  
+      // ajax ! - note: we are clearing our timeout func
+      $.ajax({
+        type : 'POST',
+        url :  "{% url 'add_email' %}",
+        data : data,
+        headers: { "X-CSRFToken": token },
+        success : function(response){
+          // update ui with jquery to reflect new addition of emails
+          var json_string = JSON.stringify(response);
+          var returned_data = JSON.parse(json_string);
+          var email_str = returned_data.email.toString();
+          var email_pk = returned_data.email_pk.toString();
+
+          // create a new table row with the specified ID
+          var newRow = $('<tr>').attr('id', email_pk);
+
+          // create the first table cell with the email string
+          var emailCell = $('<td>').text(email_str);
+          
+          // create second table cell with email translate checkbox
+          var translateCell = $('<td>');
+          var translateCheckbox = $('<input>')
+              .addClass('form-check-input')
+              .attr('type', 'checkbox')
+              .attr('id', 'translate_email_check_' + email_pk);
+          translateCell.append(translateCheckbox);
+          
+          // create the third table cell with the alignment attribute
+          var buttonCell = $('<td>').attr('align', 'right');
+          
+          // create the delete button
+          var deleteButton = $('<button>')
+              .attr('type', 'submit')
+              .attr('id', 'delete_email_' + email_pk)
+              .addClass('button btn-sm btn-danger text-nowrap')
+              .text('delete');
+          
+          // append the delete form to the button cell
+          buttonCell.append(deleteButton);
+          
+          // append the email cell, translate cell, and button cell to the new row
+          newRow.append(emailCell).append(translateCell).append(buttonCell);
+          
+          // append the new row after the last row of the email_table
+          $("#email_table tr:last").after(newRow);
+
+          // after adding to the table, add the delete and translate ajax
+          set_translate_form_onsubmit(email_pk, token);
+          set_delete_form_onsubmit(email_pk, token);
+        },
+        error : function(response){
+            alert("hmmm, there seems to have been an error adding your email!");
+        },
+      });
+
+    });
+
+  }
+
+  function set_translate_form_onsubmit(email_pk, token) {
+    $("#translate_email_check_" + email_pk).on("change", function(event) {
+      // stop propogation 
+      event.stopPropagation();
+      event.preventDefault();
+  
+      // The parent form of the checkbox
+      var form = $(this).closest("form");
+  
+      // create the data object manually
+      var data = [
+        {
+          name: 'translate_email_pk[]',
+          value: email_pk
+        },
+        {
+          name: this.name,
+          value: this.checked ? 'on' : 'off'
+        }
+      ];
+  
+      // ajax ! - note: we are clearing our timeout func
+      $.ajax({
+        type : 'POST',
+        url :  "{% url 'toggle_translate_email' %}",
+        data : data,
+        headers: { "X-CSRFToken": token },
+        success : function(response){
+          // update ui with jquery to reflect deletion of emails
+          var json_string = JSON.stringify(response);
+          var returned_data = JSON.parse(json_string);
+          var translate_email_pk = returned_data.translate_email_pk;
+        },
+        error : function(response){
+            alert("hmmm, there seems to have been an error, setting your email to translate!");
+        },
+      });
+  
+    });
+  }
+
+  function set_delete_form_onsubmit(email_pk, token) {
+    $("#delete_email_" + email_pk).on("click", function(event) {
+      // stop propogation 
+      event.stopPropagation();
+      event.preventDefault();
+
+      // serialize the form data 
+      // var data = $(this).serializeArray();
+      var data = [
+        {
+          name: 'delete_email_pk[]',
+          value: email_pk
+        },
+      ];
 
       // ajax ! - note: we are clearing our timeout func
       $.ajax({
@@ -132,16 +236,16 @@ to a single place they can. {% endcomment %}
           // update ui with jquery to reflect deletion of emails
           var json_string = JSON.stringify(response);
           var returned_data = JSON.parse(json_string);
-          const delete_email_pk = returned_data.delete_email_pk;
+          var delete_email_pk = returned_data.delete_email_pk;
           $("#" + delete_email_pk).remove();
-
         },
         error : function(response){
             alert("hmmm, there seems to have been an error deleting your email!");
         },
-      }); 
-   });
-   });
+      });
+
+    });
+  }
 </script>
 
 {% endblock content %}

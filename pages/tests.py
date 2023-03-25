@@ -5,6 +5,9 @@ from .views import HomePageView, AboutPageView # new
 
 
 class HomepageTests(SimpleTestCase):
+    _multiprocess_can_split_ = True
+    _multiprocess_shared_ = False
+
     def setUp(self):
         url = reverse("home")
         self.response = self.client.get(url)
@@ -23,7 +26,10 @@ class HomepageTests(SimpleTestCase):
         self.assertEqual(view.func.__name__, HomePageView.as_view().__name__)
 
 
-class AboutPageTests(SimpleTestCase):  # new
+class AboutPageTests(SimpleTestCase):
+    _multiprocess_can_split_ = True
+    _multiprocess_shared_ = False
+
     def setUp(self):
         url = reverse("about")
         self.response = self.client.get(url)

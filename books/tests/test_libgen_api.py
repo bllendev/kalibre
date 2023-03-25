@@ -1,22 +1,29 @@
+# django
 from django.test import TestCase
 from django.conf import settings
 
-import os
-import pickle
-
+# local
 from users.tests.factories import CustomUserFactory
 from books.tests.factories import BookFactory
 from books.libgen_api import LibgenSearch, SearchRequest
-from books.utils import LibgenAPI, LibgenBook
+from books.libgen_api import LibgenAPI, LibgenBook
+from books.models import Book
 
+# tools
+import os
 import json
+import pickle
 
 """
     - HOW TO RUN TESTS:
     - ... $ docker compose exec web python manage.py test --noinput --parallel
 """
 
-TEST_QUERY = "harry potter"
+TEST_QUERY = "my sweet orange tree"
+
+TEST_ISBN = "2670677"       # my sweet orange tree
+
+TEST_BOOK_FILETYPE = "epub"
 
 TEST_COLUMNS = [
     "ID",
@@ -65,7 +72,7 @@ class TestLibgenSearch(TestCase):
         self.libgen_book = None
 
     #     # open the file for reading in binary mode
-    #     test_pickle_path = os.path.join(settings.BASE_DIR, "books", "tests", "pkl", "test_hp_book.pkl")
+    #     test_pickle_path = os.path.join(settings.BASE_DIR, "books", "tests", "test_hp_book.pkl")
     #     with open(test_pickle_path) as test_pickle:
     #         # unpickle the list object from the file
     #         self.test_results = pickle.load(test_pickle)
@@ -117,91 +124,54 @@ class TestLibgenAPI(TestCase):
     _multiprocess_can_split_ = True
     _multiprocess_shared_ = False
 
-    def setUp(self):
-        self.test_user = CustomUserFactory.build()
-        self.libgen_db = LibgenAPI(TEST_QUERY, force_api=False)
-        self.libgen_api = LibgenAPI(TEST_QUERY, force_api=True)
+    @classmethod
+    def setUpClass(cls):
+        super(TestLibgenAPI, cls).setUpClass()
+
+        # create libgen api instances (one for db search, one for api search)
+        cls.test_libgen_db = LibgenAPI(TEST_QUERY, force_api=False)
+        cls.test_libgen_api = LibgenAPI(TEST_QUERY, force_api=True)
 
     def test_book_db_search(self):
         """checks db first to see if we may already have a record (bypass api query)"""
-        TEST_CREATED_BOOK = BookFactory.create(title=TEST_QUERY)
-        test_books = self.libgen_db._book_db_search()
-        test_book_ids = [book.id for book in test_books if book.id == TEST_CREATED_BOOK.id]
+        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
+        test_books = self.test_libgen_db._book_db_search()
+        test_book_ids = [book.id for book in test_books if book.id == TEST_BOOK.id]
         self.assertTrue(test_book_ids)
 
-    def test_get_api_book_choices(self):
-        pass
-        # titles = self.libgen.search_title(self.search_query)
-        # authors = self.libgen.search_author(self.search_query)
-        # _book_list = titles + authors
+    def test_get_libgen_book_list(self):
+        api_book_choices = self.test_libgen_api._get_libgen_book_list()
+        api_book_choices_ids = [book.isbn for book in api_book_choices if book.isbn == TEST_ISBN]
+        self.assertTrue(api_book_choices_ids)
 
     def test_get_book_list(self):
-        pass
-        # # check books in db first
-        # books = self._book_db_search()
+        test_libgen = LibgenAPI(TEST_QUERY, force_api=False)
 
-        # # if not reasonable selection, do fresh query using libgen api
-        # if not books or self.force_api:
-        #     db_books_by_id = {book.isbn: book for book in books}    
-        #     api_books_by_id = {book.isbn: book.__dict__ for book in self._get_book_list()}
-        #     created_books_by_id = {}
+        # case 0: no books in db -- > books in api
+        Book.objects.all().delete()     # clear books
+        test_books = test_libgen.get_book_list()
+        test_book = [book.isbn for book in test_books if book.isbn == TEST_ISBN]
+        self.assertTrue(test_book)
 
-        #     # filter books by what is already in our db (if any)
-        #     for isbn, new_book_dict in api_books_by_id.items():
-        #         if isbn not in db_books_by_id:
-        #             book_obj = Book(**new_book_dict)
-        #             created_books_by_id[isbn] = book_obj
+        # assert get_book_list saved books to db
+        test_book_exists = Book.objects.filter(isbn=TEST_ISBN).exists()
+        self.assertTrue(test_book_exists)
 
-        #     # save filtered books
-        #     books = {book for isbn, book in created_books_by_id.items()}
-        #     bulk_save(books)
+        # case 1: books in db
+        Book.objects.all().delete()     # clear books
+        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
+        test_books_db = test_libgen.get_book_list()        # should refer to books in db if they exist
+        test_books = [book.isbn for book in test_books_db if book.isbn == TEST_ISBN]
+        self.assertTrue(test_books)
 
-        # return books
+        # case 2: books in db, force_api=True
+        test_libgen_api = LibgenAPI(TEST_QUERY, force_api=True)
+        test_books_api = test_libgen_api.get_book_list()
+        print(f"test_books_api: {test_books_api}")
+        test_books = [book.isbn for book in test_books_api if book.isbn == TEST_ISBN]
+        self.assertTrue(test_books)
 
-    def test_get_book_file_path_from_links(self):
-        pass
-        # from django.conf import settings
-        # import requests
-
-        # # get book record from db!
-        # new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
-        # if not new_book:
-        #     new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
-
-        # # write file to path (will use file to send - then we will delete file)
-        # new_file_path = os.path.join(settings.BASE_DIR, f"{new_book.title}.{new_book.filetype}")
-
-        # # get book file content
-        # i = 0
-        # temp_book_file_dl = None
-        # while not temp_book_file_dl:
-        #     temp_book_file_link = new_book.get_book_download_content(links[i])
-        #     temp_book_file_dl = requests.get(temp_book_file_link)
-
-        # # write book file content
-        # with temp_book_file_dl and open(new_file_path, "wb") as f:
-        #     f.write(temp_book_file_dl.content)
-        #     f.close()
-
-    def test_send_book_file(self):
-        pass
-        # """emails actual book file to recipient addresses"""
-        # from django.core import mail
-
-        # # get book file path (safety bypass if no path)
-        # book_file_path = self.get_book_file_path_from_links(links, book_title, filetype, isbn)        # web scraper
-        # if book_file_path is None:
-        #     return
-
-        # # send book as email to recipients
-        # with mail.get_connection() as connection:
-        #     recipient_emails = [email.address for email in user.email_addresses.all()]
-        #     template_message = copy.deepcopy(self.EMAIL_TEMPLATE_LIST)                        # NOTE: deep copy
-        #     template_message[3] = recipient_emails
-
-        #     email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
-        #     email_message.attach_file(book_file_path)
-        #     email_message.send(fail_silently=False)
-
-        # # delete book_file after sending!
-        # os_silent_remove(book_file_path)
+    def test_get_book(self):
+        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
+        test_book = self.test_libgen_db.get_book(TEST_BOOK.isbn, TEST_BOOK.title, TEST_BOOK.filetype)
+        self.assertEqual(test_book, TEST_BOOK)

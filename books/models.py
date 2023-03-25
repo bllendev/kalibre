@@ -4,6 +4,16 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.postgres.fields import JSONField
 import urllib
+import requests
+import os
+from django.conf import settings
+import json
+import copy
+
+
+from books.constants import EMAIL_TEMPLATE_LIST
+from books.utils import os_silent_remove
+from books._translate import EbookTranslate
 
 
 class Book(models.Model):
@@ -26,6 +36,10 @@ class Book(models.Model):
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"
 
+    @property
+    def ssn(self):
+        return f"book_{self.title}__type_{self.filetype}__isbn_{self.isbn}"
+
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
 
@@ -38,7 +52,7 @@ class Book(models.Model):
             print(f"book_download_link: {book_download_link}")
         return book_download_link
 
-    def get_book_download_content(self, link, inner_link_int=1):
+    def _get_book_download_content(self, link, inner_link_int=1):
         """
             - this takes scraps self.link, finding the
             specific download link to the book file.
@@ -51,9 +65,58 @@ class Book(models.Model):
             print(f"BAD LINK: {e}")
         return book_download_link
 
-    @property
-    def ssn(self):
-        return f"book_{self.title}__type_{self.filetype}__isbn_{self.isbn}"
+    def _create_book_file(self, new_file_path, language):
+        """creates book file from links"""
+        # get book file content
+        i = 0
+        temp_book_file_dl = None
+        while not temp_book_file_dl:
+            json_links = json.loads(self.json_links)
+            temp_book_file_link = self._get_book_download_content(json_links[i])
+            temp_book_file_dl = requests.get(temp_book_file_link)
+
+        # write book file content
+        try:
+            with temp_book_file_dl and open(new_file_path, "wb") as f:
+                f.write(temp_book_file_dl.content)
+                f.close()
+
+            if language != "en":
+                new_file_path = EbookTranslate(new_file_path)
+
+        except Exception as e:
+            print(f"ERROR OCCURED: {e}")
+            os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
+            raise e
+
+    def get_book_file_path_from_links(self, language):
+        # write file to path (will use file to send - then we will delete file)
+        new_file_path = os.path.join(settings.BASE_DIR, f"{self.title}.{self.filetype}")
+
+        # create book file
+        self._create_book_file(new_file_path, language)
+        return new_file_path
+
+    def send(self, email_list, language="en"):
+        """emails actual book file to recipient addresses"""
+        from django.core import mail
+
+        # get book file path (safety bypass if no path)
+        book_file_path = self.get_book_file_path_from_links(language)       # web scraper
+        if book_file_path is None:
+            return
+
+        # send book as email to recipients
+        with mail.get_connection() as connection:
+            template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)             # NOTE: deep copy
+            template_message[3] = email_list
+
+            email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
+            email_message.attach_file(book_file_path)
+            email_message.send(fail_silently=False)
+
+        # delete book_file after sending!
+        os_silent_remove(book_file_path)
 
     class Meta:
         indexes = [
