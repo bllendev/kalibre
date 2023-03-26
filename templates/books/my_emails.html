@@ -130,13 +130,13 @@
           // create the first table cell with the email string
           var emailCell = $('<td>').text(email_str);
           
-          {% comment %} // create second table cell with email translate checkbox
-          var translateCell = $('<td>');
-          var translateCheckbox = $('<input>')
-              .addClass('form-check-input')
-              .attr('type', 'checkbox')
-              .attr('id', 'translate_email_check_' + email_pk);
-          translateCell.append(translateCheckbox); {% endcomment %}     // NOTE: TRANSLATE FEATURE DISABLED @AG++
+          
+          //var translateCell = $('<td>');
+          //var translateCheckbox = $('<input>')
+           //   .addClass('form-check-input')
+           //   .attr('type', 'checkbox')
+           //   .attr('id', 'translate_email_check_' + email_pk);
+          //translateCell.append(translateCheckbox); {% endcomment %}     // NOTE: TRANSLATE FEATURE DISABLED @AG++
           
           // create the third table cell with the alignment attribute
           var buttonCell = $('<td>').attr('align', 'right');
