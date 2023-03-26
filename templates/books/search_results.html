@@ -14,6 +14,9 @@
 
         <div id="search_result_div">
 
+            {{ user.is_authenticated|json_script:"valid_user" }}
+            {{ user.email_addresses_str|json_script:"email_address_list" }}
+
             <table class='table table-striped table-sortable'>
                 <thead>
 
@@ -26,36 +29,149 @@
 
                 </thead>
                 <br>
-                <form method="POST" id="book_send_form">
-                    {% csrf_token %}
-                    {% for book in libgen.get_book_list %}
-                        <tr>
-                            {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
-                            <td>{{book.author}}</td>
-                            <td>{{book.title}}</td>
-                            <td>{{book.filetype}}</td>
-                            {% comment %} <td>
-                                {% for link in book.links %}
-                                    <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
-                                {% endfor %}
-                            </td> {% endcomment %}
-                            {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
-                                {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
+                    {% for book in book_list %}
+                        <form method="POST" id="book_send_form_{{book.pk}}">
+                            {% csrf_token %}
+                            <tr>
+                                {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
+                                <td>{{book.author}}</td>
+                                <td>{{book.title}}</td>
+                                <td>{{book.filetype}}</td>
+                                {% comment %} <td>
+                                    {% for link in book.links %}
+                                        <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
+                                    {% endfor %}
+                                </td> {% endcomment %}
+                                {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
+                                    {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
 
-                            <td>
-                                <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
-                                <button class='btn-sm btn-primary' type="submit" style='white-space:nowrap'>send</button>
-                            </td> 
-                            {% comment %} <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.json_links}}" style='white-space:nowrap'>send</button></td>  {% endcomment %}
-                        </tr>
+                                <td>
+                                    <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
+                                    <button class='btn-sm btn-primary' type="submit" style='white-space:nowrap'>send</button>
+                                </td> 
+                                {% comment %} <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.json_links}}" style='white-space:nowrap'>send</button></td>  {% endcomment %}
+                            </tr>
+                        </form>
                     {% endfor %}
-                </form>
             </table>
 
         </div>
 
 </div>
 
-{% endblock content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
 
-{% comment %} <div id="img"><img src="{% static '/images/loading_snail.gif' %}"></div> {% endcomment %}
+
+<script>
+
+    $(document).ready(function () {
+        var token = '{{csrf_token}}';
+        var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
+        const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
+
+    
+        $("form[id^='book_send_form_']").each(function() {
+            $(this).on('submit', function(event) {
+                event.preventDefault();
+                var bookPk = $(this).attr('id').replace('book_send_form_', '');
+                set_book_send_form_onsubmit(bookPk, token);
+                console.log("bookPk: " + bookPk);
+            });
+        });
+
+        // loading gif
+        var loading_gif = $('<img id="loading_gif">'); //Equivalent: $(document.createElement('img'))
+        loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
+        loading_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+
+        // hide our gif div on loadup
+        $('#loading_div').hide();
+        loading_gif.hide();
+
+
+        function set_book_send_form_onsubmit(book_pk, token) {
+
+            console.log("book_send_form_" + book_pk + " submitted!");
+
+            // stop propogation 
+            event.stopPropagation();
+            event.preventDefault();
+            
+            // serialize the form data 
+            var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
+            console.log("data !!!: " + data);
+
+            // case 0: invalid user
+            if (!valid_user) {
+                alert("you must be logged in to send books!");
+                return
+            }
+
+            // case 1: no email list ! tell the user to add emails !
+            if (!emails_exist) {
+                var alert_email_confirm = "you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!";
+                alert(alert_email_confirm);
+                return
+            }
+
+            // case 2: valid user and email list - attempt to send book !
+            if (emails_exist) {
+                var alert_email_confirm = "do you want to send this book to the following emails?...";
+                alert_email_confirm = alert_email_confirm + "\n" + email_address_list;
+
+                // case 2-a: user confirms
+                if (valid_user && confirm(alert_email_confirm)) {
+                    // show loading cursor
+                    $("body").css("cursor", "progress");
+
+                    // timeout func to show our gif for a moment and do ajax !
+                    var timeout = setTimeout(function() {
+                        loading_gif.appendTo('#loading_div');
+                        loading_gif.show();
+                        $('#loading_div').show();
+                        $.blockUI({
+                            message: $('#loading_div'),
+                            css: { 
+                            padding: 0,
+                            margin: 0,
+                            }
+                        });
+
+                        // center message and make transparent for aesthetic gif
+                        $('.blockUI.blockMsg').center();
+                        $('.blockUI.blockMsg.blockPage').transparent();
+
+                        // ajax ! - note: we are clearing our timeout func
+                        $.ajax({
+                            type : 'POST',
+                            url :  "{% url 'send_book_ajax' %}",
+                            data : data,
+                            headers: { "X-CSRFToken": token },
+                            success : function(response){
+                                alert("your book has been successfully sent!");
+                            },
+                            error : function(response){
+                                alert("hmmm, there seems to have been an error sending your book!");
+                            },
+                            complete: function() {
+                                clearTimeout(timeout);
+                                $.unblockUI();
+                                $("#loading_div img:last-child").remove();
+                                $('#loading_div').hide();
+                                loading_gif.hide();
+                                $("body").css("cursor", "default");
+                            }
+                        });
+
+                    }, 1000);   // end timeout
+                }
+            }
+        }
+    });
+
+</script>
+
+{% endblock content %}

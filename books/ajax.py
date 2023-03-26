@@ -4,10 +4,16 @@ from django.contrib.auth import get_user_model
 from users.models import Email
 
 
+
 CustomUser = get_user_model()
 
 
-def send_book(request):
+def send_book_ajax(request):
+    """
+        - ajax view that sends a book to a user
+        - books from libgen are allocated earlier in the flow,
+        see LibgenAPI.
+    """
     import json
 
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -37,7 +43,11 @@ def send_book(request):
         # get libgenbook
         libgen = LibgenAPI()
         for lang, email_group in email_group_dict.items():
-            book = libgen.get_book(isbn, book_title, filetype)
+
+            book = None
+            if email_group:
+                book = libgen.get_book(isbn, book_title, filetype)
+                print(f"book found!!! {book}")
 
             # send book if real
             if book and email_group:

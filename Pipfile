@@ -28,6 +28,9 @@ pytest = "*"
 pytest-django = "*"
 ebooklib = "*"
 nose = "*"
+jellyfish = "*"
+nltk = "*"
+textblob = "*"
 
 [dev-packages]
 

@@ -10,7 +10,8 @@ class BookAdmin(admin.ModelAdmin):
     inlines = [
         ReviewInline,
     ]
-    list_display = ("title", "author", "price", "isbn")
+    list_display = ("pk", "title", "author", "price", "isbn")
+    search_fields = ("title", "author", "isbn", "pk")
 
 
 admin.site.register(Book, BookAdmin)

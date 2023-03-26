@@ -2,6 +2,34 @@ import os
 from django.db import transaction
 from django.shortcuts import redirect
 
+import nltk
+from textblob import TextBlob
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+import string
+
+
+# Download required resources
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+
+
+# Define function to normalize a word
+def process_text(word):
+    # Remove punctuation and convert to lowercase
+    normalized_word = word.translate(str.maketrans("", "", string.punctuation)).lower()
+    return normalized_word
+
+
+# Define function to stem a word
+def stem_word(word):
+    stemmer = PorterStemmer()
+    stemmed_word = stemmer.stem(word)
+    return stemmed_word
+
 
 @transaction.atomic
 def bulk_save(queryset):

@@ -39,11 +39,13 @@ def search_results(request):
     if api_query:
         libgen = LibgenAPI(str(api_query), force_api=True)
 
+    book_list = libgen.get_unique_book_list()
+
     return render(
         request,
         'books/search_results.html',
         {
-            'libgen': libgen,
+            'book_list': libgen.filter_duplicates(book_list),
         }
     )
 

@@ -72,8 +72,6 @@
 
           // setup
           const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
-          const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
-          var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
           var token = '{{csrf_token}}';
 
           // peas
@@ -144,84 +142,6 @@
           function user_has_emails_bln() {
             return $("#email_address_list").length > 0
           }
-
-          // ajax submit form and gif loading screen
-          $("#book_send_form").on("submit", function(event) {
-            // stop propogation 
-            event.stopPropagation();
-            event.preventDefault();
-            
-            // serialize the form data 
-            var data = $(this).serialize();
-
-            // case 0: invalid user
-            if (!valid_user) {
-              alert("you must be logged in to send books!");
-              return
-            }
-
-            // case 1: no email list ! tell the user to add emails !
-            if (!emails_exist) {
-              var alert_email_confirm = "you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!";
-              alert(alert_email_confirm);
-              return
-            }
-
-            // case 2: valid user and email list
-            if (emails_exist) {
-              var alert_email_confirm = "do you want to send this book to the following emails?...";
-              alert_email_confirm = alert_email_confirm + "\n" + email_address_list
-
-
-              // case 2-a: user confirms
-              if (valid_user && confirm(alert_email_confirm)) {
-                // show loading cursor
-                $("body").css("cursor", "progress");
-
-                // timeout func to show our gif for a moment and do ajax !
-                var timeout = setTimeout(function() {
-                  loading_gif.appendTo('#loading_div');
-                  loading_gif.show();
-                  $('#loading_div').show()
-                  $.blockUI({
-                    message: $('#loading_div'),
-                    css: { 
-                      padding: 0,
-                      margin: 0,
-                    }
-                  });
-                  // $.blockUI({message: "One moment please !"});     //@AG+++ @review - replace this back (gifs don't work on prod yet)
-
-                  // center message and make transparent for aesthetic gif
-                  $('.blockUI.blockMsg').center();
-                  $('.blockUI.blockMsg.blockPage').transparent();
-
-                  // ajax ! - note: we are clearing our timeout func
-                  $.ajax({
-                    type : 'POST',
-                    url :  "{% url 'send_book' %}",
-                    data : data,
-                    headers: { "X-CSRFToken": token },
-                    success : function(response){
-                        alert("your book has been successfully sent!");
-                    },
-                    error : function(response){
-                        alert("hmmm, there seems to have been an error sending your book!");
-                    },
-                    complete: function() {
-                      clearTimeout(timeout);
-                      $.unblockUI();
-                      $("#loading_div img:last-child").remove();
-                      $('#loading_div').hide();
-                      loading_gif.hide();
-                      $("body").css("cursor", "default");
-                    }
-                  });
-
-                }, 1000);   // end timeout
-            } 
-          }
-        });
        });
   
     </script>

@@ -3,6 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 from functools import reduce
 import json
+from collections import defaultdict
+import jellyfish
+
+# import nltk
+# from nltk.stem import PorterStemmer
 # from ebooklib import epub
 
 # django
@@ -15,6 +20,7 @@ from books.models import Book
 from books.utils import (
     bulk_save,
     os_silent_remove,
+    process_text,
 )
 
 
@@ -33,20 +39,18 @@ class LibgenBook:
         "Title": "title",
         "Extension": "filetype",
     }
-    # def __init__(self, book_api):
-    #     self.author = book_api['Author']
-    #     self.title = book_api['Title']
-    #     self.filetype = book_api['Extension']
-    #     self.json_links = json.dumps([book_api['Mirror_1'], book_api['Mirror_2'], book_api['Mirror_3']])
-    #     # self.link = book_api['Mirror_1']
-    #     self.isbn = book_api['ID']
 
     def __init__(self, **kwargs):
         self.values = {}
+
+        # get values (normalize)
         for k, v in kwargs.items():
             k = self.LIBGEN_KEY_DICT.get(k)
             if k:
+                k = str(k).strip().replace("/", "-").replace(" ", "_")
                 self.values.update({k: v})
+
+        # get links
         self.values.update({
             "json_links": json.dumps([
                 kwargs['Mirror_1'],
@@ -54,6 +58,12 @@ class LibgenBook:
                 kwargs['Mirror_3'],
             ]),
         })
+
+        # get lemmatized title
+        self.values.update({
+            "_title_lemmatized": process_text(self.values["title"])
+        })
+        print(f"self.values['_title_lemmatized']: {self.values['_title_lemmatized']}")
 
     def __iter__(self):
         return iter(self.values.items())
@@ -112,6 +122,12 @@ class LibgenAPI:
             Q(author__icontains=self.search_query),
             Q(filetype__icontains=self.search_query),
             Q(isbn__icontains=self.search_query),
+            Q(title__icontains=self.search_query.strip()),
+            Q(author__icontains=self.search_query.strip()),
+            Q(filetype__icontains=self.search_query.strip()),
+            Q(isbn__icontains=self.search_query.strip()),
+            Q(_title_lemmatized__icontains=self.search_query.replace(" ", "")),
+            Q(_title_lemmatized__icontains=self.search_query.strip()),
         ]
 
         # combine the search terms with OR operator
@@ -131,41 +147,69 @@ class LibgenAPI:
             libgen_book_list = [book for book in _libgen_book_list if book.filetype in self.STABLE_FILE_TYPES]
 
         except Exception as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR | _get_libgen_book_list | {e}")
             libgen_book_list = []
 
         finally:
             return libgen_book_list
 
-    def get_book_list(self):
+    def is_duplicate(book1, book2, title_similarity_threshold=0.88):
+        if not book1 or book2:
+            return False
+
+        title_similarity = jellyfish.jaro_winkler(book1._title_lemmatized, book2._title_lemmatized)
+        if title_similarity >= title_similarity_threshold:
+            return True
+
+        return False
+
+    def filter_duplicates(self, book_list):
+        unique_books = []
+
+        for book in book_list:
+            duplicate_found = False
+            for unique_book in unique_books:
+                if self.is_duplicate(book, unique_book):
+                    duplicate_found = True
+                    continue
+
+            if not duplicate_found:
+                unique_books.append(book)
+
+        return unique_books
+
+    def get_unique_book_list(self):
         # check books in db first
-        books = self._book_db_search()
+        db_books = self._book_db_search()
+
+        print(F"BOOKS: {db_books}")
+        print(F"self.search_query: {self.search_query}")
 
         # if not reasonable selection, do fresh query using libgen api
-        if not books or self.force_api:
-            db_books_by_id = {book.isbn: book for book in books}
-            api_books_by_id = {book.isbn: book for book in self._get_libgen_book_list()}
-            created_books_by_id = {}
+        if not db_books or self.force_api:
+            api_books = self._get_libgen_book_list()
+            filter_api_books = self.filter_duplicates(api_books)
 
-            # filter books by what is already in our db (if any)
-            for isbn, new_book in api_books_by_id.items():
-                if isbn not in db_books_by_id:
+            print(f"filter_api_books: {filter_api_books}")
 
-                    book_obj = Book(**new_book.values)
-                    created_books_by_id[isbn] = book_obj            # NOTE: using isbn as key here - should be unique
+            to_save_books = []
+            for api_book in filter_api_books:
+                # Check if the api_book is a duplicate of any existing book in db_books
+                duplicate_found = any(self.is_duplicate(api_book, db_book) for db_book in db_books)
 
-            # save newly created filtered books
-            books = {book for isbn, book in created_books_by_id.items()}
-            bulk_save(books)
+                # Add the book to the list of books to save only if it is not a duplicate
+                if not duplicate_found:
+                    to_save_books.append(Book(**api_book.values))
 
-            # update db_books_by_id with newly created books
-            books.update({book for isbn, book in db_books_by_id.items()})
+            bulk_save(to_save_books)
 
-        return books
+            db_books = list(db_books) + to_save_books
+
+        return db_books
 
     def get_book(self, isbn, book_title, filetype):
         # get book record from db!
-        new_book = Book.objects.filter(isbn=isbn).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
+        new_book = Book.objects.filter(isbn__icontains=isbn, filetype=filetype).first()          # THESE ISBN SHOULD BE ALL UNIQUE RIGHT ??? @AG++
         if not new_book:
             new_book = Book.objects.filter(title__icontains=book_title, filetype=filetype).first()
         return new_book
@@ -189,6 +233,7 @@ class LibgenSearch:
         return download_links
 
 # ----------------------------------------------------- #
+
 
 class SearchRequest:
     """

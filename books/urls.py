@@ -11,7 +11,7 @@ urlpatterns = [
     path("my_emails/", views.my_emails, name="my_emails"),
 
     # ajax
-    path("send_book/", ajax.send_book, name="send_book"),
+    path("send_book_ajax/", ajax.send_book_ajax, name="send_book_ajax"),
     path("add_email/", ajax.add_email, name="add_email"),
     path("delete_email", ajax.delete_email, name="delete_email"),
     path("toggle_translate_email", ajax.toggle_translate_email, name="toggle_translate_email")

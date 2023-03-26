@@ -144,30 +144,29 @@ class TestLibgenAPI(TestCase):
         api_book_choices_ids = [book.isbn for book in api_book_choices if book.isbn == TEST_ISBN]
         self.assertTrue(api_book_choices_ids)
 
-    def test_get_book_list(self):
+    def test_get_unique_book_list(self):
         test_libgen = LibgenAPI(TEST_QUERY, force_api=False)
 
         # case 0: no books in db -- > books in api
         Book.objects.all().delete()     # clear books
-        test_books = test_libgen.get_book_list()
+        test_books = test_libgen.get_unique_book_list()
         test_book = [book.isbn for book in test_books if book.isbn == TEST_ISBN]
         self.assertTrue(test_book)
 
-        # assert get_book_list saved books to db
+        # assert get_unique_book_list saved books to db
         test_book_exists = Book.objects.filter(isbn=TEST_ISBN).exists()
         self.assertTrue(test_book_exists)
 
         # case 1: books in db
         Book.objects.all().delete()     # clear books
         TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_books_db = test_libgen.get_book_list()        # should refer to books in db if they exist
+        test_books_db = test_libgen.get_unique_book_list()        # should refer to books in db if they exist
         test_books = [book.isbn for book in test_books_db if book.isbn == TEST_ISBN]
         self.assertTrue(test_books)
 
         # case 2: books in db, force_api=True
         test_libgen_api = LibgenAPI(TEST_QUERY, force_api=True)
-        test_books_api = test_libgen_api.get_book_list()
-        print(f"test_books_api: {test_books_api}")
+        test_books_api = test_libgen_api.get_unique_book_list()
         test_books = [book.isbn for book in test_books_api if book.isbn == TEST_ISBN]
         self.assertTrue(test_books)
 

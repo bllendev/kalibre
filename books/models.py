@@ -1,22 +1,27 @@
-import uuid
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 from django.contrib.postgres.fields import JSONField
+from django.conf import settings
+
 import urllib
+import uuid
 import requests
 import os
-from django.conf import settings
 import json
 import copy
 
-
 from books.constants import EMAIL_TEMPLATE_LIST
 from books.utils import os_silent_remove
-from books._translate import EbookTranslate
+# from books._translate import EbookTranslate
 
 
 class Book(models.Model):
+    """
+        - All LibgenBooks become a Book model object
+        - we lemmatize the title of our books to improve searching,
+        and to prevent duplicates as much as we can.
+    """
 
     id = models.UUIDField(
         primary_key=True,
@@ -25,8 +30,9 @@ class Book(models.Model):
         editable=False,
     )
 
-    title = models.CharField(max_length=200)
-    author = models.CharField(max_length=200)
+    title = models.CharField(max_length=500)
+    _title_lemmatized = models.CharField(max_length=500, default="")        # see LibgenBook.init()
+    author = models.CharField(max_length=500)
     price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
     cover = models.ImageField(upload_to='covers/', blank=True)
     filetype = models.CharField(max_length=60, default="")
@@ -52,28 +58,35 @@ class Book(models.Model):
             print(f"book_download_link: {book_download_link}")
         return book_download_link
 
-    def _get_book_download_content(self, link, inner_link_int=1):
+    def _get_book_download_content(self, inner_link_int=1):
         """
             - this takes scraps self.link, finding the
             specific download link to the book file.
         """
         try:
-            book_download_link = self._get_book_file_download_link(link, inner_link_int)
+            json_links = json.loads(self.json_links)
+            book_download_link = self._get_book_file_download_link(json_links[0], inner_link_int)
             # request = urllib.request.Request(book_download_link, data, headers)
             # temp_book_file_dl = urllib.request.urlopen(book_download_link, timeout=240)
         except Exception as e:
+            book_download_link = self._get_book_file_download_link(json_links[1], 1)
             print(f"BAD LINK: {e}")
         return book_download_link
 
     def _create_book_file(self, new_file_path, language):
         """creates book file from links"""
         # get book file content
-        i = 0
-        temp_book_file_dl = None
-        while not temp_book_file_dl:
-            json_links = json.loads(self.json_links)
-            temp_book_file_link = self._get_book_download_content(json_links[i])
-            temp_book_file_dl = requests.get(temp_book_file_link)
+        temp_book_file_link = self._get_book_download_content()
+        temp_book_file_dl = requests.get(temp_book_file_link)
+
+        # debug
+        # print(f"self BOOK @@@!!!: {self}")
+        # print(f"new_file_path: {new_file_path}")
+        # print(f"json_links: {self.json_links}")
+        # print(f"temp_book_file_link: {temp_book_file_link}")
+        # print(f"temp_book_file_dl: {temp_book_file_dl}")
+        # print(f"langauge: {language}")
+        # print(f"----------------------------------")
 
         # write book file content
         try:
@@ -81,8 +94,9 @@ class Book(models.Model):
                 f.write(temp_book_file_dl.content)
                 f.close()
 
-            if language != "en":
-                new_file_path = EbookTranslate(new_file_path)
+            # TRANSLATE FEATURE DIABLED FOR NOW @AG++
+            # if language != "en":
+            #     new_file_path = EbookTranslate(new_file_path)
 
         except Exception as e:
             print(f"ERROR OCCURED: {e}")
@@ -91,7 +105,8 @@ class Book(models.Model):
 
     def get_book_file_path_from_links(self, language):
         # write file to path (will use file to send - then we will delete file)
-        new_file_path = os.path.join(settings.BASE_DIR, f"{self.title}.{self.filetype}")
+        title = self.title.replace("/", "-").replace("//", "-").replace("\\", "-")
+        new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
 
         # create book file
         self._create_book_file(new_file_path, language)

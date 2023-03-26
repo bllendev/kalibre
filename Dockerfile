@@ -17,3 +17,5 @@ RUN pip install psycopg2-binary
 
 # Copy project
 COPY . /code/
+
+RUN  python -m textblob.download_corpora

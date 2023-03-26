@@ -1,0 +1,2 @@
+[nosetests]
+where=bookstore_project/
