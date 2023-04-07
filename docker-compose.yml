@@ -1,31 +1,39 @@
 version: '3.7'
 
 services:
-   web:
-      build: .
-      # command: python /code/manage.py runserver 0.0.0.0:8000
-      command: gunicorn bookstore_project.wsgi -b 0.0.0.0:8000
-      environment:
-         - DJANGO_SETTINGS_MODULE=bookstore_project.settings
-         - ENVIRONMENT=development
-         - SECRET_KEY=qd+g@h5h%^mc@n2ft(ac14uw=b204o=b33q!v7ri3s2j-y1c=6
-         - EMAIL_HOST=smtp.gmail.com
-         - EMAIL_USER=bllendev@gmail.com
-         - EMAIL_PASS=ncrjjmstjcswaxtw
-         - OPENAI_API_KEY=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
-         - DEBUG=1
-      volumes:
-         - .:/code
-      ports:
-         - 8000:8000
-      depends_on:
-         - db
-   db:
-      image: 'postgres:12-alpine'
-      environment:
-           POSTGRES_PASSWORD: postgres
-      volumes:
-         - postgres_data:/var/lib/postgresql/data/
+  web:
+    build: .
+    command: bash -c "celery -A bookstore_project worker --loglevel=info & gunicorn bookstore_project.wsgi -b 0.0.0.0:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=bookstore_project.settings
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - OPENAI_API_KEY=${OPEN_AI_KEY}
+      - DEBUG=1
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5673//
+    volumes:
+      - .:/code
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - rabbitmq
+
+  db:
+    image: 'postgres:12-alpine'
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    ports:
+      - 15672:15672
+      - 5673:5672
 
 volumes:
-   postgres_data:
+  postgres_data:
