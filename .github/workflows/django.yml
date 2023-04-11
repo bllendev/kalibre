@@ -55,7 +55,7 @@ jobs:
       run: python -m textblob.download_corpora
 
     - name: Set environment variables from secrets
-      if: github.event.pull_request.head.repo.full_name == github.repository
+      if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || github.event_name == 'push'
       run: |
         echo "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" >> $GITHUB_ENV
         echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
