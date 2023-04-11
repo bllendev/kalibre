@@ -54,15 +54,17 @@ jobs:
     - name: Download textblob corpora
       run: python -m textblob.download_corpora
 
-    - name: Set environment variables from secrets
-      if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || github.event_name == 'push'
+    - name: Set up environment variables
       run: |
+        echo "DJANGO_SETTINGS_MODULE=bookstore_project.settings" >> $GITHUB_ENV
         echo "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" >> $GITHUB_ENV
         echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
         echo "EMAIL_HOST=${{ secrets.EMAIL_HOST }}" >> $GITHUB_ENV
         echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> $GITHUB_ENV
         echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> $GITHUB_ENV
         echo "OPENAI_API_KEY=${{ secrets.OPEN_AI_KEY }}" >> $GITHUB_ENV
+        echo "DEBUG=1" >> $GITHUB_ENV
+        echo "CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5673//" >> $GITHUB_ENV
         
     - name: Debug values
       run: |
