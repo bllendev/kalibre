@@ -1,6 +1,9 @@
 name: Django CI/CD
 
 on:
+  pull_request_target:
+    types:
+      - opened
   push:
     branches:
       - "*"
