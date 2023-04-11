@@ -8,6 +8,17 @@ on:
     branches:
       - "*"
 
+env:
+    DJANGO_SETTINGS_MODULE: bookstore_project.settings
+    ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+    SECRET_KEY: ${{ secrets.SECRET_KEY }}
+    EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+    EMAIL_USER: ${{ secrets.EMAIL_USER }}
+    EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+    OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
+    DEBUG: 1
+    CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
+
 jobs:
   build:
 
@@ -51,15 +62,5 @@ jobs:
       run: python -m textblob.download_corpora
 
     - name: Run tests
-      env:
-        DJANGO_SETTINGS_MODULE: bookstore_project.settings
-        ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-        EMAIL_USER: ${{ secrets.EMAIL_USER }}
-        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-        OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
-        DEBUG: 1
-        CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
       run: |
         python manage.py test --parallel --noinput
