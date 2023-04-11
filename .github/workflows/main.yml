@@ -8,6 +8,11 @@ on:
     branches:
       - "*"
 
+env:
+  DJANGO_SETTINGS_MODULE: bookstore_project.settings
+  DEBUG: 1
+  CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
+
 jobs:
   build:
     runs-on: ubuntu-latest
