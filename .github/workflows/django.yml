@@ -63,6 +63,11 @@ jobs:
         echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> $GITHUB_ENV
         echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> $GITHUB_ENV
         echo "OPENAI_API_KEY=${{ secrets.OPEN_AI_KEY }}" >> $GITHUB_ENV
+        
+    - name: Debug values
+      run: |
+        echo "Head repo full name: ${{ github.event.pull_request.head.repo.full_name }}"
+        echo "Current repository: ${{ github.repository }}"
 
     - name: Run tests
       run: |
