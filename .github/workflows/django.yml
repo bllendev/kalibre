@@ -4,12 +4,6 @@ on:
   pull_request_target:
     types:
       - opened
-  push:
-    branches:
-      - "*"
-  pull_request:
-    branches:
-      - "*"
 
 env:
     DJANGO_SETTINGS_MODULE: bookstore_project.settings
