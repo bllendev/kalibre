@@ -1,18 +1,22 @@
 # django
-from django.test import TestCase
+import os
+import json
+import pickle
+from django.test import TestCase, RequestFactory
 from django.conf import settings
+from unittest.mock import patch, Mock
+
+# factories
+from users.tests.factories import CustomUserFactory, EmailFactory
+from books.tests.factories import BookFactory
 
 # local
-from users.tests.factories import CustomUserFactory
-from books.tests.factories import BookFactory
+from books.tasks import send_book_ajax_task
+from users.models import Email
 from books.libgen_api import LibgenSearch, SearchRequest
 from books.libgen_api import LibgenAPI, LibgenBook
 from books.models import Book
 
-# tools
-import os
-import json
-import pickle
 
 """
     - HOW TO RUN TESTS:
@@ -174,3 +178,33 @@ class TestLibgenAPI(TestCase):
         TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
         test_book = self.test_libgen_db.get_book(TEST_BOOK.isbn, TEST_BOOK.title, TEST_BOOK.filetype)
         self.assertEqual(test_book, TEST_BOOK)
+
+
+class SendBookAjaxTaskTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = CustomUserFactory.create(username='testuser', password='testpassword')
+
+        self.email1 = EmailFactory.create(
+            user=self.user, address="test1@example.com", translate_file=""
+        )
+        self.email2 = EmailFactory.create(
+            user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES
+        )
+
+    @patch('books.tasks.LibgenAPI')
+    def test_send_book_ajax_task(self, mock_libgen):
+        # Setup
+        mock_libgen_instance = mock_libgen.return_value
+        mock_libgen_instance.get_book.return_value = None  # Mock the book to simplify the test
+
+        request = self.factory.post('/fake-url/', {
+            'book_test_title__type_pdf__isbn_1234567890': '{"fake": "data"}',
+        })
+        request.user = self.user
+
+        # Call the task
+        response = send_book_ajax_task(request)
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
