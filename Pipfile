@@ -32,6 +32,7 @@ jellyfish = "*"
 nltk = "*"
 textblob = "*"
 celery = "*"
+openai = "*"
 
 [dev-packages]
 

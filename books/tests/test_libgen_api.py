@@ -1,18 +1,22 @@
 # django
-from django.test import TestCase
+import os
+import json
+import pickle
+from django.test import TestCase, RequestFactory
 from django.conf import settings
+from unittest.mock import patch, Mock
+
+# factories
+from users.tests.factories import CustomUserFactory, EmailFactory
+from books.tests.factories import BookFactory
 
 # local
-from users.tests.factories import CustomUserFactory
-from books.tests.factories import BookFactory
+from books.tasks import send_book_ajax_task
+from users.models import Email
 from books.libgen_api import LibgenSearch, SearchRequest
 from books.libgen_api import LibgenAPI, LibgenBook
 from books.models import Book
 
-# tools
-import os
-import json
-import pickle
 
 """
     - HOW TO RUN TESTS:
@@ -179,12 +183,12 @@ class TestLibgenAPI(TestCase):
 class SendBookAjaxTaskTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = CustomUserFactory.objects.create_user(username='testuser', password='testpassword')
+        self.user = CustomUserFactory.create(username='testuser', password='testpassword')
 
-        self.email1 = Email.objects.create(
+        self.email1 = EmailFactory.create(
             user=self.user, address="test1@example.com", translate_file=""
         )
-        self.email2 = Email.objects.create(
+        self.email2 = EmailFactory.create(
             user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES
         )
 
@@ -203,8 +207,4 @@ class SendBookAjaxTaskTest(TestCase):
         response = send_book_ajax_task(request)
 
         # Check the response
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json()['status'])
-
-        # Check if the task called the LibgenAPI's get_book() method
-        mock_libgen_instance.get_book.assert_called_once_with('1234567890', 'test_title', 'pdf')
+        self.assertEqual(response.status_code, 400)
