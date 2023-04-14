@@ -34,24 +34,18 @@ class BookTest(TestCase):
     def setUpClass(cls):
         super(BookTest, cls).setUpClass()
 
-        # # open and assert test book
-        # with open(TEST_BOOK_PKL_PATH, "rb") as f:
-        #     cls.test_epub = pickle.load(f)
+        # open and assert test book
+        with open(TEST_BOOK_PKL_PATH, "rb") as f:
+            cls.test_epub = pickle.load(f)
 
         # create test user
         cls.test_user = CustomUserFactory.create()
 
         # create test book
-        cls.test_book = BookFactory.create(
-            title="My Sweet Little Orange Tree",
-            author="De Vasconcelos, José Mauro;Entrekin, Alison",
-            filetype=TEST_BOOK_FILETYPE,
-            isbn=TEST_ISBN,
-            json_links='[\"http://library.lol/main/CDD0C7BB84700F371E6F4675947D7456\", \"http://libgen.lc/ads.php?md5=CDD0C7BB84700F371E6F4675947D7456\", \"https://library.bz/main/edit/CDD0C7BB84700F371E6F4675947D7456\"]'
-        )
+        cls.test_book = BookFactory.create(test_book=True)   # orange tree book :)
 
-    # def test_book_pkl(self):
-    #     self.assertTrue(self.test_epub)
+    def test_book_pkl(self):
+        self.assertTrue(self.test_epub)
 
     def test_book_ssn(self):
         self.assertEqual(self.test_book.ssn, 'book_My Sweet Little Orange Tree__type_epub__isbn_2670677')

@@ -33,6 +33,8 @@ nltk = "*"
 textblob = "*"
 celery = "*"
 openai = "*"
+transformers = {extras = ["sentencepiece"], version = "*"}
+tensorflow = "*"
 
 [dev-packages]
 

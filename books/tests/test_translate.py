@@ -8,7 +8,7 @@ from users.models import Email
 from books.tests.factories import BookFactory
 from books.libgen_api import LibgenSearch, SearchRequest
 from books.libgen_api import LibgenAPI, LibgenBook
-# from books._translate import EbookTranslate
+from books._translate import EbookTranslate
 from books.models import Book
 from books.tests.test_book_model import TEST_BOOK_PKL_PATH
 
@@ -17,6 +17,9 @@ import os
 import json
 import pickle
 import openai
+
+
+"""docker compose exec web python manage.py test --noinput --parallel"""
 
 
 class OpenAIAPITest(SimpleTestCase):
@@ -30,29 +33,29 @@ class OpenAIAPITest(SimpleTestCase):
         self.assertTrue(openai.Model.list())
 
 
-# class EbookTranslateTest(SimpleTestCase):
-#     _multiprocess_can_split_ = True
-#     _multiprocess_shared_ = False
+class EbookTranslateTest(SimpleTestCase):
+    _multiprocess_can_split_ = True
+    _multiprocess_shared_ = False
 
-#     @classmethod
-#     def setUpClass(cls):
-#         super(EbookTranslateTest, cls).setUpClass()
+    @classmethod
+    def setUpClass(cls):
+        super(EbookTranslateTest, cls).setUpClass()
 
-#         cls.book_file_path = TEST_BOOK_PKL_PATH
-#         print(f"self.book_file_path: {cls.book_file_path}")
+        cls.book_file_path = TEST_BOOK_PKL_PATH
+        print(f"self.book_file_path: {cls.book_file_path}")
 
-#         # create book obj to test
-#         cls.test_book = BookFactory.build(test_book=True)     # orange tree book :)
+        # create book obj to test
+        cls.test_book = BookFactory.build(test_book=True)     # orange tree book :)
 
-#         # open and assert test book
-#         with open(TEST_BOOK_PKL_PATH, "rb") as f:
-#             cls.test_epub = pickle.load(f)
+        # open and assert test book
+        with open(TEST_BOOK_PKL_PATH, "rb") as f:
+            cls.test_epub = pickle.load(f)
 
-#     def test_epub_load(self):
-#         """make sure epub is loading in"""
-#         self.assertTrue(self.test_epub)
+    def test_epub_load(self):
+        """make sure epub is loading in"""
+        self.assertTrue(self.test_epub)
 
-#     def test_get_book_translated(self):
-#         """testing book translation (should send to dev email)"""
-#         self.test_book.send(email_list=["bllendev@gmail.com"], language=Email._TRANSLATE_EN_ES)
+    def test_get_book_translated(self):
+        """testing book translation (should send to dev email)"""
+        self.test_book.send(email_list=["bllendev@gmail.com"], language=Email._TRANSLATE_EN_ES)
 

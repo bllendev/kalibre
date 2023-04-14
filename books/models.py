@@ -13,14 +13,14 @@ import copy
 
 from books.constants import EMAIL_TEMPLATE_LIST
 from books.utils import os_silent_remove
-# from books._translate import EbookTranslate
+from books._translate import EbookTranslate
 
 
 class Book(models.Model):
     """
-        - All LibgenBooks become a Book model object
-        - we lemmatize the title of our books to improve searching,
-        and to prevent duplicates as much as we can.
+    - All LibgenBooks become a Book model object
+    - we lemmatize the title of our books to improve searching,
+    and to prevent duplicates as much as we can.
     """
 
     id = models.UUIDField(
@@ -90,18 +90,27 @@ class Book(models.Model):
 
         # write book file content
         try:
+
+            # save og file (used as reference for translation as well)
             with temp_book_file_dl and open(new_file_path, "wb") as f:
                 f.write(temp_book_file_dl.content)
                 f.close()
 
-            # TRANSLATE FEATURE DIABLED FOR NOW @AG++
-            # if language != "en":
-            #     new_file_path = EbookTranslate(new_file_path)
+            # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
+            if language != "en":
+                ebook_translate = EbookTranslate(new_file_path, language)
+                ebook_translated_path = ebook_translate.get_translated_book_path()
+
+                with temp_book_file_dl and open(ebook_translated_path, "wb") as f:
+                    f.write(temp_book_file_dl.content)
+                    f.close()
 
         except Exception as e:
             print(f"ERROR OCCURED: {e}")
             os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
             raise e
+
+        return new_file_path
 
     def get_book_file_path_from_links(self, language):
         # write file to path (will use file to send - then we will delete file)
@@ -109,8 +118,8 @@ class Book(models.Model):
         new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
 
         # create book file
-        self._create_book_file(new_file_path, language)
-        return new_file_path
+        book_file_path = self._create_book_file(new_file_path, language)
+        return book_file_path
 
     def send(self, email_list, language="en"):
         """emails actual book file to recipient addresses"""
