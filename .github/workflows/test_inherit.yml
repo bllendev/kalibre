@@ -1,7 +1,7 @@
 name: Test Inherited Workflow
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       env_secrets:
         required: true

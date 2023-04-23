@@ -12,6 +12,10 @@ jobs:
   call_inherited_workflow:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/workflows/test_inherit.yml
-        with:
-          env_secrets: ${{ toJSON(secrets) }}
+      - name: Trigger Test Inherited Workflow
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"event_type": "workflow_dispatch", "client_payload": {"env_secrets": ${{ toJSON(secrets) }}}}' \
+            https://api.github.com/repos/${{ github.repository }}/dispatches
