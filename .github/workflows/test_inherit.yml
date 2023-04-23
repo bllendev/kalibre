@@ -1,26 +1,25 @@
 name: Test Inherited Workflow
 
 on:
-  workflow_dispatch:
-    inputs:
-      env_secrets:
-        required: true
-        type: string
+  workflow_run:
+    workflows: ["Django CI/CD"]
+    types:
+      - completed
 
 jobs:
   test:
+    # Add a condition to run the job only if the main.yaml workflow was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    environment: kalibre-bllendev
     env:
       DJANGO_SETTINGS_MODULE: bookstore_project.settings
-      SECRET_KEY: ${{ fromJson(inputs.env_secrets).SECRET_KEY }}
-      EMAIL_HOST: ${{ fromJson(inputs.env_secrets).EMAIL_HOST }}
-      EMAIL_USER: ${{ fromJson(inputs.env_secrets).EMAIL_USER }}
-      EMAIL_PASS: ${{ fromJson(inputs.env_secrets).EMAIL_PASS }}
-      OPENAI_API_KEY: ${{ fromJson(inputs.env_secrets).OPEN_AI_KEY }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+      EMAIL_USER: ${{ secrets.EMAIL_USER }}
+      EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+      OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
       DEBUG: 1
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
-
     services:
       db:
         image: postgres:12-alpine
