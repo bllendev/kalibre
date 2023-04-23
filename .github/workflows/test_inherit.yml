@@ -32,6 +32,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Set up secrets
+      run: |
+        base64 -d > lib/path/to/secrets.dart
+
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
