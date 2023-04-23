@@ -17,9 +17,12 @@ import os
 import json
 import pickle
 import openai
+from googletrans import Translator
 
 
-"""docker compose exec web python manage.py test --noinput --parallel"""
+"""
+docker compose exec web python manage.py test books.tests.test_translate --noinput --parallel --failfast
+"""
 
 
 class OpenAIAPITest(SimpleTestCase):
@@ -45,7 +48,7 @@ class EbookTranslateTest(SimpleTestCase):
         print(f"self.book_file_path: {cls.book_file_path}")
 
         # create book obj to test
-        cls.test_book = BookFactory.build(test_book=True)     # orange tree book :)
+        cls.test_book = BookFactory.build(test_book=True)  # orange tree book :)
 
         # open and assert test book
         with open(TEST_BOOK_PKL_PATH, "rb") as f:
@@ -55,7 +58,17 @@ class EbookTranslateTest(SimpleTestCase):
         """make sure epub is loading in"""
         self.assertTrue(self.test_epub)
 
-    def test_get_book_translated(self):
-        """testing book translation (should send to dev email)"""
-        self.test_book.send(email_list=["bllendev@gmail.com"], language=Email._TRANSLATE_EN_ES)
+    def test_google_translate_api(self):
+        """
+        a quick test to make sure my version of google translate api is working
+        """
+        test_str = Translator().translate("hello", dest="es")
+        self.assertEquals(test_str.text.lower(), "hola")
 
+    # def test_get_book_translated(self):
+    #     """
+    #     testing book translation (should send to dev email)
+    #     ... currently only testing english to spanish
+    #     ... currently only testing google translate api
+    #     """
+    #     self.test_book.send(email_list=["bllendev@gmail.com"], language=Email._TRANSLATE_EN_ES)

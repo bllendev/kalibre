@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+googletrans = {git = "https://github.com/bllendev/py-googletrans.git"}
 django = "==2.2.7"
 psycopg2-binary = "==2.8.4"
 django-crispy-forms = "*"
@@ -35,6 +36,7 @@ celery = "*"
 openai = "*"
 transformers = {extras = ["sentencepiece"], version = "*"}
 tensorflow = "*"
+django-celery-results = "*"
 
 [dev-packages]
 

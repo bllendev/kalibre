@@ -98,7 +98,7 @@ class Book(models.Model):
 
             # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
             if language != "en":
-                ebook_translate = EbookTranslate(new_file_path, language)
+                ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
                 ebook_translated_path = ebook_translate.get_translated_book_path()
 
                 with temp_book_file_dl and open(ebook_translated_path, "wb") as f:

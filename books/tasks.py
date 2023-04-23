@@ -18,7 +18,7 @@ def send_book_ajax_task(request):
 
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if is_ajax and request.method == 'POST':
-        # organize
+        # organize post data
         post_dict = {key: val for key, val in request.POST.items() if "book" in key}
         post_dict_keys = list(post_dict.keys())
 
@@ -43,16 +43,12 @@ def send_book_ajax_task(request):
         # get libgenbook
         libgen = LibgenAPI()
         for lang, email_group in email_group_dict.items():
-
             book = None
-            if email_group:
+            if email_group:  # NOTE: if no emails, don't send book
                 book = libgen.get_book(isbn, book_title, filetype)
-                print(f"book found!!! {book}")
-
-            # send book if real
-            if book and email_group:
-                email_group = [email.address for email in email_group]
-                book.send(email_list=email_group, language=lang)
+                if book:  # NOTE: only send book if real
+                    email_group = [email.address for email in email_group]
+                    book.send(email_list=email_group, language=lang)
 
         return JsonResponse({'status': True}, status=200)
 
