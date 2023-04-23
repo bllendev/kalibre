@@ -10,6 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: kalibre-bllendev
     env:
       DJANGO_SETTINGS_MODULE: bookstore_project.settings
       SECRET_KEY: ${{ fromJson(inputs.env_secrets).SECRET_KEY }}
