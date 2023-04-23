@@ -10,6 +10,8 @@ on:
 
 jobs:
   call_inherited_workflow:
-    uses: ./.github/workflows/test_inherit.yml
-    with:
-      env_secrets: ${{ toJson(secrets) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/workflows/test_inherit.yml
+        with:
+          env_secrets: ${{ toJSON(secrets) }}
