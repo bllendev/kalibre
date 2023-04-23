@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DJANGO_SETTINGS_MODULE: bookstore_project.settings
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      SECRET_KEY: '${{ secrets.SECRET_KEY }}'
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_USER: ${{ secrets.EMAIL_USER }}
       EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
