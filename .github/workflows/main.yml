@@ -9,13 +9,23 @@ on:
       - "*"
 
 jobs:
-  call_inherited_workflow:
+  build_and_test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Test Inherited Workflow
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"event_type": "workflow_dispatch", "client_payload": {"env_secrets": ${{ toJSON(secrets) }}}}' \
-            https://api.github.com/repos/${{ github.repository }}/dispatches
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+      
+    - name: Pull Docker image
+      run: docker pull bllen/kalibre:latest
+      
+    - name: Run tests inside Docker container
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/app \
+          -w /app \
+          bllen/kalibre:latest \
+          /bin/bash -c "pipenv install --dev --deploy && pipenv run python manage.py test --parallel 8 --noinput --failfast"

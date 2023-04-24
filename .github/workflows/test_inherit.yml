@@ -1,10 +1,10 @@
 name: Test Inherited Workflow
 
-on:
-  workflow_run:
-    workflows: ["Django CI/CD"]
-    types:
-      - completed
+# on:
+#   workflow_run:
+#     workflows: ["Django CI/CD"]
+#     types:
+#       - completed
 
 jobs:
   build_and_test:
