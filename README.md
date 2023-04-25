@@ -15,12 +15,14 @@ As of now the site is live and completely functional!
 Visit here: https://kalibre-bllendev.herokuapp.com/
 
 ### Upcoming Features
+- book translate
+- ajax front end
+- librarian chatbot
 - run the website right in your kindle browser
-- custom search filter by filetype
 - account detail view
 - book detail view
 - dynamic email change upon sending
-- better account encryption
+- add encryption
 
 ### How to run
 - $ docker compose up --build -d
