@@ -4,8 +4,9 @@ from django.conf import settings
 
 class Email(models.Model):
     TRANSLATE_EN_ES = 'English to Spanish'
+    _TRANSLATE_EN_ES = 'en-es'
     TRANSLATE_CHOICES = (
-        (TRANSLATE_EN_ES, 'en-es'),
+        (TRANSLATE_EN_ES, _TRANSLATE_EN_ES),
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user', default=None, null=True)
     address = models.CharField(default="", max_length=120)

@@ -46,13 +46,10 @@
 
                 <td>{{ email }}</td>
 
-                {% comment %} <td id="translate_email_check_row">
-                  <input class="form-check-input" type="checkbox" id="translate_email_check" name="translate_email_pk[]" value={{email.pk}} {% if email.translate_file %}checked{% endif %}>
-                </td> {% endcomment %}
-
-                {% comment %} <td>
+                <td>
                   <input class="form-check-input" type="checkbox" id="translate_email_check_{{email.pk}}" {% if email.translate_file %}checked{% endif %}>
-                </td> {% endcomment %}
+                  <label for="translate_email_check_{{email.pk}}">Translate? (Experimental, <b>EN-ES</b> only)</label>
+                </td>
 
                 <form method="POST" id="delete_email_form_{{email.pk}}">
                   {% csrf_token %} 
@@ -130,13 +127,13 @@
           // create the first table cell with the email string
           var emailCell = $('<td>').text(email_str);
           
-          
-          //var translateCell = $('<td>');
-          //var translateCheckbox = $('<input>')
-           //   .addClass('form-check-input')
-           //   .attr('type', 'checkbox')
-           //   .attr('id', 'translate_email_check_' + email_pk);
-          //translateCell.append(translateCheckbox);   // NOTE: TRANSLATE FEATURE DISABLED @AG++
+          // translate cells
+          var translateCell = $('<td>');
+          var translateCheckbox = $('<input>')
+              .addClass('form-check-input')
+              .attr('type', 'checkbox')
+              .attr('id', 'translate_email_check_' + email_pk);
+          translateCell.append(translateCheckbox);   // NOTE: TRANSLATE FEATURE DISABLED @AG++
           
           // create the third table cell with the alignment attribute
           var buttonCell = $('<td>').attr('align', 'right');

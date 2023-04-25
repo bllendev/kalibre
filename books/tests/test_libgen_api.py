@@ -9,6 +9,15 @@ from unittest.mock import patch, Mock
 # factories
 from users.tests.factories import CustomUserFactory, EmailFactory
 from books.tests.factories import BookFactory
+from books.tests.constants import (
+    TEST_QUERY,
+    TEST_ISBN,
+    TEST_BOOK_FILETYPE,
+    TEST_COLUMNS,
+    TEST_LIBGEN_MIRRORS,
+    TEST_EMAIL_TEMPLATE_LIST,
+    TEST_STABLE_FILE_TYPES,
+)
 
 # local
 from books.tasks import send_book_ajax_task
@@ -22,48 +31,6 @@ from books.models import Book
     - HOW TO RUN TESTS:
     - ... $ docker compose exec web python manage.py test --noinput --parallel
 """
-
-TEST_QUERY = "my sweet orange tree"
-
-TEST_ISBN = "2670677"       # my sweet orange tree
-
-TEST_BOOK_FILETYPE = "epub"
-
-TEST_COLUMNS = [
-    "ID",
-    "Author",
-    "Title",
-    "Publisher",
-    "Year",
-    "Pages",
-    "Language",
-    "Size",
-    "Extension",
-    "Mirror_1",
-    "Mirror_2",
-    "Mirror_3",
-    "Mirror_4",
-    "Mirror_5",
-    "Edit",
-]
-
-TEST_LIBGEN_MIRRORS = [
-    "https://libgen.is",
-    "http://libgen.gs",
-    "http://gen.lib.rus.ec",
-    "http://libgen.rs",
-    "https://libgen.st",
-    "https://libgen.li",
-]
-
-TEST_EMAIL_TEMPLATE_LIST = [
-    '',                                         # empty subject line
-    '',                                         # empty message line
-    str(settings.DEFAULT_FROM_EMAIL),           # from email
-    list(),                                     # recipient_list
-]
-
-TEST_STABLE_FILE_TYPES = {"epub", "mobi"}
 
 
 class TestLibgenSearch(TestCase):
@@ -184,13 +151,8 @@ class SendBookAjaxTaskTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.user = CustomUserFactory.create(username='testuser', password='testpassword')
-
-        self.email1 = EmailFactory.create(
-            user=self.user, address="test1@example.com", translate_file=""
-        )
-        self.email2 = EmailFactory.create(
-            user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES
-        )
+        self.email1 = EmailFactory.create(user=self.user, address="test1@example.com", translate_file="")
+        self.email2 = EmailFactory.create(user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES)
 
     @patch('books.tasks.LibgenAPI')
     def test_send_book_ajax_task(self, mock_libgen):

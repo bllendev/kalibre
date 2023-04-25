@@ -1,0 +1,25 @@
+name: Test Inherited Workflow
+
+# on:
+#   workflow_run:
+#     workflows: ["Django CI/CD"]
+#     types:
+#       - completed
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Pull Docker image
+      run: docker pull bllen/kalibre:latest
+      
+    - name: Run tests inside Docker container
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/app \
+          -w /app \
+          bllen/kalibre:latest \
+          /bin/bash -c "pipenv install --dev --deploy && pipenv run python manage.py test --parallel 8 --noinput --failfast"
