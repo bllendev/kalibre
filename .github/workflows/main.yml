@@ -7,25 +7,50 @@ on:
   pull_request_target:
     branches:
       - "*"
-
+  
 jobs:
-  build_and_test:
+  build:
     runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: bookstore_project.settings
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+      EMAIL_USER: ${{ secrets.EMAIL_USER }}
+      EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+      OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
+      DEBUG: 1
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
+
+    services:
+      db:
+        image: postgres:12-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-      
-    - name: Pull Docker image
-      run: docker pull bllen/kalibre:latest
-      
-    - name: Run tests inside Docker container
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pipenv
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pipenv-
+  
+    - name: Install dependencies
       run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/app \
-          -w /app \
-          bllen/kalibre:latest \
-          /bin/bash -c "pipenv install --dev --deploy && pipenv run python manage.py test --parallel 8 --noinput --failfast"
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pipenv install --dev --deploy
+  
+    - name: Run tests
+      run: pipenv run python manage.py test --parallel 8 --noinput --failfast
