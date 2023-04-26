@@ -43,7 +43,6 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'kalibre-bllen.herokuapp.com',
-    'ancient-taiga-92969.herokuapp.com',
     'kalibre-bllendev.herokuapp.com',
 ]
 
