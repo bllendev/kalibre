@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: kalibre-bllendev
     env:
       DJANGO_SETTINGS_MODULE: bookstore_project.settings
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
