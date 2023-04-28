@@ -1,16 +1,17 @@
-name: Django CI/CD
+name: django - ci/cd
 
 on:
   push:
     branches:
       - "*"
-  pull_request_target:
+  pull_request:
     branches:
       - "*"
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: kalibre-bllendev
     env:
       DJANGO_SETTINGS_MODULE: bookstore_project.settings
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -20,6 +21,8 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
       DEBUG: 1
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
 
     services:
       db:
