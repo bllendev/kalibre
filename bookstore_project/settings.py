@@ -99,6 +99,11 @@ INSTALLED_APPS = [
     # Media Cloudinary
     'cloudinary',
     'cloudinary_storage',
+
+    # Celery
+    'django_celery_results',
+    # 'django_celery_beat',  task scheduler
+
 ] # + APP_DIRECTORIES
 
 
@@ -273,7 +278,7 @@ INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
 django.setup()
 
 ## Celery / RabbitMQ ##
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5673//'
+CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'

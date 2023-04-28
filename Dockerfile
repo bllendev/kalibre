@@ -44,4 +44,5 @@ EXPOSE 8000 15672
 # Start Celery worker, RabbitMQ server, and Django application
 CMD (rabbitmq-server &) && \
     (celery -a bookstore_project worker --loglevel=info &) && \
+    (sleep 5) && \
     python manage.py runserver 0.0.0.0:8000
