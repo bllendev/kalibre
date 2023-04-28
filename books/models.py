@@ -74,7 +74,15 @@ class Book(models.Model):
         return book_download_link
 
     def _create_book_file(self, new_file_path, language):
-        """creates book file from links"""
+        """
+        creates book file from links, will translate if needed
+
+        params:
+            - new_file_path: path to save book file
+            - language: language to translate to (if needed)
+        returns:
+            - path to saved book file (translated if needed)
+        """
         # get book file content
         temp_book_file_link = self._get_book_download_content()
         temp_book_file_dl = requests.get(temp_book_file_link)
@@ -92,6 +100,7 @@ class Book(models.Model):
         try:
 
             # save og file (used as reference for translation as well)
+            ebook_translated_path = new_file_path
             with temp_book_file_dl and open(new_file_path, "wb") as f:
                 f.write(temp_book_file_dl.content)
                 f.close()
@@ -101,16 +110,12 @@ class Book(models.Model):
                 ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
                 ebook_translated_path = ebook_translate.get_translated_book_path()
 
-                with temp_book_file_dl and open(ebook_translated_path, "wb") as f:
-                    f.write(temp_book_file_dl.content)
-                    f.close()
-
         except Exception as e:
             print(f"ERROR OCCURED: {e}")
             os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
             raise e
 
-        return new_file_path
+        return ebook_translated_path
 
     def get_book_file_path_from_links(self, language):
         # write file to path (will use file to send - then we will delete file)

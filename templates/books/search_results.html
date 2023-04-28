@@ -87,7 +87,6 @@
                 event.preventDefault();
                 var bookPk = $(this).attr('id').replace('book_send_form_', '');
                 set_book_send_form_onsubmit(bookPk, token);
-                console.log("bookPk: " + bookPk);
             });
         });
 
@@ -106,14 +105,10 @@
         }
 
         function set_book_send_form_onsubmit(book_pk, token) {
-            console.log("book_send_form_" + book_pk + " submitted!");
-
             event.stopPropagation();
             event.preventDefault();
 
             var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
-            console.log("data !!!: " + data);
-
             if (!valid_user) {
                 alert("you must be logged in to send books!");
                 return
