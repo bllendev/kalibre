@@ -8,8 +8,6 @@
 Hello! Welcome to Kalibre! This is a home-made web app which uses Libgen and gives users a convenient place to send
 ebooks to whatever emails they please (including to straight to their kindles!).
 
-The following is a personal project that I'm hoping to make public in the next few months as I continue to develop.
-
 As of now the site is live and completely functional! 
 
 Visit here: https://kalibre-bllendev.herokuapp.com/
