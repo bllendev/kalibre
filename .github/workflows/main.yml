@@ -21,6 +21,8 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPEN_AI_KEY }}
       DEBUG: 1
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
 
     services:
       db:
