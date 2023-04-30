@@ -3,14 +3,15 @@ import json
 import re
 import requests
 import time
+import redis
+from functools import lru_cache
+
 
 from bs4 import BeautifulSoup, NavigableString
 import ebooklib
 from ebooklib import epub
 from googletrans import Translator
-# from transformers import pipeline, AutoTokenizer, TFAutoModelForSeq2SeqLM
-
-import re
+# from transformers import pipeline, AutoTokenizer, TFAutoModelForSeq2SeqLM  # not in Pipfile
 
 
 class EbookTranslate:
@@ -26,7 +27,11 @@ class EbookTranslate:
         self.epub_path = epub_path
         self.book = epub.read_epub(epub_path)
         self.test = test  # NOTE: TEST IS SET TO TRUE FOR NOW... @AG++
-        self.translation_cache = {}
+
+        # caching
+        redis_url = os.environ.get("REDISCLOUD_URL", "redis://localhost:6379")
+        self.redis = redis.StrictRedis(host='redis', port=6379, db=0)
+
         self.cached_used = 0
 
         # load models / apis
@@ -76,18 +81,42 @@ class EbookTranslate:
             return texts
         return []  # Return an empty list for non-EpubHtml sections
 
+    def _normalize_text(self, text):
+        # Normalize the text by lowercasing and removing punctuation.
+        # You can customize the normalization process as needed.
+        normalized_text = text.lower()
+        normalized_text = re.sub(r'[^\w\s]', '', normalized_text)
+        return normalized_text
+
+    def _apply_formatting(self, original_text, translated_text):
+        # Apply the original formatting (punctuation, case-size) to the translated text
+        # This is a simple example, you may need to create a more sophisticated function
+        formatted_text = ""
+        for orig_char, trans_char in zip(original_text, translated_text):
+            if orig_char.isupper():
+                formatted_text += trans_char.upper()
+            else:
+                formatted_text += trans_char
+
+        return formatted_text
+
     def _translate_text(self, text):
         if "xml version" in text:
             return ""  # skip XML declarations (don't expose in text)
 
-        if text in self.translation_cache:
+        # Check the Redis cache for a translation
+        normalized_text = self._normalize_text(text)
+        translated_text = self.redis.get(normalized_text)
+        if translated_text:
             self.cached_used += 1
-            return self.translation_cache[text]
+            translated_text = self._apply_formatting(text, translated_text.decode('utf-8'))
+            return translated_text
 
         # google translate api
         if self.google_api:
             translator = Translator()
             translated_text = translator.translate(text, dest='es').text
+
         # openai not wired up yet... @AG++
         elif self.translation_api:
             r = requests.post(self.translation_api, data=json.dumps({'text': text}), headers={'Content-Type': 'application/json'})
@@ -95,14 +124,15 @@ class EbookTranslate:
                 translate_text = r.json()['translation']
             else:
                 raise ValueError(f"Translation API returned error code {r.status_code}")
+
         # local huggingface transformer model
         else:
             encoded_text = self.tokenizer.encode(text, return_tensors="tf")
             generated = self.model.generate(encoded_text)
             translated_text = self.tokenizer.decode(generated[0], skip_special_tokens=True)
 
-        # Cache the translation
-        self.translation_cache[text] = translated_text
+        # Cache the translation in Redis
+        self.redis.set(text, translated_text)
         return translated_text
 
     def _reinject_text(self, section):
