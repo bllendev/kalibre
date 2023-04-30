@@ -25,7 +25,7 @@ class EbookTranslate:
         # key params
         self.epub_path = epub_path
         self.book = epub.read_epub(epub_path)
-        self.test = test
+        self.test = test  # NOTE: TEST IS SET TO TRUE FOR NOW... @AG++
         self.translation_cache = {}
         self.cached_used = 0
 
@@ -194,7 +194,7 @@ class EbookTranslate:
             print(time_stat)
 
             # create a unique filename using the epub_path
-            filename = re.sub(r'\W+', '_', os.path.splitext(os.path.basename(self.epub_path))[0])
+            filename = re.sub(r'\W+', '_', os.path.splitext(os.path.basename(translated_epub_path))[0])
             filename = f"stats_{filename}.txt"
 
             # save the stats to the uniquely named text file

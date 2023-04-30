@@ -124,7 +124,8 @@ if 'test' in argv or 'test_coverage' in argv:
         '--logging-level=DEBUG',
         '--debug=django_nose',
         '--exe',
-        # '--debug-log=test.log',
+        '--nocapture',
+        '--debug-log=test.log',
     ]
 
 
