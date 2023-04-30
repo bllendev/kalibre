@@ -17,8 +17,9 @@ RUN apt-get update \
         libxext6 \
         libxrender-dev \
         python3-dev \
-        rabbitmq-server \  
-    && rm -rf /var/lib/apt/lists/*   # Add RabbitMQ server
+        rabbitmq-server \
+        redis-server \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set up RabbitMQ
 RUN rabbitmq-plugins enable rabbitmq_management
@@ -41,8 +42,9 @@ RUN  python -m textblob.download_corpora
 # Expose the ports for the application and RabbitMQ management
 EXPOSE 8000 15672
 
-# Start Celery worker, RabbitMQ server, and Django application
-CMD (rabbitmq-server &) && \
+# Start Redis server, Celery worker, RabbitMQ server, and Django application
+CMD (redis-server &) && \
+    (rabbitmq-server &) && \
     (celery -a bookstore_project worker --loglevel=info &) && \
     (sleep 5) && \
     python manage.py runserver 0.0.0.0:8000

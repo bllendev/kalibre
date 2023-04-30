@@ -21,6 +21,7 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
 
   db:
     image: 'postgres:12-alpine'
@@ -34,6 +35,11 @@ services:
     ports:
       - 15672:15672
       - 5673:5672
+  
+  redis:
+    image: "redis:alpine"
+    ports:
+      - 6379:6379
 
 volumes:
   postgres_data:

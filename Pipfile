@@ -37,6 +37,7 @@ openai = "*"
 # transformers = {extras = ["sentencepiece"], version = "*"}
 # tensorflow = "*"
 django-celery-results = "*"
+redis = "*"
 
 [dev-packages]
 
