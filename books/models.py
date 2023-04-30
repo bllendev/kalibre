@@ -66,11 +66,9 @@ class Book(models.Model):
         try:
             json_links = json.loads(self.json_links)
             book_download_link = self._get_book_file_download_link(json_links[0], inner_link_int)
-            # request = urllib.request.Request(book_download_link, data, headers)
-            # temp_book_file_dl = urllib.request.urlopen(book_download_link, timeout=240)
         except Exception as e:
             book_download_link = self._get_book_file_download_link(json_links[1], 1)
-            print(f"BAD LINK: {e}")
+            print(f"_get_book_download_content - BAD LINK: {e}")
         return book_download_link
 
     def _create_book_file(self, new_file_path, language):
@@ -131,13 +129,13 @@ class Book(models.Model):
         from django.core import mail
 
         # get book file path (safety bypass if no path)
-        book_file_path = self.get_book_file_path_from_links(language)       # web scraper
+        book_file_path = self.get_book_file_path_from_links(language)  # web scraper
         if book_file_path is None:
             return
 
         # send book as email to recipients
         with mail.get_connection() as connection:
-            template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)             # NOTE: deep copy
+            template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)  # NOTE: deep copy
             template_message[3] = email_list
 
             email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
