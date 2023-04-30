@@ -1,6 +1,8 @@
 import os
 import json
+import re
 import requests
+import time
 
 from bs4 import BeautifulSoup, NavigableString
 import ebooklib
@@ -107,7 +109,7 @@ class EbookTranslate:
         if isinstance(section, epub.EpubHtml):
             soup = BeautifulSoup(section.content.decode('utf-8'), 'html.parser')
 
-            # Helper function to traverse the tree, collect NavigableStrings and their parents
+            # helper function to traverse the tree, collect NavigableStrings and their parents
             def collect_text_nodes(node, text_nodes):
                 if not hasattr(node, 'contents') or not node.contents:
                     return
@@ -122,7 +124,7 @@ class EbookTranslate:
             text_nodes = []
             collect_text_nodes(soup, text_nodes)
 
-            # Translate and replace text
+            # translate and replace text
             for parent, original_text_node in text_nodes:
                 original_text = str(original_text_node).strip()
                 translated_text = self._translate_text(original_text)
@@ -133,10 +135,14 @@ class EbookTranslate:
                     print(f"Original: {original_text}")
                     print(f"Translated: {translated_text}")
 
-            # Update the section content with the modified soup
+            # update the section content with the modified soup
             section.content = str(soup).encode('utf-8')
 
     def translate_ebook(self):
+        """
+        the primary function to 'translate' the ebook,
+        translates text in place.
+        """
         if self.test:
             print("---------- TEST CASE --------")
             print(f"Translating 1/5 of {self.book}...")
@@ -155,9 +161,44 @@ class EbookTranslate:
                 self._reinject_text(section)
         return self.book
 
-    def get_translated_book_path(self):
+    def get_translated_book_path(self, test=None):
+        """
+        the primary function to 'get' the translated book path
+        ... - begins the translation process
+        ... - writes the translated book to a new epub file
+        params: test - boolean to indicate whether to run a test case
+        ... test::True
+        ... - 1/5 of the book will be translated & log stats to the console and file
+        ... test::False then the entire book will be translated, and no logs
+        """
+        # set test
+        test = self.test if test is None else test
+        if test:
+            self.test = True
+            print(f"Translating {self.epub_path}... logging time...")
+
+        start_time = time.time()
         translated_ebook = self.translate_ebook()
+        end_time = time.time()
+
         translated_epub_path = self.epub_path.replace(".epub", f"_translated.epub")
         epub.write_epub(translated_epub_path, translated_ebook)
-        print(f"self.cached_used: {self.cached_used}")
+
+        if self.test:
+            # prepare the stats
+            cache_stat = f"self.cached_used: {self.cached_used}"
+            time_stat = f"time of translation: {end_time - start_time}"
+
+            # print the stats
+            print(cache_stat)
+            print(time_stat)
+
+            # create a unique filename using the epub_path
+            filename = re.sub(r'\W+', '_', os.path.splitext(os.path.basename(self.epub_path))[0])
+            filename = f"stats_{filename}.txt"
+
+            # save the stats to the uniquely named text file
+            with open(filename, "w") as f:
+                f.write(f"{cache_stat}\n{time_stat}\n")
+
         return translated_epub_path
