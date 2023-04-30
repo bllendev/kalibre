@@ -144,10 +144,10 @@ class EbookTranslate:
         translates text in place.
         """
         if self.test:
-            print("---------- TEST CASE --------")
-            print(f"Translating 1/5 of {self.book}...")
+            print("------------------- TEST CASE ------------------")
+            print(f"Translating 1/4 of {self.book}...")
             i = 0
-            i_test_threshold = len([item for item in self.book.get_items()]) / 6
+            i_test_threshold = len([item for item in self.book.get_items()]) / 4
             print(f"i_test_threshold: {i_test_threshold}")
 
         for section in self.book.get_items():
@@ -168,7 +168,7 @@ class EbookTranslate:
         ... - writes the translated book to a new epub file
         params: test - boolean to indicate whether to run a test case
         ... test::True
-        ... - 1/5 of the book will be translated & log stats to the console and file
+        ... - 1/4 of the book will be translated & log stats to the console and file
         ... test::False then the entire book will be translated, and no logs
         """
         # set test
