@@ -34,8 +34,8 @@ nltk = "*"
 textblob = "*"
 celery = "*"
 openai = "*"
-transformers = {extras = ["sentencepiece"], version = "*"}
-tensorflow = "*"
+# transformers = {extras = ["sentencepiece"], version = "*"}
+# tensorflow = "*"
 django-celery-results = "*"
 
 [dev-packages]
