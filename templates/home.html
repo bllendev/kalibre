@@ -4,6 +4,7 @@
 {% block title %}kalibre{% endblock title %}
 
 {% block content %}
+  {% load static %}
   <center>
     <h1 style="font-size:100px">kalibre</h1>
       {% comment %} <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}"method="get">
@@ -19,5 +20,5 @@
             </form>
           </div>
       </div>
-    </center
+    </center>
 {% endblock content %}
