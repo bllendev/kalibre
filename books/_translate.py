@@ -192,9 +192,12 @@ class EbookTranslate:
                 non_cached_index = 0
                 for i, text in enumerate(group):
                     if translated_group[i] is None:
-                        translated_group[i] = non_cached_translations[non_cached_index]
-                        store_translation_in_cache(text, non_cached_translations[non_cached_index])
-                        non_cached_index += 1
+                        if non_cached_index < len(non_cached_translations):
+                            translated_group[i] = non_cached_translations[non_cached_index]
+                            store_translation_in_cache(text, non_cached_translations[non_cached_index])
+                            non_cached_index += 1
+                        else:
+                            break
 
             translations.extend(translated_group)
 

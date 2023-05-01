@@ -36,7 +36,7 @@
           <thead>
             <tr>
               <th>my emails</th>
-              <th></th>
+              <th align="center" >Translate?</th>
             </tr>
           </thead>
 
@@ -46,10 +46,10 @@
 
                 <td>{{ email }}</td>
 
-                {% comment %} <td>
+                <td align="center">
                   <input class="form-check-input" type="checkbox" id="translate_email_check_{{email.pk}}" {% if email.translate_file %}checked{% endif %}>
-                  <label for="translate_email_check_{{email.pk}}">Translate? (Experimental, <b>EN-ES</b> only)</label>
-                </td> {% endcomment %}
+                  <label for="translate_email_check_{{email.pk}}">(experimental | <b>en-es</b> only)</label>
+                </td>
 
                 <form method="POST" id="delete_email_form_{{email.pk}}">
                   {% csrf_token %} 
@@ -120,42 +120,55 @@
           var returned_data = JSON.parse(json_string);
           var email_str = returned_data.email.toString();
           var email_pk = returned_data.email_pk.toString();
-
+  
           // create a new table row with the specified ID
           var newRow = $('<tr>').attr('id', email_pk);
-
+  
           // create the first table cell with the email string
           var emailCell = $('<td>').text(email_str);
           
           // translate cells
-          /* var translateCell = $('<td>');
+          var translateCell = $('<td>').attr('align', 'center');
           var translateCheckbox = $('<input>')
               .addClass('form-check-input')
               .attr('type', 'checkbox')
               .attr('id', 'translate_email_check_' + email_pk);
-          translateCell.append(translateCheckbox);   // NOTE: TRANSLATE FEATURE DISABLED @AG++
-           */
+          var translateLabel = $('<label>')
+              .attr('for', 'translate_email_check_' + email_pk)
+              .html('(experimental | <b>en-es</b> only)');
+          translateCell.append(translateCheckbox).append(translateLabel);
+  
+          // create the delete form
+          var deleteForm = $('<form>')
+              .attr('method', 'POST')
+              .attr('id', 'delete_email_form_' + email_pk);
+  
+          // append csrf_token to delete form
+          deleteForm.append('{% csrf_token %}');
+  
           // create the third table cell with the alignment attribute
           var buttonCell = $('<td>').attr('align', 'right');
-          
+  
           // create the delete button
           var deleteButton = $('<button>')
               .attr('type', 'submit')
               .attr('id', 'delete_email_' + email_pk)
               .addClass('button btn-sm btn-danger text-nowrap')
               .text('delete');
-          
+  
+          // append the hidden input to the delete form
+          deleteForm.append($('<input>').attr('type', 'hidden').attr('name', 'delete_email_pk[]').attr('value', email_pk));
+          deleteForm.append(deleteButton);
+  
           // append the delete form to the button cell
-          buttonCell.append(deleteButton);
-          
+          buttonCell.append(deleteForm);
+  
           // append the email cell, translate cell, and button cell to the new row
-          // newRow.append(emailCell).append(translateCell).append(buttonCell);       NOTE: TRANSLATE FEATURE DISABLED @AG++
-          newRow.append(emailCell).append(buttonCell);
-
-          
+          newRow.append(emailCell).append(translateCell).append(buttonCell);
+  
           // append the new row after the last row of the email_table
           $("#email_table tr:last").after(newRow);
-
+  
           // after adding to the table, add the delete and translate ajax
           set_translate_form_onsubmit(email_pk, token);
           set_delete_form_onsubmit(email_pk, token);
@@ -164,10 +177,10 @@
             alert("hmmm, there seems to have been an error adding your email!");
         },
       });
-
+  
     });
-
   }
+  
 
   function set_translate_form_onsubmit(email_pk, token) {
     $("#translate_email_check_" + email_pk).on("change", function(event) {

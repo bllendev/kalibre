@@ -37,19 +37,10 @@
                                 <td>{{book.author}}</td>
                                 <td>{{book.title}}</td>
                                 <td>{{book.filetype}}</td>
-                                {% comment %} <td>
-                                    {% for link in book.links %}
-                                        <a href="{{link}}" target="_blank">[{{forloop.counter}}]</a>
-                                    {% endfor %}
-                                </td> {% endcomment %}
-                                {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>queue</button></td> {% endcomment %}
-                                    {% comment %} NOTE: i want this to be an 'add to cart' button so to speak, where user can then review cart and emails then mass send. {% endcomment %}
-
                                 <td>
                                     <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
                                     <button class='btn-sm btn-primary' type="submit" style='white-space:nowrap'>send</button>
                                 </td> 
-                                {% comment %} <td><input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}"><button class='btn-sm btn-primary' type="submit" name="book_{{book.title}}__type_{{book.filetype}}" value="{{book.json_links}}" style='white-space:nowrap'>send</button></td>  {% endcomment %}
                             </tr>
                         </form>
                     {% endfor %}
@@ -80,6 +71,7 @@
     $(document).ready(function () {
         var token = '{{csrf_token}}';
         var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
+        var translate_book_bln = {{ translate_book_bln|yesno:"true,false" }};
         const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
 
         $("form[id^='book_send_form_']").each(function () {
@@ -123,6 +115,10 @@
             if (emails_exist) {
                 var alert_email_confirm = "do you want to send this book to the following emails?...";
                 alert_email_confirm = alert_email_confirm + "\n" + email_address_list;
+
+                if (translate_book_bln) {
+                    alert_email_confirm = alert_email_confirm + "\n\n" + "One or more of your emails will send a translated version of this book, you can change this in 'my emails' if you like!";
+                }
 
                 if (valid_user && confirm(alert_email_confirm)) {
                     $(document).on('mousemove', updateGifPosition);

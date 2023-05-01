@@ -48,96 +48,99 @@
     </div>
   </div>
     
+    
     {% comment %} <video id="loading_vid" style="width:100%;height:100%;background-color:transparent;" autoplay loop muted="muted" poster="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.jpg">
       <source type="video/mp4" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.mp4">
     </video> {% endcomment %}
 
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+
+    {% comment %} <video id="loading_vid" style="width:100%;height:100%;background-color:transparent;" autoplay loop muted="muted" poster="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.jpg">
+      <source type="video/mp4" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.mp4">
+    </video> {% endcomment %}
 
 
-    <script>
-  
-       $(document).ready(function () {
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+  <script>
 
-          // setup
-          const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
-          var token = '{{csrf_token}}';
+      $(document).ready(function () {
 
-          // peas
-          var peas_img = $('<img id="peas">'); //Equivalent: $(document.createElement('img'))
-          // peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668751442/Untitled-Artwork_2-removebg-preview_wnioxv.png");
-          peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
-          peas_img.attr('style', 'max-width:100%;background-color:transparent;position:absolute;left:70px');
-          peas_img.appendTo('#peas_div');
-          peas_img.show();
+        // setup
+        const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
+        var token = '{{csrf_token}}';
 
-          // dancing_bears
-          var dancing_bears_gif = $('<img id="dancing_bears">'); //Equivalent: $(document.createElement('img'))
-          dancing_bears_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
-          dancing_bears_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+        // peas
+        var peas_img = $('<img id="peas">'); //Equivalent: $(document.createElement('img'))
+        // peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668751442/Untitled-Artwork_2-removebg-preview_wnioxv.png");
+        peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
+        peas_img.attr('style', 'max-width:100%;background-color:transparent;position:absolute;left:70px');
+        peas_img.appendTo('#peas_div');
+        peas_img.show();
 
-          // coffee_nosip
-          var coffee_nosip_gif = $('<img id="coffee_nosip">'); //Equivalent: $(document.createElement('img'))
-          coffee_nosip_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
-          coffee_nosip_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+        // dancing_bears
+        var dancing_bears_gif = $('<img id="dancing_bears">'); //Equivalent: $(document.createElement('img'))
+        dancing_bears_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
+        dancing_bears_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
 
-          // coffee_sip
-          var coffee_sip_gif = $('<img id="coffee_sip">'); //Equivalent: $(document.createElement('img'))
-          coffee_sip_gif.attr('src', 'https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1819/v1669002136/Animated-GIF-Export_1_cvc2cn.gif');
-          coffee_sip_gif.attr('style', 'width:350px;background-color:transparent;position:absolute;top:0px;right:-40px;');
-          coffee_sip_gif.appendTo('#coffee_sip_div');
-          coffee_sip_gif.show();
+        // coffee_nosip
+        var coffee_nosip_gif = $('<img id="coffee_nosip">'); //Equivalent: $(document.createElement('img'))
+        coffee_nosip_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
+        coffee_nosip_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
 
-          // flowers
-          var flowers_gif = $('<img id="blue_reading_gif">'); //Equivalent: $(document.createElement('img'))
-          flowers_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921385/blue_reading-removebg-preview_hnuxuo.png");
-          flowers_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+        // coffee_sip
+        var coffee_sip_gif = $('<img id="coffee_sip">'); //Equivalent: $(document.createElement('img'))
+        coffee_sip_gif.attr('src', 'https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1819/v1669002136/Animated-GIF-Export_1_cvc2cn.gif');
+        coffee_sip_gif.attr('style', 'width:350px;background-color:transparent;position:absolute;top:0px;right:-40px;');
+        coffee_sip_gif.appendTo('#coffee_sip_div');
+        coffee_sip_gif.show();
 
-          // blue reading
-          var blue_reading_img = $('<img id="blue_reading_img">'); //Equivalent: $(document.createElement('img'))
-          blue_reading_img.addClass("background-image");
-          // blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_qqnhmb.gif");
-          blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
-          blue_reading_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
-          blue_reading_img.appendTo('#blue_reading_div');
-          blue_reading_img.show();
+        // flowers
+        var flowers_gif = $('<img id="blue_reading_gif">'); //Equivalent: $(document.createElement('img'))
+        flowers_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921385/blue_reading-removebg-preview_hnuxuo.png");
+        flowers_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
 
-          // loading gif
-          var loading_gif = $('<img id="loading_gif">'); //Equivalent: $(document.createElement('img'))
-          loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
-          loading_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+        // blue reading
+        var blue_reading_img = $('<img id="blue_reading_img">'); //Equivalent: $(document.createElement('img'))
+        blue_reading_img.addClass("background-image");
+        // blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_qqnhmb.gif");
+        blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
+        blue_reading_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
+        blue_reading_img.appendTo('#blue_reading_div');
+        blue_reading_img.show();
 
-          // hide our gif div on loadup
-          $('#loading_div').hide();
-          loading_gif.hide();
+        // loading gif
+        var loading_gif = $('<img id="loading_gif">'); //Equivalent: $(document.createElement('img'))
+        loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
+        loading_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
 
-          // handy centering function (centering our gif)
-          $.fn.center = function () {
-            this.css("position","absolute");
-            this.css("top", ($(window).height() - this.height()) / 2+$(window).scrollTop() + "px");
-            this.css("left", ( $(window).width() - this.width() ) / 2+$(window).scrollLeft() + "px");
-            return this;
-          }
+        // hide our gif div on loadup
+        $('#loading_div').hide();
+        loading_gif.hide();
 
-          // handy func to make div transparent
-          $.fn.transparent = function () {
-            this.css("background-color", "transparent");
-            this.css("border", "0px");
-            return this;
-          }
+        // handy centering function (centering our gif)
+        $.fn.center = function () {
+          this.css("position","absolute");
+          this.css("top", ($(window).height() - this.height()) / 2+$(window).scrollTop() + "px");
+          this.css("left", ( $(window).width() - this.width() ) / 2+$(window).scrollLeft() + "px");
+          return this;
+        }
 
-          // handy func to check if user actually has emails
-          function user_has_emails_bln() {
-            return $("#email_address_list").length > 0
-          }
-       });
-  
-    </script>
-  </div>
+        // handy func to make div transparent
+        $.fn.transparent = function () {
+          this.css("background-color", "transparent");
+          this.css("border", "0px");
+          return this;
+        }
+
+        // handy func to check if user actually has emails
+        function user_has_emails_bln() {
+          return $("#email_address_list").length > 0
+        }
+      });
+
+  </script>
 
 </body>
 </html>
