@@ -15,6 +15,11 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH\/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <!-- CSS -->
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+  <script
+  src="https://code.jquery.com/jquery-3.6.4.js"
+  integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="
+  crossorigin="anonymous"></script>
 </head>
 <body>
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
@@ -42,59 +47,26 @@
   <div class="container">
     <div class="row">
         <div class="col-md-12">
-            {% block content %}
+            {% block content %}    
             {% endblock content %}
         </div>
     </div>
   </div>
-    
-    
-    {% comment %} <video id="loading_vid" style="width:100%;height:100%;background-color:transparent;" autoplay loop muted="muted" poster="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.jpg">
-      <source type="video/mp4" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.mp4">
-    </video> {% endcomment %}
 
-
-
-    {% comment %} <video id="loading_vid" style="width:100%;height:100%;background-color:transparent;" autoplay loop muted="muted" poster="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.jpg">
-      <source type="video/mp4" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.mp4">
-    </video> {% endcomment %}
-
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
   <script>
 
       $(document).ready(function () {
 
         // setup
-        const valid_user =  JSON.parse(document.getElementById('valid_user').textContent);
         var token = '{{csrf_token}}';
-
-        // peas
-        var peas_img = $('<img id="peas">'); //Equivalent: $(document.createElement('img'))
-        // peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668751442/Untitled-Artwork_2-removebg-preview_wnioxv.png");
-        peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
-        peas_img.attr('style', 'max-width:100%;background-color:transparent;position:absolute;left:70px');
-        peas_img.appendTo('#peas_div');
-        peas_img.show();
 
         // dancing_bears
         var dancing_bears_gif = $('<img id="dancing_bears">'); //Equivalent: $(document.createElement('img'))
         dancing_bears_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
         dancing_bears_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
-
-        // coffee_nosip
-        var coffee_nosip_gif = $('<img id="coffee_nosip">'); //Equivalent: $(document.createElement('img'))
-        coffee_nosip_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668921388/coffee_nosip-removebg-preview_d56wv8.png");
-        coffee_nosip_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
-
-        // coffee_sip
-        var coffee_sip_gif = $('<img id="coffee_sip">'); //Equivalent: $(document.createElement('img'))
-        coffee_sip_gif.attr('src', 'https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1819/v1669002136/Animated-GIF-Export_1_cvc2cn.gif');
-        coffee_sip_gif.attr('style', 'width:350px;background-color:transparent;position:absolute;top:0px;right:-40px;');
-        coffee_sip_gif.appendTo('#coffee_sip_div');
-        coffee_sip_gif.show();
 
         // flowers
         var flowers_gif = $('<img id="blue_reading_gif">'); //Equivalent: $(document.createElement('img'))

@@ -1,40 +1,52 @@
 {% extends "_base.html" %}
+{% load crispy_forms_tags %}
 
 {% block title %}About{% endblock title %}
 
 {% block content %}
   
+    <div class="row mb-0 mt-4">
+        <div class="col-md-8">
+            <h2>about kalibre!</h2>
+            <hr style="width:90%"></hr>
+        </div>
+        <div class="col-md-4 mt-5" id="coffee_sip_div"></div></div>
 
-<br><br>
-<div class="row mb-0">
-    <div class="col-md-8">
-        <h2>about kalibre!</h2>
-        <hr style="width:90%"></hr>
+    <h5>how to use?</h5>
+    <ul>
+        <li>create an account using 'sign up' option, or 'log in' to existing account</li>
+        <li>add email addresses you would like to send your ebooks too in 'my emails'</li>
+        <li>click 'kalibre' in the upper-left corner to head back to the book search page</li>
+        <li>search for a book, send it to the emails you've added in 'my emails' by clicking the send button</li>
+    </ul>
+
+    <h5>sending books straight to your kindle</h5>
+    <ul>
+        <li>go to your amazon account on the amazon website</li>
+        <li>head to 'Manage Your Content and Devices' page</li>
+        <li>head to 'Preferences' tab --> scroll down to 'Personal Document Settings'</li>
+        <li>find 'Approved Personal Document E-mail List' and add the email <i>bllendev@gmail.com</i></li>
+    </ul>
+    <hr style="width:75%"></hr>
+    <ul>
+        <li>thank you <i>pine</i> for <i>your wonderful artwork</i>!</li>
+        <li>thank you <i>harrison-broadbent</i> for <i>libgen-api</i>! - this app uses a modified version of this package</li>
+    </ul>
     </div>
-    <div class="col-md-4 mt-5" id="coffee_sip_div"></div></div>
-
-  <h5>how to use?</h5>
-  <ul>
-      <li>create an account using 'sign up' option, or 'log in' to existing account</li>
-      <li>add email addresses you would like to send your ebooks too in 'my emails'</li>
-      <li>click 'kalibre' in the upper-left corner to head back to the book search page</li>
-      <li>search for a book, send it to the emails you've added in 'my emails' by clicking the send button</li>
-  </ul>
-
-  <h5>sending books straight to your kindle</h5>
-  <ul>
-      <li>go to your amazon account on the amazon website</li>
-      <li>head to 'Manage Your Content and Devices' page</li>
-      <li>head to 'Preferences' tab --> scroll down to 'Personal Document Settings'</li>
-      <li>find 'Approved Personal Document E-mail List' and add the email <i>bllendev@gmail.com</i></li>
-  </ul>
-  <hr style="width:75%"></hr>
-  <ul>
-      <li>thank you <i>pine</i> for <i>your wonderful artwork</i>!</li>
-      <li>thank you <i>harrison-broadbent</i> for <i>libgen-api</i>! - this app uses a modified version of this package</li>
-  </ul>
-</div>
 
 
+    <script>
+        $(document).ready(function () {
+            var token = '{{csrf_token}}';
+
+            // coffee_sip
+            var coffee_sip_gif = $('<img id="coffee_sip">'); //Equivalent: $(document.createElement('img'))
+            coffee_sip_gif.attr('src', 'https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1819/v1669002136/Animated-GIF-Export_1_cvc2cn.gif');
+            coffee_sip_gif.attr('style', 'width:350px;background-color:transparent;position:absolute;top:0px;right:-40px;');
+            coffee_sip_gif.appendTo('#coffee_sip_div');
+            coffee_sip_gif.show();
+
+        });
+    </script>
 
 {% endblock content %}
