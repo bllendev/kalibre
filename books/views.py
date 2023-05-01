@@ -46,6 +46,7 @@ def search_results(request):
         'books/search_results.html',
         {
             'book_list': libgen.filter_duplicates(book_list),
+            'translate_book_bln': request.user.translate_book_bln,
         }
     )
 

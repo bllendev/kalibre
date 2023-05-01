@@ -34,3 +34,16 @@ class CustomUser(AbstractUser):
         email_list = list([email.address for email in self.email_addresses.all().order_by('-address')])
         email_str = "\n".join(email_list)
         return email_str
+
+    @property
+    def translate_book_bln(self):
+        """
+        returns True, if any emails of the user are active and have translate mode on.
+        """
+        translate_book_bln = False
+        if self.email_addresses.all().exists():
+            for email in self.email_addresses.all():
+                if email.translate_file:
+                    translate_book_bln = True
+                    break
+        return translate_book_bln
