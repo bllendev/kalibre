@@ -1,8 +1,11 @@
+from django.conf import settings
+import itertools
 import os
 import json
 import re
 import requests
 import time
+
 import redis
 from functools import lru_cache
 
@@ -30,9 +33,15 @@ class EbookTranslate:
     """
     def __init__(self, epub_path, language, google_api=True, openai=False, fastapi=False, test_mode=True):
         # key params
-        self.epub_path = epub_path
-        self.book = epub.read_epub(epub_path)
+        try:
+            self.epub_path = epub_path
+            self.book = epub.read_epub(epub_path)
+        except:
+            # assume book is loaded
+            self.epub_path = os.path.join(settings.BASE_DIR, f"{self.book.get_metadata('DC', 'title')[0][0]}")
+            self.book = epub_path
         self.test_mode = test_mode  # NOTE: TEST IS SET TO TRUE FOR NOW... @AG++
+        self._translate_count = 0
 
         # caching
         redis_url = os.environ.get("REDISCLOUD_URL", "redis://localhost:6379")
@@ -58,19 +67,6 @@ class EbookTranslate:
             self.google_api = True
             self.tokenizer = None
 
-    def filter_text(self, text):
-        """
-        filter out text that is not needed for translation
-        ... cuts down text by sentences (using punctuation) and strips
-
-        param text: str - text to be filtered
-        """
-        # Split the text by punctuation
-        text_chunks = re.split(r'([.!?])', text)
-        # Remove empty strings and leading/trailing whitespace
-        text_chunks = [chunk.strip() for chunk in text_chunks if chunk.strip()]
-        return text_chunks
-
     def _normalize_text(self, text):
         """
         Normalize the text by lowercasing and removing punctuation.
@@ -83,83 +79,131 @@ class EbookTranslate:
         return normalized_text
 
     def _apply_formatting(self, original_text, translated_text):
-        """
-        Apply the original formatting (punctuation, case-size) to the translated text
-        NOTE: this only works with roman langauges, be warys
+        original_words = original_text.split()
+        translated_words = translated_text.split()
+        formatted_words = []
 
-        param original_text: str - og text to be used as formatting reference for translation
-        """
-        formatted_text = ""  # if self.language is roman... TODO: finish this (see docs)
-        for orig_char, trans_char in zip(original_text, translated_text):
-            if orig_char.isupper():
-                formatted_text += trans_char.upper()
+        for orig_word, trans_word in itertools.zip_longest(original_words, translated_words):
+            if orig_word is None:
+                formatted_word = trans_word
+            elif trans_word is None:
+                continue
+            elif orig_word[0].isupper():
+                formatted_word = trans_word.capitalize()
             else:
-                formatted_text += trans_char
+                formatted_word = trans_word.lower()
 
+            formatted_words.append(formatted_word)
+
+        formatted_text = ' '.join(formatted_words)
         return formatted_text
 
-    def _translate_text(self, text_chunks):
-        """
-        the translate method which translates a list of strings
-        ... delegates translation feature to 3 of the following methods
-        ... 1. google translate api
-        ... 2. fasapi transformer model (not finished yet)
-        ... 3. openai transformer model (not finished yet)
-        ... 4. local huggingface transformer model (disabled)
+    def _translate_and_cache(self, accumulated_chunks, translated_chunks):
+        # Translate the accumulated chunks
+        translated_accumulated = self._bulk_translate(accumulated_chunks)
 
-        param text_chunks: list - list of strings to be translated
-        """
-        translated_chunks = []
+        # Cache the translations and add them to the translated_chunks list
+        for original, translated in zip(accumulated_chunks, translated_accumulated):
+            normalized_text = self._normalize_text(original)
+            self.redis.set(normalized_text, translated)
+            translated_chunks.append(translated)
 
-        for text in text_chunks:
-            if "xml version" in text:
-                continue  # skip XML declarations (don't expose in text)
+    def _bulk_translate(self, accumulated_chunks):
+        # Combine accumulated chunks into a single string for translation
+        text_to_translate = ' ||| '.join(accumulated_chunks)
 
-            # Check the Redis cache for a translation
-            normalized_text = self._normalize_text(text)
-            translated_text = self.redis.get(normalized_text)
-            if translated_text:
-                self.cached_used += 1
-                translated_text = self._apply_formatting(text, translated_text.decode('utf-8'))
-                return translated_text
+        # Perform the translation (using your preferred API)
+        translated_text = self._translate_single_text(text_to_translate)
 
-            # google translate api
-            if self.google_api:
-                translator = Translator()
-                translated_text = translator.translate(text, dest='es').text
+        # Split the translated text back into individual chunks
+        translated_chunks = translated_text.split(' ||| ')
 
-            # openai not wired up yet... @AG++
-            elif self.translation_api:
-                r = requests.post(self.translation_api, data=json.dumps({'text': text}), headers={'Content-Type': 'application/json'})
-                if r.status_code == 200:
-                    translate_text = r.json()['translation']
-                else:
-                    raise ValueError(f"Translation API returned error code {r.status_code}")
+        # Apply formatting to each translated chunk
+        formatted_translated_chunks = [
+            self._apply_formatting(original, translated)
+            for original, translated in zip(accumulated_chunks, translated_chunks)
+        ]
 
-            # local huggingface transformer model
-            else:
-                encoded_text = self.tokenizer.encode(text, return_tensors="tf")
-                generated = self.model.generate(encoded_text)
-                translated_text = self.tokenizer.decode(generated[0], skip_special_tokens=True)
+        return formatted_translated_chunks
 
-            # Cache the translation in Redis
-            self.redis.set(text, translated_text)
-            translated_chunks.append(translated_text)
-
-        # Join the translated chunks
-        translated_text = ' '.join(translated_chunks)
+    def _translate_single_text(self, text):
+        # Implement the translation using your preferred API (Google Translate, OpenAI, etc.)
+        # This is a placeholder implementation
+        translator = Translator()
+        translated_text = translator.translate(text, dest='es').text
         return translated_text
 
-    def _reinject_text(self, section):
-        """
-        the reinject method which replaces the original text with the translated text
+    def _group_and_translate(self, accumulated_texts):
+        MAX_CHUNK_SIZE = 5000
 
-        param section: epub.EpubHtml - the section to be translated
-        """
+        def group_texts(text_list):
+            grouped_texts = []
+            current_group = []
+            current_length = 0
+
+            for text in text_list:
+                text_length = len(text)
+
+                if current_length + text_length + 3 > MAX_CHUNK_SIZE:
+                    grouped_texts.append(current_group)
+                    current_group = []
+                    current_length = 0
+
+                current_group.append(text)
+                current_length += text_length + 3
+
+            if current_group:
+                grouped_texts.append(current_group)
+
+            return grouped_texts
+
+        def get_translation_from_cache(text):
+            normalized_text = self._normalize_text(text)
+            cached_translation = self.redis.get(normalized_text)
+
+            if cached_translation:
+                self.cached_used += 1
+                return self._apply_formatting(text, cached_translation.decode('utf-8'))
+            return None
+
+        def store_translation_in_cache(original_text, translated_text):
+            normalized_text = self._normalize_text(original_text)
+            self.redis.set(normalized_text, translated_text)
+
+        grouped_texts = group_texts(accumulated_texts)
+        translations = []
+
+        for group in grouped_texts:
+            translated_group = []
+
+            for text in group:
+                cached_translation = get_translation_from_cache(text)
+
+                if cached_translation:
+                    translated_group.append(cached_translation)
+                else:
+                    translated_group.append(None)
+
+            non_cached_texts = [text for text in group if not get_translation_from_cache(text)]
+
+            if non_cached_texts:
+                non_cached_translations = self._bulk_translate(non_cached_texts)
+
+                non_cached_index = 0
+                for i, text in enumerate(group):
+                    if translated_group[i] is None:
+                        translated_group[i] = non_cached_translations[non_cached_index]
+                        store_translation_in_cache(text, non_cached_translations[non_cached_index])
+                        non_cached_index += 1
+
+            translations.extend(translated_group)
+
+        return grouped_texts, translations
+
+    def _reinject_text(self, section):
         if isinstance(section, epub.EpubHtml):
             soup = BeautifulSoup(section.content.decode('utf-8'), 'html.parser')
 
-            # helper function to traverse the tree, collect NavigableStrings and their parents
             def collect_text_nodes(node, text_nodes):
                 if not hasattr(node, 'contents') or not node.contents:
                     return
@@ -171,27 +215,29 @@ class EbookTranslate:
                     else:
                         collect_text_nodes(child, text_nodes)
 
-            # recursively collect all text nodes
             text_nodes = []
             collect_text_nodes(soup, text_nodes)
 
-            # translate and replace text
-            for parent, original_text_node in text_nodes:
-                # filter and translate text
-                original_text = str(original_text_node).strip()
-                filtered_text_chunks = self.filter_text(original_text)
-                translated_text = self._translate_text(filtered_text_chunks)
+            accumulated_nodes = []
+            accumulated_texts = []
 
-                # replace text node with translation
-                new_text_node = NavigableString(translated_text)
+            for parent, original_text_node in text_nodes:
+                original_text = str(original_text_node).strip()
+                accumulated_nodes.append((parent, original_text_node))
+                accumulated_texts.append(original_text)
+
+            # Group and translate the accumulated_texts
+            grouped_texts, translations = self._group_and_translate(accumulated_texts)
+
+            # Replace text nodes with translations while preserving the original order
+            for (parent, original_text_node), translation in zip(accumulated_nodes, translations):
+                new_text_node = NavigableString(translation)
                 original_text_node.replace_with(new_text_node)
 
-                # test logs
                 if self.test_mode:
-                    print(f"Original: {original_text}")
-                    print(f"Translated: {translated_text}")
+                    print(f"Original: {str(original_text_node).strip()}")
+                    print(f"Translated: {translation}")
 
-            # update the section content with the modified soup
             section.content = str(soup).encode('utf-8')
 
     def translate_ebook(self):
