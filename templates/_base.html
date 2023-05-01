@@ -24,41 +24,29 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul class="navbar-nav me-auto mb-2 mb-md-0">
-          {% comment %} <li class="nav-item"><
-            <a class="nav-link" href="{% url 'book_list' %}">my books</a>
-          </li> {% endcomment %}
-          {{ user.is_authenticated|json_script:"valid_user" }}
-          {{ user.email_addresses_str|json_script:"email_address_list" }}
-
+        <div class="navbar-nav me-auto mb-2 mb-md-0 d-flex flex-row">
           {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'my_emails' %}">my emails</a>
-          </li>
+          <a class="nav-link" href="{% url 'my_emails' %}">my emails</a>
           {% endif %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'about' %}">how to use?</a>
-          </li>
+          <a class="nav-link" href="{% url 'about' %}">how to use?</a>
           {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'account_logout' %}">log out</a>
-          </li>
+          <a class="nav-link" href="{% url 'account_logout' %}">log out</a>
           {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'account_login' %}">log in</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'account_signup' %}">sign up</a>
-          </li>
+          <a class="nav-link" href="{% url 'account_login' %}">log in</a>
+          <a class="nav-link" href="{% url 'account_signup' %}">sign up</a>
           {% endif %}
-        </ul>
+        </div>
       </div>
     </div>
   </nav>
-  <div class="container mt-5">
-    {% block content %}
-    {% endblock content %}
-    <div id="loading_div" style="background-color:transparent;"></div>
+  <div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </div>
+  </div>
     
     {% comment %} <video id="loading_vid" style="width:100%;height:100%;background-color:transparent;" autoplay loop muted="muted" poster="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.jpg">
       <source type="video/mp4" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.mp4">
@@ -114,7 +102,6 @@
           blue_reading_img.addClass("background-image");
           // blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_qqnhmb.gif");
           blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
-
           blue_reading_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
           blue_reading_img.appendTo('#blue_reading_div');
           blue_reading_img.show();
@@ -154,6 +141,3 @@
 
 </body>
 </html>
-
-
-
