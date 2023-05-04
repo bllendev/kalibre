@@ -1,24 +1,46 @@
 {% extends "_base.html" %}
-{% load static %}
-
 {% block title %}kalibre{% endblock title %}
 
 {% block content %}
   {% load static %}
-  <center>
-    <h1 style="font-size:100px">kalibre</h1>
-      {% comment %} <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}"method="get">
-          <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search"aria-label="Search">
-      </form> {% endcomment %}
-      <div class="row justify-content-center">
-        <div id="blue_reading_div" class="col-md-6"></div>
-      </div>
-      <div class="row justify-content-center">
-          <div class="col-md-6">
-            <form class="form-inline mt-2 mt-md-0" action="{% url 'search_results' %}" method="get">
-              <input name="db_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="what do you wanna read?">
-            </form>
+  <div class="text-center">
+    <h1 class="kalibre-title" style="font-size:100px">kalibre</h1>
+    <div class="row justify-content-center">
+      <div id="blue_reading_div" class="col-md-6"></div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <form id="search-form" class="form-inline mt-2 mt-md-0 d-flex justify-content-center" action="{% url 'search_results' %}" method="get">
+          <div id="search-input-container" class="d-inline-flex">
+            <input name="db_q" class="form-control w-100" type="text" placeholder="what do you wanna read?">
+            <button id="toggle-ai-librarian" class="btn btn-sm btn-secondary" data-toggle="tooltip" data-placement="top" title="AI Librarian" type="button"></button>
           </div>
+        </form>
       </div>
-    </center>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      // Handle switch button click event
+      $("#toggle-ai-librarian").click(function() {
+        $("#ai-chatbox").fadeToggle();
+      });
+
+      // Enable the tooltip
+      $('[data-toggle="tooltip"]').tooltip();
+
+      // Fade in the body
+      $("body").css("transition", "opacity 0.5s").css("opacity", "1");
+
+      // Set a timeout to delay the entrance animations for h1 and the search input container
+      setTimeout(function() {
+        $("h1, #search-input-container").css("transition", "all 0.5s").css({
+          "opacity": "1",
+          "transform": "translateY(0)"
+        });
+      }, 100);
+    });
+  </script>
+
 {% endblock content %}

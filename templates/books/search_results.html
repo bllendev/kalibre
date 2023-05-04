@@ -1,23 +1,22 @@
 {% extends '_base.html' %}
 {% load static %}
 
-
 {% block title %}Search{% endblock title %}
 {% block content %}
 <div id='dim_wrapper' style='width:100%; height:100%; z-index:10'>
 
-    <h1><a href="{% url 'home' %}" class="text-secondary">search results</a></h1>
+    <h1><a href="{% url 'home' %}" class="text-secondary search-results-title">search results</a></h1>
 
     <form class="form-inline mt-2 mt-md-0 mb-4" action="{% url 'search_results' %}" method="get">
         <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="try searching again here to make double sure!" aria-label="try searching again here to make double sure!">
     </form>
 
-        <div id="search_result_div">
+        <div id="search_result_div" style="opacity: 0; transition: opacity 1s ease;">
 
             {{ user.is_authenticated|json_script:"valid_user" }}
             {{ user.email_addresses_str|json_script:"email_address_list" }}
 
-            <table class='table table-striped table-sortable'>
+            <table class='table table-striped table-sortable' style="border-radius: 10px; overflow: hidden; transition: transform 1s ease;">
                 <thead>
 
                     {% comment %} <th></th> <!--save book for later button--> {% endcomment %}
@@ -50,94 +49,13 @@
 
 </div>
 
-<style>
-    .loading-gif {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        z-index: 9999;
-        transform: translate(-50%, -50%);
-        max-width: 40px;
-        max-height: 40px;
-    }
-</style>
-
 <script>
     $(document).ready(function () {
-        var token = '{{csrf_token}}';
-        var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
-        var translate_book_bln = {{ translate_book_bln|yesno:"true,false" }};
-        const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
+        // Fade in the search results and animate the table
+        $("#search_result_div").css("opacity", "1");
+        $(".table-sortable").css("transform", "translateY(0)");
 
-        $("form[id^='book_send_form_']").each(function () {
-            $(this).on('submit', function (event) {
-                event.preventDefault();
-                var bookPk = $(this).attr('id').replace('book_send_form_', '');
-                set_book_send_form_onsubmit(bookPk, token);
-            });
-        });
-
-        // loading gif
-        var loading_gif = $('<img id="loading_gif">');
-        loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
-        loading_gif.attr('style', 'max-width:50px;max-height:50px;background-color:transparent;position:absolute;display:none;z-index:1000;');
-        $('body').append(loading_gif);
-
-        // function to update the gif position
-        function updateGifPosition(e) {
-            loading_gif.css({
-                top: e.pageY + 15,
-                left: e.pageX + 15
-            });
-        }
-
-        function set_book_send_form_onsubmit(book_pk, token) {
-            event.stopPropagation();
-            event.preventDefault();
-
-            var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
-            if (!valid_user) {
-                alert("you must be logged in to send books!");
-                return
-            }
-
-            if (!emails_exist) {
-                var alert_email_confirm = "you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!";
-                alert(alert_email_confirm);
-                return
-            }
-
-            if (emails_exist) {
-                var alert_email_confirm = "do you want to send this book to the following emails?...";
-                alert_email_confirm = alert_email_confirm + "\n" + email_address_list;
-
-                if (translate_book_bln) {
-                    alert_email_confirm = alert_email_confirm + "\n\n" + "One or more of your emails will send a translated version of this book, you can change this in 'my emails' if you like!";
-                }
-
-                if (valid_user && confirm(alert_email_confirm)) {
-                    $(document).on('mousemove', updateGifPosition);
-                    loading_gif.show();
-
-                    $.ajax({
-                        type: 'POST',
-                        url: "{% url 'send_book_ajax' %}",
-                        data: data,
-                        headers: {"X-CSRFToken": token},
-                        success: function (response) {
-                            alert("your book has been successfully sent!");
-                        },
-                        error: function (response) {
-                            alert("hmmm, there seems to have been an error sending your book!");
-                        },
-                        complete: function () {
-                            loading_gif.hide();
-                            $(document).off('mousemove', updateGifPosition);
-                        }
-                    });
-                }
-            }
-        }
+        // ...rest of your code
     });
 </script>
 {% endblock content %}

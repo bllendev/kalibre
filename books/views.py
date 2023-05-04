@@ -31,6 +31,8 @@ class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 def search_results(request):
     from books.libgen_api import LibgenAPI
 
+    libgen = None
+
     db_query = request.GET.get('db_q')
     if db_query:
         libgen = LibgenAPI(str(db_query), force_api=False)
@@ -39,7 +41,9 @@ def search_results(request):
     if api_query:
         libgen = LibgenAPI(str(api_query), force_api=True)
 
-    book_list = libgen.get_unique_book_list()
+    book_list = []
+    if libgen:
+        book_list = libgen.get_unique_book_list()
 
     return render(
         request,
