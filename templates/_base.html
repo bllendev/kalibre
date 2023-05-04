@@ -3,15 +3,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    .loading-cursor {
-        cursor: url('https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif'), progress !important;
-    }
-  </style>
   <meta charset="utf-8">
   <title>{% block title %}kalibre{% endblock title %}</title>   <!--as a dutifule homage to the first Calibre :)-->
   <!-- Bootstrap CSS -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH\/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <!-- CSS -->
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
@@ -47,13 +43,14 @@
   <div class="container">
     <div class="row">
         <div class="col-md-12">
-            {% block content %}    
+          <div class="page-content">
+            {% block content %}
             {% endblock content %}
+          </div>
         </div>
     </div>
   </div>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
   <script>
 
@@ -104,8 +101,20 @@
         function user_has_emails_bln() {
           return $("#email_address_list").length > 0
         }
-      });
 
+        window.onload = function() {
+          // Fade in the body
+          $("body").css("opacity", "1");
+    
+          // Set a timeout to delay the entrance animations for the page content
+          setTimeout(function() {
+            $(".page-content").css({
+              "opacity": "1",
+              "transform": "translateY(0)"
+            });
+          }, 100);
+        };
+    });
   </script>
 
 </body>
