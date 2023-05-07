@@ -5,13 +5,13 @@ name = "pypi"
 
 [packages]
 googletrans = {git = "https://github.com/bllendev/py-googletrans.git"}
-django = "==2.2.7"
+django = "==4.2"
 psycopg2-binary = "==2.8.4"
 django-crispy-forms = "*"
 crispy-bootstrap5 = "*"
-django-allauth = "==0.40.0"
+django-allauth = "*"
 pillow = "*"
-django-debug-toolbar = "==2.2"
+django-debug-toolbar = "*"
 libgen-api = "*"
 whitenoise = "*"
 gunicorn = "*"
@@ -38,6 +38,7 @@ openai = "*"
 # tensorflow = "*"
 django-celery-results = "*"
 redis = "*"
+crispy-bootstrap4 = "*"
 
 [dev-packages]
 
