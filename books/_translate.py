@@ -45,7 +45,10 @@ class EbookTranslate:
 
         # caching
         redis_url = os.environ.get("REDISCLOUD_URL", "redis://localhost:6379")
-        self.redis = redis.StrictRedis(host='redis', port=6379, db=0)
+        if "local" in redis_url:
+            self.redis = redis.StrictRedis(host='redis', port=6379, db=0)
+        else:
+            self.redis = redis.StrictRedis.from_url(redis_url)
         self.cached_used = 0
 
         # load models / apis
