@@ -84,6 +84,7 @@ INSTALLED_APPS = [
 
     # Third-Party
     'crispy_forms',
+    'crispy_bootstrap4',
 
     # 'crispy_bootstrap5',
     'allauth',
@@ -276,7 +277,6 @@ import socket
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
 
-django.setup()
 
 ## Celery / RabbitMQ ##
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
