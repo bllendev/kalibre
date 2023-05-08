@@ -29,6 +29,10 @@
   </div>
 
   <style>
+    #search-input-container * {
+      border-radius: 10px !important;
+    }
+
     .user-message, .ai-response {
       border-bottom: 1px solid #ccc;
       margin-bottom: 10px;
@@ -37,13 +41,13 @@
   
     .user-message {
       background-color: #e6f2ff;
-      border-radius: 5px;
+      border-radius: 10px; /* Increase from 5px to 10px */
       padding: 10px;
     }
   
     .ai-response {
       background-color: #f0f8ff;
-      border-radius: 5px;
+      border-radius: 10px; /* Increase from 5px to 10px */
       padding: 10px;
     }
 
@@ -51,6 +55,7 @@
       max-height: 300px;
       overflow-y: scroll;
       scroll-behavior: smooth;
+      border-radius: 10px; /* Increase from 5px to 10px */
     }
 
     #message-container {
