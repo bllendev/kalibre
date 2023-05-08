@@ -37,7 +37,7 @@ RUN pip install psycopg2-binary
 # Copy project
 COPY . /code/
 
-RUN  python -m textblob.download_corpora
+# RUN  python -m textblob.download_corpora
 
 # Expose the ports for the application and RabbitMQ management
 EXPOSE 8000 15672

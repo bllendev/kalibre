@@ -3,7 +3,7 @@ from django.db import transaction
 from django.shortcuts import redirect
 
 import nltk
-from textblob import TextBlob
+# from textblob import TextBlob
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
