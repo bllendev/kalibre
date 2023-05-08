@@ -1,8 +1,9 @@
 {% extends "_base.html" %}
+{% load static %}
+
 {% block title %}kalibre{% endblock title %}
 
 {% block content %}
-  {% load static %}
   <div class="text-center">
     <h1 class="kalibre-title" style="font-size:100px">kalibre</h1>
     <div class="row justify-content-center">
@@ -12,21 +13,94 @@
       <div class="col-md-10">
         <form id="search-form" class="form-inline mt-2 mt-md-0 d-flex justify-content-center" action="{% url 'search_results' %}" method="get">
           <div id="search-input-container" class="d-inline-flex">
-            <input name="db_q" class="form-control w-100" type="text" placeholder="what do you wanna read?">
-            <button id="toggle-ai-librarian" class="btn btn-sm btn-secondary" data-toggle="tooltip" data-placement="top" title="AI Librarian" type="button"></button>
+            <input name="db_q" class="form-control w-75" type="text" placeholder="what do you wanna read?">
+            <button id="toggle-ai-librarian" onclick='$("#ai-chatbox").fadeToggle();' class="btn btn-sm btn-secondary" title="AI Librarian" type="button"></button>
           </div>
         </form>
+
+        <div class="mt-4" id="ai-chatbox" style="background-color: #F1F8E9; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid #ccc; padding: 20px; overflow-y: scroll;">
+          <div id="message-container">
+            <!-- add text boxes dynamically using jQuery -->
+            <textarea class='form-control mb-3' placeholder='Enter your message...'></textarea>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <style>
+    .user-message, .ai-response {
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+    }
+  
+    .user-message {
+      background-color: #e6f2ff;
+      border-radius: 5px;
+      padding: 10px;
+    }
+  
+    .ai-response {
+      background-color: #f0f8ff;
+      border-radius: 5px;
+      padding: 10px;
+    }
+
+    #ai-chatbox {
+      max-height: 300px;
+      overflow-y: scroll;
+    }
+
+    #message-container {
+      padding-top: 50px;
+    }
+
+    textarea {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #F1F8E9;
+    }
+    
+    .loading-animation {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 5px;
+    }
+    
+    .dot {
+      width: 8px;
+      height: 8px;
+      background-color: #3498db;
+      border-radius: 50%;
+      display: inline-block;
+      animation: bounce 1.5s infinite ease-in-out;
+    }
+    
+    .dot:nth-child(2) {
+      background-color: #e67e22;
+      animation-delay: -0.4s;
+    }
+
+    .dot:nth-child(3) {
+      background-color: #e74c3c;
+      animation-delay: -0.8s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-15px);
+      }
+    }
+  </style>
+
   <script>
     $(document).ready(function() {
-      // Handle switch button click event
-      $("#toggle-ai-librarian").click(function() {
-        $("#ai-chatbox").fadeToggle();
-      });
-
       // Enable the tooltip
       $('[data-toggle="tooltip"]').tooltip();
 
@@ -40,7 +114,82 @@
           "transform": "translateY(0)"
         });
       }, 100);
-    });
+
+      var $textarea = $("textarea");
+
+      // Add an event listener for the 'Enter' key
+      $textarea.on("keydown", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault(); // Prevent the default behavior (new line)
+
+          // Get the typed text
+          var typedText = $textarea.val().trim();
+
+          // If there's any text, store it in the chatbox div and clear the textarea
+          if (typedText) {
+            // Append the typed text to the chatbox div
+            var messageDiv = $("<div>").text(typedText).addClass("user-message");
+            $("#message-container").append(messageDiv);
+
+            // Clear the textarea
+            $textarea.val("");
+
+            // Show the loading animation
+            var loadingDiv = $("<div>").addClass("loading-animation");
+            var dot1 = $("<div>").addClass("dot");
+            var dot2 = $("<div>").addClass("dot");
+            var dot3 = $("<div>").addClass("dot");
+            loadingDiv.append(dot1, dot2, dot3);
+            $("#message-container").append(loadingDiv);
+
+            // Prepare the text for an AJAX request
+            // Send the message to the AI librarian and get a response
+            getAiLibrarianResponse(typedText).then(response => {
+              // Remove the loading animation
+              loadingDiv.remove();
+
+              // Add the AI response to the chatbox
+              var aiResponseDiv = $("<div>").text(response).addClass("ai-response");
+                $("#message-container").append(aiResponseDiv);
+
+              // animate the ai response
+              aiResponseDiv.animate({opacity: 1}, 500);
+            });
+          }
+        }
+      });
+
+      function getAiLibrarianResponse(message) {
+        return new Promise(function(resolve, reject) {
+          $.ajax({
+            url: "/books/ai-librarian/",
+            type: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"), // Assuming you have a 'getCookie' function to fetch CSRF token
+            },
+            data: {
+              message: message,
+            },
+            success: function(data) {
+              resolve(data.message);
+            },
+            error: function(xhr, textStatus, errorThrown) {
+              reject(errorThrown);
+            }
+          });
+        });
+      }
+      
+
+      function getCookie(name) {
+        const value = '; ' + document.cookie;
+        const parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+
+  });
+
+
   </script>
 
 {% endblock content %}
