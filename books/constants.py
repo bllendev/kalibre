@@ -2,6 +2,13 @@ from django.conf import settings
 import os
 
 
+AI_PROMPT = "Hello AI librarian! I am looking for a new book to read, "
+AI_PROMPT += "but I am not sure what I want. Can you please ask me "
+AI_PROMPT += "questions about my preferences for books, authors, "
+AI_PROMPT += "time periods, genres, and any other relevant factors "
+AI_PROMPT += "to help me discover the perfect book to read next?"
+
+
 # UTILITY CONSTANTS
 EMAIL_TEMPLATE_LIST = [
     '',                      # empty subject line

@@ -21,6 +21,10 @@ h1 {
   color: maroon;
 }
 
+body {
+  background-color: #E1E6DD
+}
+
 img.bookcover {
   height: 300px;
   width: auto;
