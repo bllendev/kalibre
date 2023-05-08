@@ -14,15 +14,12 @@ CustomUser = get_user_model()
 
 
 def ai_librarian(request):
+    """
+    - ajax view that sends a message to the AI Librarian (GPT-3.5 Turbo)
+    """
     if request.method == 'POST':
-        user_message = request.POST.get('message')
-        messages = []
-
-        # be as specific as possible in the behavior it should have
-        system_content = f'{AI_PROMPT}. For any other question you must answer "I am only a librarian and I can only answer questions about books."'
-        messages.append({"role": "system", "content": system_content})
-        messages.append({"role": "user", "content": user_message})
-
+        messages_json = request.POST.get('messages')
+        messages = json.loads(messages_json)
         openai.api_key = os.getenv("OPENAI_API_KEY")
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -30,7 +27,6 @@ def ai_librarian(request):
             max_tokens=1000,
             temperature=0.4,
         )
-
         try:
             ai_response = response['choices'][0]['message']['content'].strip()
             print(f"response: {response}")

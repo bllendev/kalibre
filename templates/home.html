@@ -13,15 +13,15 @@
       <div class="col-md-10">
         <form id="search-form" class="form-inline mt-2 mt-md-0 d-flex justify-content-center" action="{% url 'search_results' %}" method="get">
           <div id="search-input-container" class="d-inline-flex">
-            <input name="db_q" class="form-control w-75" type="text" placeholder="what do you wanna read?">
-            <button id="toggle-ai-librarian" onclick='$("#ai-chatbox").fadeToggle();' class="btn btn-sm btn-secondary" title="AI Librarian" type="button"></button>
+            <input name="db_q" class="form-control w-75 mr-2" type="text" placeholder="what do you wanna read?">
+            <button id="toggle-ai-librarian" onclick='$("#ai-chatbox").fadeToggle();' class="btn btn-sm btn-secondary" title="AI Librarian" type="button" data-toggle="tooltip" data-placement="bottom" title="Toggle AI Librarian"><i class="fas fa-robot"></i></button>
           </div>
         </form>
 
-        <div class="mt-4" id="ai-chatbox" style="background-color: #F1F8E9; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid #ccc; padding: 20px; overflow-y: scroll;">
+        <div class="mt-4" id="ai-chatbox" style="display: none; background-color: #F1F8E9; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid #ccc; padding: 20px; overflow-y: scroll;">
           <div id="message-container">
             <!-- add text boxes dynamically using jQuery -->
-            <textarea class='form-control mb-3' placeholder='Enter your message...'></textarea>
+            <textarea class='form-control mb-3' placeholder='ask the Kalibre AI Librarian (Chat-GPT) for a book recommendation. what are you looking for??'></textarea>
           </div>
         </div>
       </div>
@@ -50,6 +50,7 @@
     #ai-chatbox {
       max-height: 300px;
       overflow-y: scroll;
+      scroll-behavior: smooth;
     }
 
     #message-container {
@@ -101,6 +102,13 @@
 
   <script>
     $(document).ready(function() {
+      // Add FontAwesome for the AI Librarian button icon
+      const fontAwesomeScript = document.createElement('script');
+      fontAwesomeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js';
+      fontAwesomeScript.integrity = 'sha384-KyZXEAg3QhqLMpG8r+Knujsl5/GL82WS2G1ztaMmUqZOq/5w5m5MR/6PviCQV+zX';
+      fontAwesomeScript.crossOrigin = 'anonymous';
+      document.head.appendChild(fontAwesomeScript);
+
       // Enable the tooltip
       $('[data-toggle="tooltip"]').tooltip();
 
@@ -116,6 +124,9 @@
       }, 100);
 
       var $textarea = $("textarea");
+
+      // Initialize the conversation history
+      let conversationHistory = [];
 
       // Add an event listener for the 'Enter' key
       $textarea.on("keydown", function(event) {
@@ -142,24 +153,29 @@
             loadingDiv.append(dot1, dot2, dot3);
             $("#message-container").append(loadingDiv);
 
-            // Prepare the text for an AJAX request
+             // Update the conversation history with the user's message
+            conversationHistory.push({"role": "user", "content": typedText});
+
             // Send the message to the AI librarian and get a response
-            getAiLibrarianResponse(typedText).then(response => {
+            getAiLibrarianResponse(conversationHistory).then(response => {
               // Remove the loading animation
               loadingDiv.remove();
 
               // Add the AI response to the chatbox
               var aiResponseDiv = $("<div>").text(response).addClass("ai-response");
-                $("#message-container").append(aiResponseDiv);
+              $("#message-container").append(aiResponseDiv);
 
               // animate the ai response
               aiResponseDiv.animate({opacity: 1}, 500);
+
+              // Update the conversation history with the AI's response
+              conversationHistory.push({"role": "assistant", "content": response});
             });
           }
         }
       });
 
-      function getAiLibrarianResponse(message) {
+      function getAiLibrarianResponse(messages) {
         return new Promise(function(resolve, reject) {
           $.ajax({
             url: "/books/ai-librarian/",
@@ -168,7 +184,7 @@
               "X-CSRFToken": getCookie("csrftoken"), // Assuming you have a 'getCookie' function to fetch CSRF token
             },
             data: {
-              message: message,
+              messages: JSON.stringify(messages),
             },
             success: function(data) {
               resolve(data.message);
@@ -179,7 +195,6 @@
           });
         });
       }
-      
 
       function getCookie(name) {
         const value = '; ' + document.cookie;

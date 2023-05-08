@@ -44,8 +44,7 @@ class EbookTranslate:
         self._translate_count = 0
 
         # caching
-        redis_url = os.environ.get("REDISCLOUD_URL", "redis://localhost:6379")
-        if "local" in redis_url:
+        if "development" in os.environ.get("ENVIRONMENT"):
             self.redis = redis.StrictRedis(host='redis', port=6379, db=0)
         else:
             self.redis = redis.StrictRedis.from_url(redis_url)
@@ -132,6 +131,8 @@ class EbookTranslate:
     def _translate_single_text(self, text):
         # Implement the translation using your preferred API (Google Translate, OpenAI, etc.)
         # This is a placeholder implementation
+        if "xml versi" in text:
+            return ""
         translator = Translator()
         translated_text = translator.translate(text, dest='es').text
         return translated_text
@@ -237,12 +238,13 @@ class EbookTranslate:
 
             # Replace text nodes with translations while preserving the original order
             for (parent, original_text_node), translation in zip(accumulated_nodes, translations):
-                new_text_node = NavigableString(translation)
-                original_text_node.replace_with(new_text_node)
+                if translation:
+                    new_text_node = NavigableString(translation)
+                    original_text_node.replace_with(new_text_node)
 
-                if self.test_mode:
-                    print(f"Original: {str(original_text_node).strip()}")
-                    print(f"Translated: {translation}")
+                    if self.test_mode:
+                        print(f"Original: {str(original_text_node).strip()}")
+                        print(f"Translated: {translation}")
 
             section.content = str(soup).encode('utf-8')
 

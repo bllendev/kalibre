@@ -54,8 +54,80 @@
         // Fade in the search results and animate the table
         $("#search_result_div").css("opacity", "1");
         $(".table-sortable").css("transform", "translateY(0)");
+        var token = '{{csrf_token}}';
+        var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
+        var translate_book_bln = {{ translate_book_bln|yesno:"true,false" }};
+        const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
 
-        // ...rest of your code
+        $("form[id^='book_send_form_']").each(function () {
+            $(this).on('submit', function (event) {
+                event.preventDefault();
+                var bookPk = $(this).attr('id').replace('book_send_form_', '');
+                set_book_send_form_onsubmit(bookPk, token);
+            });
+        });
+
+        // loading gif
+        var loading_gif = $('<img id="loading_gif">');
+        loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
+        loading_gif.attr('style', 'max-width:50px;max-height:50px;background-color:transparent;position:absolute;display:none;z-index:1000;');
+        $('body').append(loading_gif);
+
+        // function to update the gif position
+        function updateGifPosition(e) {
+            loading_gif.css({
+                top: e.pageY + 15,
+                left: e.pageX + 15
+            });
+        }
+
+        function set_book_send_form_onsubmit(book_pk, token) {
+            event.stopPropagation();
+            event.preventDefault();
+
+            var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
+            if (!valid_user) {
+                alert("you must be logged in to send books!");
+                return
+            }
+
+            if (!emails_exist) {
+                var alert_email_confirm = "you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!";
+                alert(alert_email_confirm);
+                return
+            }
+
+            if (emails_exist) {
+                var alert_email_confirm = "do you want to send this book to the following emails?...";
+                alert_email_confirm = alert_email_confirm + "\n" + email_address_list;
+
+                if (translate_book_bln) {
+                    alert_email_confirm = alert_email_confirm + "\n\n" + "One or more of your emails will send a translated version of this book, you can change this in 'my emails' if you like!";
+                }
+
+                if (valid_user && confirm(alert_email_confirm)) {
+                    $(document).on('mousemove', updateGifPosition);
+                    loading_gif.show();
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "{% url 'send_book_ajax' %}",
+                        data: data,
+                        headers: {"X-CSRFToken": token},
+                        success: function (response) {
+                            alert("your book has been successfully sent!");
+                        },
+                        error: function (response) {
+                            alert("hmmm, there seems to have been an error sending your book!");
+                        },
+                        complete: function () {
+                            loading_gif.hide();
+                            $(document).off('mousemove', updateGifPosition);
+                        }
+                    });
+                }
+            }
+        }
     });
 </script>
 {% endblock content %}
