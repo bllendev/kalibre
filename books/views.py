@@ -45,12 +45,16 @@ def search_results(request):
     if libgen:
         book_list = libgen.get_unique_book_list()
 
+    translate_book_bln = False
+    if request.user.is_authenticated:
+        translate_book_bln = request.user.translate_book_bln
+
     return render(
         request,
         'books/search_results.html',
         {
             'book_list': libgen.filter_duplicates(book_list),
-            'translate_book_bln': request.user.translate_book_bln,
+            'translate_book_bln': translate_book_bln,
         }
     )
 
