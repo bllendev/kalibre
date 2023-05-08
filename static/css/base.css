@@ -1,3 +1,16 @@
+.nav-item:not(:last-child)::after {
+  content: "-";
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+@media (max-width: 767.98px) {
+  .nav-item:not(:last-child)::after {
+    display: none;
+  }
+}
+
+
 .kalibre-title {
   font-size: 100px;
   color: maroon;
