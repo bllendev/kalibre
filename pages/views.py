@@ -3,10 +3,6 @@ from django.views.decorators.cache import never_cache
 from django.shortcuts import render
 
 
-# class HomePageView(TemplateView):
-#     template_name = "home.html"
-
-
 @never_cache
 def home(request):
     """returns: home page view"""
