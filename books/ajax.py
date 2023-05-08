@@ -2,8 +2,46 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from users.models import Email
 
+import os
+import json
+import requests
+
+from books.constants import AI_PROMPT
+import openai
+
 
 CustomUser = get_user_model()
+
+
+def ai_librarian(request):
+    if request.method == 'POST':
+        user_message = request.POST.get('message')
+        messages = []
+
+        # be as specific as possible in the behavior it should have
+        system_content = f'{AI_PROMPT}. For any other question you must answer "I am only a librarian and I can only answer questions about books."'
+        messages.append({"role": "system", "content": system_content})
+        messages.append({"role": "user", "content": user_message})
+
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=1000,
+            temperature=0.4,
+        )
+
+        try:
+            ai_response = response['choices'][0]['message']['content'].strip()
+            print(f"response: {response}")
+            print(f"ai_response: {ai_response}")
+        except Exception as e:
+            print(f"response: {response}")
+            print(f"ERROR: {e}")
+            print(f"response: {response}")
+            print(f"response.json(): {response.json()}")
+        return JsonResponse({'message': ai_response})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 def send_book_ajax(request):
