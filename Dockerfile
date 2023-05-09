@@ -47,4 +47,4 @@ CMD (redis-server &) && \
     (rabbitmq-server &) && \
     (celery -a bookstore_project worker --loglevel=info &) && \
     (sleep 5) && \
-    python manage.py runserver 0.0.0.0:8000
+    gunicorn bookstore_project.wsgi:application --whitenoise --bind 0.0.0.0:8000
