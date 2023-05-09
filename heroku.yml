@@ -9,4 +9,4 @@ release:
   command:
     - python manage.py collectstatic --noinput
 run:
-  web: gunicorn bookstore_project.wsgi
+  web: gunicorn bookstore_project.wsgi --whitenoise
