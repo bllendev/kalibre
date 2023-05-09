@@ -37,7 +37,7 @@ class Book(models.Model):
     cover = models.ImageField(upload_to='covers/', blank=True)
     filetype = models.CharField(max_length=60, default="")
     isbn = models.CharField(max_length=200, default="")
-    json_links = JSONField(null=True)
+    json_links = models.JSONField(null=True)
 
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"
