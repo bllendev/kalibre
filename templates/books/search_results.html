@@ -11,6 +11,35 @@
         <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="try searching again here to make double sure!" aria-label="try searching again here to make double sure!">
     </form>
 
+    <style>
+        .book-row {
+            transition: opacity 0.3s ease-out;
+        }
+
+        .filetype-toggle {
+          display: inline-block;
+          font-size: 14px;
+          padding: 8px 16px;
+          border: none;
+          border-radius: 100px;
+          background-color: #e0e0e0;
+          color: #757575;
+          cursor: pointer;
+          transition: background-color 0.2s, color 0.2s;
+        }
+      
+        .filetype-toggle.active {
+          background-color: #A7E0AB; /* Soft pastel color */
+          color: #fff;
+        }
+      </style>
+      
+      <div class="toggle-container">
+        <button class="filetype-toggle" data-filetype="pdf">PDF</button>
+        <button class="filetype-toggle" data-filetype="mobi">MOBI</button>
+        <button class="filetype-toggle" data-filetype="epub">EPUB</button>
+      </div>
+
         <div id="search_result_div" style="opacity: 0; transition: opacity 1s ease;">
 
             {{ user.is_authenticated|json_script:"valid_user" }}
@@ -31,7 +60,7 @@
                     {% for book in book_list %}
                         <form method="POST" id="book_send_form_{{book.pk}}">
                             {% csrf_token %}
-                            <tr>
+                            <tr class="book-row" style="opacity: 0;">
                                 {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
                                 <td>{{book.author}}</td>
                                 <td>{{book.title}}</td>
@@ -128,6 +157,55 @@
                 }
             }
         }
+
+        function filterResults() {
+            const activeFileTypes = [];
+        
+            // Get the active file types from the toggles
+            $('.filetype-toggle.active').each(function() {
+                activeFileTypes.push($(this).data('filetype'));
+            });
+        
+            // Show/hide the rows based on the active file types
+            $('#search_result_div tr.book-row').each(function() {
+                const fileType = $(this).find('td:nth-child(3)').text();
+                if (fileType) {
+                    if (activeFileTypes.includes(fileType)) {
+                        $(this).css('display', '');
+                        $(this).css('opacity', '1');
+                    } else {
+                        $(this).css('display', 'none');
+                        $(this).css('opacity', '0');
+                    }
+                }
+            });
+        }        
+    
+        // Initialize the toggles based on the cookies
+        $('.filetype-toggle').each(function() {
+        const fileType = $(this).data('filetype');
+        if (getCookie(fileType) === '1') {
+            $(this).addClass('active');
+        }
+        });
+    
+        // Handle the toggle button clicks
+        $('.filetype-toggle').on('click', function() {
+        const fileType = $(this).data('filetype');
+    
+        $(this).toggleClass('active');
+    
+        if ($(this).hasClass('active')) {
+            setCookie(fileType, '1', 30);
+        } else {
+            setCookie(fileType, '0', 30);
+        }
+    
+        filterResults();
+        });
+    
+        // Filter the results based on the initial toggle settings
+        filterResults();
     });
 </script>
 {% endblock content %}

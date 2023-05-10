@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from functools import reduce
 import json
 from collections import defaultdict
+from itertools import chain
 import jellyfish
 
 # import nltk
@@ -48,6 +49,7 @@ class LibgenBook:
             k = self.LIBGEN_KEY_DICT.get(k)
             if k:
                 k = str(k).strip().replace("/", "-").replace(" ", "_")
+                v = str(v).replace("&amp", "")
                 self.values.update({k: v})
 
         # get links
@@ -141,7 +143,7 @@ class LibgenAPI:
             # get libgen book list
             titles = self.libgen.search_title(self.search_query)
             authors = self.libgen.search_author(self.search_query)
-            _libgen_book_list = [LibgenBook(**api_book) for api_book in titles + authors]
+            _libgen_book_list = [LibgenBook(**api_book) for api_book in chain(titles, authors)]
 
             # filter list of LibgenBooks by stable files for now (epub, mobi)
             libgen_book_list = [book for book in _libgen_book_list if book.filetype in self.STABLE_FILE_TYPES]
@@ -153,30 +155,33 @@ class LibgenAPI:
         finally:
             return libgen_book_list
 
+    @staticmethod
     def is_duplicate(book1, book2, title_similarity_threshold=0.88):
         if not book1 or book2:
             return False
 
         title_similarity = jellyfish.jaro_winkler(book1._title_lemmatized, book2._title_lemmatized)
         if title_similarity >= title_similarity_threshold:
-            return True
+            if book1.author == book2.author and book1.filetype == book2.filetype:
+                return True
 
         return False
 
     def filter_duplicates(self, book_list):
-        unique_books = []
+        unique_books = {}
 
         for book in book_list:
             duplicate_found = False
-            for unique_book in unique_books:
+            for key, unique_book in unique_books.items():
                 if self.is_duplicate(book, unique_book):
                     duplicate_found = True
-                    continue
+                    break
 
             if not duplicate_found:
-                unique_books.append(book)
+                unique_books[book.isbn] = book
 
-        return unique_books
+        return list(unique_books.values())
+
 
     def get_unique_book_list(self):
         # check books in db first
@@ -201,11 +206,12 @@ class LibgenAPI:
                 if not duplicate_found:
                     to_save_books.append(Book(**api_book.values))
 
-            bulk_save(to_save_books)
+            Book.objects.bulk_create(to_save_books)  # Changed from bulk_save() to bulk_create()
 
             db_books = list(db_books) + to_save_books
 
         return db_books
+
 
     def get_book(self, isbn, book_title, filetype):
         # get book record from db!
