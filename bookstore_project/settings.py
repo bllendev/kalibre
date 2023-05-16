@@ -181,9 +181,9 @@ CACHE_MIDDLEWARE_KEY_PREFIX = ""
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 # Cloudinary stuff
 CLOUDINARY_STORAGE = {                  # TODO: add these to env vars
-    "CLOUD_NAME": "dmh0kulu1",
-    "API_KEY": "398193932878867",
-    "API_SECRET": "uu5INtBnn48HGnEqaIzuI1LY5xo",
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
@@ -265,7 +265,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
