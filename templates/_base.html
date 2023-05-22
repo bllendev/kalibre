@@ -97,20 +97,18 @@
             return $("#email_address_list").length > 0
           }
 
-          window.onload = function() {
-            // Fade in the body
-            $("body").css("opacity", "1");
-            $("body").css("background-color", "#E1E6DD");
-      
-            // Set a timeout to delay the entrance animations for the page content
-            setTimeout(function() {
-              $(".page-content").css({
-                "opacity": "1",
-                "transform": "translateY(0)"
-              });
-            }, 100);
-          };
-      });
+          // Fade in the body
+          $("body").css("opacity", "1");
+          $("body").css("background-color", "#E1E6DD");
+    
+          // Set a timeout to delay the entrance animations for the page content
+          setTimeout(function() {
+            $(".page-content").css({
+              "opacity": "1",
+              "transform": "translateY(0)"
+            });
+          }, 100);
+    });
     </script>
 
 </body>
