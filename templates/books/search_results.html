@@ -170,7 +170,7 @@
             $('#search_result_div tr.book-row').each(function() {
                 const fileType = $(this).find('td:nth-child(3)').text();
                 if (fileType) {
-                    if (activeFileTypes.includes(fileType)) {
+                    if (activeFileTypes.length === 0 || activeFileTypes.includes(fileType)) {
                         $(this).css('display', '');
                         $(this).css('opacity', '1');
                     } else {
@@ -179,16 +179,8 @@
                     }
                 }
             });
-        }        
-    
-        // Initialize the toggles based on the cookies
-        $('.filetype-toggle').each(function() {
-        const fileType = $(this).data('filetype');
-        if (getCookie(fileType) === '1') {
-            $(this).addClass('active');
         }
-        });
-    
+
         // Handle the toggle button clicks
         $('.filetype-toggle').on('click', function() {
         const fileType = $(this).data('filetype');
@@ -203,9 +195,12 @@
     
         filterResults();
         });
-    
-        // Filter the results based on the initial toggle settings
-        filterResults();
+
+        // Initially show all rows
+        $('#search_result_div tr.book-row').each(function() {
+            $(this).css('display', '');
+            $(this).css('opacity', '1');
+        });
     });
 </script>
-{% endblock content %}
+{% endblock %}
