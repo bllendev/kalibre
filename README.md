@@ -3,8 +3,6 @@
 
 **author**: Allen Garza
 
-**date**: 11-19-2022
-
 Hello! Welcome to Kalibre! This is a home-made web app which uses Libgen and gives users a convenient place to send
 ebooks to whatever emails they please (including to straight to their kindles!).
 
