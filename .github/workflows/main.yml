@@ -18,6 +18,9 @@ jobs:
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_USER: ${{ secrets.EMAIL_USER }}
       EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DEBUG: 1
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5673//
