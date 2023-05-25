@@ -22,8 +22,8 @@ from books.tests.constants import (
 # local
 from books.tasks import send_book_ajax_task
 from users.models import Email
-from books.libgen_api import LibgenSearch, SearchRequest
-from books.libgen_api import LibgenAPI, LibgenBook
+from books.api_libgen import LibgenSearch, SearchRequest
+from books.api_libgen import LibgenAPI
 from books.models import Book
 
 
@@ -100,51 +100,19 @@ class TestLibgenAPI(TestCase):
         super(TestLibgenAPI, cls).setUpClass()
 
         # create libgen api instances (one for db search, one for api search)
-        cls.test_libgen_db = LibgenAPI(TEST_QUERY, force_api=False)
-        cls.test_libgen_api = LibgenAPI(TEST_QUERY, force_api=True)
-
-    def test_book_db_search(self):
-        """checks db first to see if we may already have a record (bypass api query)"""
-        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_books = self.test_libgen_db._book_db_search()
-        test_book_ids = [book.id for book in test_books if book.id == TEST_BOOK.id]
-        self.assertTrue(test_book_ids)
+        cls.test_libgen_api = LibgenAPI(TEST_QUERY)
 
     def test_get_libgen_book_list(self):
         api_book_choices = self.test_libgen_api._get_libgen_book_list()
-        api_book_choices_ids = [book.isbn for book in api_book_choices if book.isbn == TEST_ISBN]
+        api_book_choices_ids = [book["ID"] for book in api_book_choices if book["ID"] == TEST_ISBN]
         self.assertTrue(api_book_choices_ids)
 
     def test_get_unique_book_list(self):
-        test_libgen = LibgenAPI(TEST_QUERY, force_api=False)
-
-        # case 0: no books in db -- > books in api
+        test_libgen = LibgenAPI(TEST_QUERY)
         Book.objects.all().delete()     # clear books
         test_books = test_libgen.get_unique_book_list()
-        test_book = [book.isbn for book in test_books if book.isbn == TEST_ISBN]
+        test_book = [book["ID"] for book in test_books if book["ID"] == TEST_ISBN]
         self.assertTrue(test_book)
-
-        # assert get_unique_book_list saved books to db
-        test_book_exists = Book.objects.filter(isbn=TEST_ISBN).exists()
-        self.assertTrue(test_book_exists)
-
-        # case 1: books in db
-        Book.objects.all().delete()     # clear books
-        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_books_db = test_libgen.get_unique_book_list()        # should refer to books in db if they exist
-        test_books = [book.isbn for book in test_books_db if book.isbn == TEST_ISBN]
-        self.assertTrue(test_books)
-
-        # case 2: books in db, force_api=True
-        test_libgen_api = LibgenAPI(TEST_QUERY, force_api=True)
-        test_books_api = test_libgen_api.get_unique_book_list()
-        test_books = [book.isbn for book in test_books_api if book.isbn == TEST_ISBN]
-        self.assertTrue(test_books)
-
-    def test_get_book(self):
-        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_book = self.test_libgen_db.get_book(TEST_BOOK.isbn, TEST_BOOK.title, TEST_BOOK.filetype)
-        self.assertEqual(test_book, TEST_BOOK)
 
 
 class SendBookAjaxTaskTest(TestCase):
@@ -154,11 +122,11 @@ class SendBookAjaxTaskTest(TestCase):
         self.email1 = EmailFactory.create(user=self.user, address="test1@example.com", translate_file="")
         self.email2 = EmailFactory.create(user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES)
 
-    @patch('books.tasks.LibgenAPI')
-    def test_send_book_ajax_task(self, mock_libgen):
+    @patch('books.tasks.BookAPI')
+    def test_send_book_ajax_task(self, mock_bookapi):
         # Setup
-        mock_libgen_instance = mock_libgen.return_value
-        mock_libgen_instance.get_book.return_value = None  # Mock the book to simplify the test
+        mock_bookapi_instance = mock_bookapi.return_value
+        mock_bookapi_instance.get_book.return_value = None  # Mock the book to simplify the test
 
         request = self.factory.post('/fake-url/', {
             'book_test_title__type_pdf__isbn_1234567890': '{"fake": "data"}',

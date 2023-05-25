@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.http import JsonResponse
-from books.libgen_api import LibgenAPI
+from books._api import BookAPI
 from django.contrib.auth import get_user_model
 from users.models import Email
 
@@ -41,11 +41,11 @@ def send_book_ajax_task(request):
         }
 
         # get libgenbook
-        libgen = LibgenAPI()
+        book_api = BookAPI()
         for lang, email_group in email_group_dict.items():
             book = None
             if email_group:  # NOTE: if no emails, don't send book
-                book = libgen.get_book(isbn, book_title, filetype)
+                book = book_api.get_book(isbn, book_title, filetype)
                 if book:  # NOTE: only send book if real
                     email_group = [email.address for email in email_group]
                     book.send(email_list=email_group, language=lang)
