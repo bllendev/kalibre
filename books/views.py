@@ -29,22 +29,26 @@ class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 
 @never_cache
 def search_results(request):
-    from books.libgen_api import LibgenAPI
+    from books._api import BookAPI
 
-    libgen = None
+    book_api = None
 
+    # case 1: user is searching for a book in the database
     db_query = request.GET.get('db_q')
     if db_query:
-        libgen = LibgenAPI(str(db_query), force_api=False)
+        book_api = BookAPI(str(db_query), force_api=False)
 
+    # case 2: user is searching for a book in the api
     api_query = request.GET.get('api_q')
     if api_query:
-        libgen = LibgenAPI(str(api_query), force_api=True)
+        book_api = BookAPI(str(api_query), force_api=True)
 
+    # get final book list
     book_list = []
-    if libgen:
-        book_list = libgen.get_unique_book_list()
+    if book_api:
+        book_list = book_api.get_unique_book_list()
 
+    # prepare translate_book_bln alert for when user sends
     translate_book_bln = False
     if request.user.is_authenticated:
         translate_book_bln = request.user.translate_book_bln
@@ -53,7 +57,7 @@ def search_results(request):
         request,
         'books/search_results.html',
         {
-            'book_list': libgen.filter_duplicates(book_list),
+            'book_list': book_list,
             'translate_book_bln': translate_book_bln,
         }
     )
@@ -63,15 +67,16 @@ def search_results(request):
 def my_emails(request):
     from books.utils import fx_return_to_sender
 
+    # build email_addresses and username_str
     email_addresses = []
     username_str = ''
-
     if request.user.is_authenticated:
         username = request.user.username
         user = CustomUser.objects.get(username=username)
         email_addresses = user.email_addresses.all()
         username_str = f"{username}'s emails!"
 
+    # handle POST request
     if request.method == "POST":
         return fx_return_to_sender(request)
 

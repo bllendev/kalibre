@@ -6,8 +6,6 @@ from django.conf import settings
 from users.tests.factories import CustomUserFactory
 from users.models import Email
 from books.tests.factories import BookFactory
-from books.libgen_api import LibgenSearch, SearchRequest
-from books.libgen_api import LibgenAPI, LibgenBook
 from books._translate import EbookTranslate
 from books.models import Book
 from books.tests.test_book_model import TEST_BOOK_PKL_PATH
