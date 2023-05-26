@@ -23,6 +23,7 @@ def send_book_ajax_task(request):
         post_dict_keys = list(post_dict.keys())
 
         # extract book info
+        # print(f"post_dict_keys: {post_dict_keys}")   # handy debug
         json_links = json.loads(post_dict[post_dict_keys[0]])
         book_title, filetype, isbn = post_dict_keys[0].split("__")
         book_title = book_title.replace("book_", "")
