@@ -134,7 +134,7 @@ class BookAPI:
         # Bulk create new books
         Book.objects.bulk_create(books_to_create)
 
-        return db_books
+        return self._book_db_search()
 
     def get_book(self, isbn, book_title, filetype):
         """
