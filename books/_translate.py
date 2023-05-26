@@ -47,6 +47,7 @@ class EbookTranslate:
         if "development" in os.environ.get("ENVIRONMENT"):
             self.redis = redis.StrictRedis(host='redis', port=6379, db=0)
         else:
+            redis_url = os.environ.get('REDISCLOUD_URL')
             self.redis = redis.StrictRedis.from_url(redis_url)
         self.cached_used = 0
 
