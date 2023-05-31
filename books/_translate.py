@@ -8,7 +8,7 @@ import time
 
 import redis
 from functools import lru_cache
-from chardet.universaldetector import UniversalDetector
+
 
 from bs4 import BeautifulSoup, NavigableString
 import ebooklib
