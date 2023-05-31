@@ -213,7 +213,7 @@
         $('#toggle-ai-image').addClass('rotate');
         
         $.ajax({
-          url: "/books/ai-librarian/",
+          url: "/ai/ai-librarian/",
           type: "POST",
           headers: {
             "X-CSRFToken": getCookie("csrftoken"), // Assuming you have a 'getCookie' function to fetch CSRF token

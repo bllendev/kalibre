@@ -1,7 +1,10 @@
+# django
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render
-from books.constants import AI_PROMPT
+
+# local
+from ai.constants import AI_PROMPT
 
 
 @never_cache
