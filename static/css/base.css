@@ -66,21 +66,6 @@ h1, #search-input-container {
   transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-#toggle-ai-librarian {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  width: 30px;
-  height: 30px;
-  background-color: #add8e6;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.3s;
-  transform: translateY(-50%);
-}
-
 #toggle-ai-librarian:hover {
   border-color: #6495ed;
 }

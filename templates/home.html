@@ -13,8 +13,10 @@
       <div class="col-md-10">
         <form id="search-form" class="form-inline mt-2 mt-md-0 d-flex justify-content-center" action="{% url 'search_results' %}" method="get">
           <div id="search-input-container" class="d-inline-flex">
-            <input name="db_q" class="form-control w-75 mr-2" type="text" placeholder="what do you wanna read?">
-            <button id="toggle-ai-librarian" onclick="init_ai_chatbox();"class="btn btn-sm btn-secondary" title="AI Librarian" type="button" data-toggle="tooltip" data-placement="bottom" title="Toggle AI Librarian"><i class="fas fa-robot"></i></button>
+            <input name="db_q" class="form-control w-75 mr-2 mt-3" type="text" placeholder="what do you wanna read?">
+            <button id="toggle-ai-librarian" onclick="init_ai_chatbox();" class="btn btn-sm btn-outline-secondary" title="AI Librarian" type="button" data-toggle="tooltip" data-placement="bottom" title="Toggle AI Librarian">
+              <img id="toggle-ai-image" src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png" width="50" height="50"/>
+            </button>
           </div>
         </form>
 
@@ -29,6 +31,25 @@
   </div>
 
   <style>
+    @keyframes rotate-animation {
+      0% {
+        transform: rotate(-45deg);
+      }
+      100% {
+        transform: rotate(45deg);
+      }
+    }
+
+    .rotate {
+      animation: rotate-animation 1s linear infinite alternate;
+    }
+
+    #toggle-ai-librarian {
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+    }
+
     #search-input-container * {
       border-radius: 10px !important;
     }
@@ -109,6 +130,21 @@
     let conversationHistory = [];
 
     $(document).ready(function() {
+      // Load kalibre faces
+      let kalibre_faces = [
+        "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png",
+        "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_1_sel9zm.png",
+        "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_2_p6cddp.png",
+        "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_3_nbzijn.png",
+        "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_4_dbjaoj.png",
+        "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
+      ];
+
+      $('#toggle-ai-librarian').mouseover(function() {
+        let randomIndex = Math.floor(Math.random() * kalibre_faces.length);
+        $('#toggle-ai-image').attr('src', kalibre_faces[randomIndex]);
+      });
+
       // Enable the tooltip
       $('[data-toggle="tooltip"]').tooltip();
 
@@ -172,26 +208,32 @@
         }
       });
 
-      function getAiLibrarianResponse(messages) {
-        return new Promise(function(resolve, reject) {
-          $.ajax({
-            url: "/books/ai-librarian/",
-            type: "POST",
-            headers: {
-              "X-CSRFToken": getCookie("csrftoken"), // Assuming you have a 'getCookie' function to fetch CSRF token
-            },
-            data: {
-              messages: JSON.stringify(messages),
-            },
-            success: function(data) {
-              resolve(data.message);
-            },
-            error: function(xhr, textStatus, errorThrown) {
-              reject(errorThrown);
-            }
-          });
+    async function getAiLibrarianResponse(messages) {
+      return new Promise(function(resolve, reject) {
+        $('#toggle-ai-image').addClass('rotate');
+        
+        $.ajax({
+          url: "/books/ai-librarian/",
+          type: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"), // Assuming you have a 'getCookie' function to fetch CSRF token
+          },
+          data: {
+            messages: JSON.stringify(messages),
+          },
+          success: function(data) {
+            resolve(data.message);
+          },
+          error: function(xhr, textStatus, errorThrown) {
+            reject(errorThrown);
+          }
+        }).always(function() {
+          $('#toggle-ai-image').removeClass('rotate');
+          $('#toggle-ai-image').css('transition', 'transform 0.5s'); // Smoothly return to initial position
+          $('#toggle-ai-image').css('transform', '');
         });
-      }
+      });
+    }
   });
 
   function init_ai_chatbox() {
