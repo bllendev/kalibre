@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "pages.apps.PagesConfig",
     "books.apps.BooksConfig",
+    "ai.apps.AiConfig",
 
     # Media Cloudinary
     "cloudinary",
