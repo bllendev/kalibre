@@ -8,7 +8,7 @@ import time
 
 import redis
 from functools import lru_cache
-
+from chardet.universaldetector import UniversalDetector
 
 from bs4 import BeautifulSoup, NavigableString
 import ebooklib
@@ -40,15 +40,15 @@ class EbookTranslate:
             # assume book is loaded
             self.epub_path = os.path.join(settings.BASE_DIR, f"{self.book.get_metadata('DC', 'title')[0][0]}")
             self.book = epub_path
-        self.test_mode = test_mode  # NOTE: TEST IS SET TO TRUE FOR NOW... @AG++
-        self._translate_count = 0
 
         # caching
         if "development" in os.environ.get("ENVIRONMENT"):
             self.redis = redis.StrictRedis(host='redis', port=6379, db=0)
+            self.test_mode = False  # NOTE: TEST IS SET TO TRUE FOR NOW ON LOCAL... @AG++
         else:
             redis_url = os.environ.get('REDISCLOUD_URL')
             self.redis = redis.StrictRedis.from_url(redis_url)
+            self.test_mode = False
         self.cached_used = 0
 
         # load models / apis
@@ -66,9 +66,36 @@ class EbookTranslate:
             self.openai = True
             self.tokenizer = None
             self.translation_api = f"https://api.openai.com/v1/engines/davinci/completions"
-        elif google_api:
+        elif google_api:  # default
             self.google_api = True
             self.tokenizer = None
+
+        # debug
+        self.translate_lang = language
+        self.soup_strs = []
+        self.accumulated_texts = []
+        self.grouped_texts = []
+        self.translations = []
+
+    def _debug(self):
+        """
+        debug method for testing
+        """
+        if self.test_mode:
+            # print(f"translate_lang: {self.translate_lang}")
+            # print(f"accumulated_texts: {self.accumulated_texts}")
+            # print(f"grouped_texts: {self.grouped_texts}")
+            # print(f"translations: {self.translations}")
+
+            # save json
+            def save_as_json(data, filename):
+                with open(os.path.join(settings.BASE_DIR, filename), 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=4)
+
+            save_as_json(self.accumulated_texts, 'accumulated_texts.json')
+            save_as_json(self.grouped_texts, 'grouped_texts.json')
+            save_as_json(self.translations, 'translations.json')
+            save_as_json(self.soup_strs, 'soup_strs.json')
 
     def _normalize_text(self, text):
         """
@@ -82,6 +109,10 @@ class EbookTranslate:
         return normalized_text
 
     def _apply_formatting(self, original_text, translated_text):
+        """
+        apply formatting from original text to translated text...
+        - periods, commas, cases, spaces, etc.
+        """
         original_words = original_text.split()
         translated_words = translated_text.split()
         formatted_words = []
@@ -101,46 +132,71 @@ class EbookTranslate:
         formatted_text = ' '.join(formatted_words)
         return formatted_text
 
-    def _translate_and_cache(self, accumulated_chunks, translated_chunks):
-        # Translate the accumulated chunks
-        translated_accumulated = self._bulk_translate(accumulated_chunks)
-
-        # Cache the translations and add them to the translated_chunks list
-        for original, translated in zip(accumulated_chunks, translated_accumulated):
-            normalized_text = self._normalize_text(original)
-            self.redis.set(normalized_text, translated)
-            translated_chunks.append(translated)
-
-    def _bulk_translate(self, accumulated_chunks):
-        # Combine accumulated chunks into a single string for translation
-        text_to_translate = ' ||| '.join(accumulated_chunks)
-
-        # Perform the translation (using your preferred API)
-        translated_text = self._translate_single_text(text_to_translate)
-
-        # Split the translated text back into individual chunks
-        translated_chunks = translated_text.split(' ||| ')
-
-        # Apply formatting to each translated chunk
-        formatted_translated_chunks = [
-            self._apply_formatting(original, translated)
-            for original, translated in zip(accumulated_chunks, translated_chunks)
-        ]
-
-        return formatted_translated_chunks
-
     def _translate_single_text(self, text):
-        # Implement the translation using your preferred API (Google Translate, OpenAI, etc.)
-        # This is a placeholder implementation
-        if "xml versi" in text:
-            return ""
+        """
+        translate single text, accounts for xml tags
+        """
         translator = Translator()
         translated_text = translator.translate(text, dest='es').text
         return translated_text
 
+    def _bulk_translate(self, accumulated_chunks):
+        """
+        bulk translates text and applies formatting from the original text on each chunk
+        """
+        # filter out accumulated chunks that are tags
+        filtered_accumulated_chunks = [
+            text for text in accumulated_chunks
+            if not text.startswith('<') and
+            not text.startswith('xml') and
+            not text.startswith('@page')
+        ]
+
+        # combine accumulated chunks into a single string for translation
+        text_to_translate = ' ||| '.join(filtered_accumulated_chunks)
+
+        # perform the translation (using your preferred API)
+        translated_text = self._translate_single_text(text_to_translate)
+
+        # split the translated text back into individual chunks
+        translated_chunks = translated_text.split(' ||| ')
+
+        # apply formatting to each translated chunk
+        formatted_translated_chunks = [
+            self._apply_formatting(original, translated)
+            for original, translated in zip(filtered_accumulated_chunks, translated_chunks)
+        ]
+
+        return formatted_translated_chunks
+
     def _group_and_translate(self, accumulated_texts):
+        """
+        this method accepts a list of accumulated_texts and returns them grouped into chunks of a maximum size
+        and their respective translations. The method also uses caching mechanism to store and retrieve translations
+        to/from Redis.
+
+        parameters:
+        ----------
+        accumulated_texts : list
+            The list of strings to be grouped and translated.
+
+        returns:
+        -------
+        tuple
+            A tuple of two lists. The first list contains the grouped texts and the second one contains
+            the respective translations of these groups.
+
+        notes:
+        ------
+        - texts are grouped using the MAX_CHUNK_SIZE constant, which is currently set to 5000.
+        - a text is appended to the current group as long as it doesn't exceed the MAX_CHUNK_SIZE when added.
+        - each text is checked against the cache before being translated. If a translation is available in the cache
+        it is used, otherwise, it's marked as None.
+        - non-cached texts are bulk translated, and their translations are stored in the cache for future use.
+        """
         MAX_CHUNK_SIZE = 5000
 
+        # helper method - group texts into chunks of a maximum size
         def group_texts(text_list):
             grouped_texts = []
             current_group = []
@@ -162,6 +218,7 @@ class EbookTranslate:
 
             return grouped_texts
 
+        # helper method - get translation from cache
         def get_translation_from_cache(text):
             normalized_text = self._normalize_text(text)
             cached_translation = self.redis.get(normalized_text)
@@ -171,92 +228,142 @@ class EbookTranslate:
                 return self._apply_formatting(text, cached_translation.decode('utf-8'))
             return None
 
+        # helper method - store translation in cache
         def store_translation_in_cache(original_text, translated_text):
             normalized_text = self._normalize_text(original_text)
             self.redis.set(normalized_text, translated_text)
 
+        # group texts into chunks of a maximum size
         grouped_texts = group_texts(accumulated_texts)
-        translations = []
-
+        grouped_texts_translations = []
         for group in grouped_texts:
-            translated_group = []
 
+            # get cached translation groups, set None for non-cached texts
+            translated_group = []
             for text in group:
                 cached_translation = get_translation_from_cache(text)
 
+                # true - append ached_translation
                 if cached_translation:
                     translated_group.append(cached_translation)
+
+                # false = mark non-cached texts as None
                 else:
                     translated_group.append(None)
 
+            # translate non-cached texts
             non_cached_texts = [text for text in group if not get_translation_from_cache(text)]
-
             if non_cached_texts:
                 non_cached_translations = self._bulk_translate(non_cached_texts)
 
+                # inject into translated_group where None - cache translations
                 non_cached_index = 0
                 for i, text in enumerate(group):
                     if translated_group[i] is None:
                         if non_cached_index < len(non_cached_translations):
+                            # inject translated text into translated_group
                             translated_group[i] = non_cached_translations[non_cached_index]
+
+                            # store translated text in cache
                             store_translation_in_cache(text, non_cached_translations[non_cached_index])
+
+                            # increment non_cached_index
                             non_cached_index += 1
                         else:
                             break
 
-            translations.extend(translated_group)
+            grouped_texts_translations.extend(translated_group)
 
-        return grouped_texts, translations
+        return grouped_texts, grouped_texts_translations
 
     def _reinject_text(self, section):
-        if isinstance(section, epub.EpubHtml):
-            soup = BeautifulSoup(section.content.decode('utf-8'), 'html.parser')
+        """
+        this method handles sections of type epub.EpubHtml by performing the following steps:
 
-            def collect_text_nodes(node, text_nodes):
-                if not hasattr(node, 'contents') or not node.contents:
-                    return
-                for child in node.contents:
-                    if isinstance(child, NavigableString):
-                        original_text = str(child).strip()
-                        if original_text:
-                            text_nodes.append((child.parent, child))
-                    else:
-                        collect_text_nodes(child, text_nodes)
+        1. retrieve the parsed HTML content (soup) of the section using the helper function `get_section_soup`.
 
-            text_nodes = []
-            collect_text_nodes(soup, text_nodes)
+        2. define a helper function, `collect_text_nodes`, which is used to recursively collect all text nodes from the parse tree. A text node is a NavigableString which is not empty after being stripped. Both the parent node and the text node are kept for each text node found.
 
-            accumulated_nodes = []
-            accumulated_texts = []
+        3. collect all text nodes using the `collect_text_nodes` function.
 
-            for parent, original_text_node in text_nodes:
-                original_text = str(original_text_node).strip()
-                accumulated_nodes.append((parent, original_text_node))
-                accumulated_texts.append(original_text)
+        4. accumulate both the nodes and the stripped texts in separate lists for further processing.
 
-            # Group and translate the accumulated_texts
-            grouped_texts, translations = self._group_and_translate(accumulated_texts)
+        5. group and translate the accumulated texts using the `_group_and_translate` method.
 
-            # Replace text nodes with translations while preserving the original order
-            for (parent, original_text_node), translation in zip(accumulated_nodes, translations):
-                if translation:
-                    new_text_node = NavigableString(translation)
-                    original_text_node.replace_with(new_text_node)
+        6. replace the original text nodes in the parse tree with their translated counterparts while preserving their original order. If a text node matches a specific string or if the program is running in test_mode, additional debugging information is printed out.
 
-                    if self.test_mode:
-                        print(f"Original: {str(original_text_node).strip()}")
-                        print(f"Translated: {translation}")
+        7. encode the updated parse tree back into bytes using the original encoding and save it back to the section content.
 
-            section.content = str(soup).encode('utf-8')
+        :param section: epub.EpubHtml - Section of the ebook to be processed...
+        .. NOTE: that this function modifies the section content in-place...
+        ... The original text nodes in the section content are replaced by their translated counterparts.
+
+        :return: None - The section content is modified in-place.
+        """
+        soup = BeautifulSoup(section.content.decode('utf-8'), 'html.parser')
+
+        self.soup_strs.append(str(soup))
+
+        def collect_text_nodes(node, text_nodes):
+            if not hasattr(node, 'contents') or not node.contents:
+                return
+
+            for child in node.contents:
+                if isinstance(child, NavigableString):
+                    original_text = str(child).strip()
+                    if original_text:
+                        text_nodes.append((child.parent, child))
+                else:
+                    collect_text_nodes(child, text_nodes)
+
+        text_nodes = []
+        collect_text_nodes(soup, text_nodes)
+
+        accumulated_nodes = []
+        accumulated_texts = []
+
+        for parent, original_text_node in text_nodes:
+            original_text = str(original_text_node).strip()
+            accumulated_nodes.append((parent, original_text_node))
+            accumulated_texts.append(original_text)
+
+            # test_mode
+            if self.test_mode:
+                self.accumulated_texts.append(accumulated_texts)
+
+        # group and translate the accumulated_texts
+        grouped_texts, translations = self._group_and_translate(accumulated_texts)
+
+        # test_mode
+        if self.test_mode:
+            self.grouped_texts.append(grouped_texts)
+            self.translations.append(translations)
+
+        # replace text nodes with translations while preserving the original order
+        for (parent, original_text_node), translation in zip(accumulated_nodes, translations):
+            if translation:
+                new_text_node = NavigableString(translation)
+                original_text_node.replace_with(new_text_node)
+
+                # test_mode
+                if self.test_mode:
+                    pass
+                    # print(f"Original: {str(original_text_node).strip()}")
+                    # print(f"Translated: {translation}")
+
+        # encode the content back into bytes using the original encoding
+        section.content = str(soup).encode('utf-8')
 
     def translate_ebook(self):
         """
         the primary function to 'translate' the ebook,
-        translates text in place.
+        translates text in place (replaces text of original file).
 
         params: **test_mode** (ctrl-f)
+
+        returns: translated book
         """
-        # test logs
+        # test_mode
         if self.test_mode:
             print("------------------- TEST CASE ------------------")
             print(f"Translating 1/4 of {self.book}...")
@@ -265,14 +372,23 @@ class EbookTranslate:
             print(f"i_test_threshold: {i_test_threshold}")
 
         for section in self.book.get_items():
-            if isinstance(section, epub.EpubHtml):
-                # test threshold - allows for quicker testing
+            print(f"type: {epub.EpubItem.get_type(section)}")
+
+            if isinstance(section, (epub.EpubHtml)):  # handle other item types
+
+                # reinject translated text by section
+                self._reinject_text(section)
+
+                # test_mode - allows for quicker testing
                 if self.test_mode:
                     i += 1
                     if i > i_test_threshold:
                         break
 
-                self._reinject_text(section)
+            else:
+                if self.test_mode:
+                    print(f"EbookTranslate.translate_ebook: section is not of type epub.EpubHtml - {section} - {i}")
+
         return self.book
 
     def get_translated_book_path(self, test=None):
@@ -280,12 +396,14 @@ class EbookTranslate:
         the primary function to 'get' the translated book path
         ... - begins the translation process
         ... - writes the translated book to a new epub file
+
         params: test - boolean to indicate whether to run a test case
-        ... test::True
-        ... - 1/4 of the book will be translated & log stats to the console and file
-        ... test::False then the entire book will be translated, and no logs
+        ... test::True - 1/4 of the book will be translated & log stats to the console and file
+        ... test::False - entire book will be translated, and no logs
+
+        returns: translated_epub_path - the path to the translated epub file
         """
-        # set test
+        # set test_mode
         test = self.test_mode if test is None else test
         if test:
             self.test_mode = True
@@ -318,4 +436,8 @@ class EbookTranslate:
             with open(filename, "w") as f:
                 f.write(f"{cache_stat}\n{time_stat}\n")
 
+        # test_mode
+        self._debug()
+
+        # return
         return translated_epub_path

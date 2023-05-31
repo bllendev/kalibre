@@ -18,9 +18,9 @@ from books._translate import EbookTranslate
 
 class Book(models.Model):
     """
-    - All LibgenBooks become a Book model object
+    - All APIBooks become a Book model object
     - we lemmatize the title of our books to improve searching,
-    and to prevent duplicates as much as we can.
+    and to prevent duplicates as much as we can
     """
 
     id = models.UUIDField(
