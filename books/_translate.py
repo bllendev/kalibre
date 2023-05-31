@@ -92,10 +92,11 @@ class EbookTranslate:
                 with open(os.path.join(settings.BASE_DIR, filename), 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
 
-            save_as_json(self.accumulated_texts, 'accumulated_texts.json')
-            save_as_json(self.grouped_texts, 'grouped_texts.json')
-            save_as_json(self.translations, 'translations.json')
-            save_as_json(self.soup_strs, 'soup_strs.json')
+            # 'test_*.json' files noted in .gitignore
+            save_as_json(self.accumulated_texts, 'test_accumulated_texts.json')
+            save_as_json(self.grouped_texts, 'test_grouped_texts.json')
+            save_as_json(self.translations, 'test_translations.json')
+            save_as_json(self.soup_strs, 'test_soup_strs.json')
 
     def _normalize_text(self, text):
         """
