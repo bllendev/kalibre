@@ -14,6 +14,9 @@ CustomUser = get_user_model()
 
 @shared_task
 def send_book_ajax_task(request):
+    """
+    ajax celery task to send single ebook to user email addresses
+    """
     import json
 
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -41,7 +44,7 @@ def send_book_ajax_task(request):
             Email.TRANSLATE_EN_ES: emails.filter(translate_file=Email.TRANSLATE_EN_ES),
         }
 
-        # get libgenbook
+        # get API book and send
         book_api = BookAPI()
         for lang, email_group in email_group_dict.items():
             book = None
