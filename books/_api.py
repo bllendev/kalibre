@@ -98,18 +98,18 @@ class BookAPI:
         """checks db first to see if we may already have a record (bypass api query)"""
         books = None
         if self.search_query:
-            search_terms = [
-                Q(title__icontains=self.search_query),
-                Q(author__icontains=self.search_query),
-                Q(filetype__icontains=self.search_query),
-                Q(isbn__icontains=self.search_query),
-                Q(title__icontains=self.search_query.strip()),
-                Q(author__icontains=self.search_query.strip()),
-                Q(filetype__icontains=self.search_query.strip()),
-                Q(isbn__icontains=self.search_query.strip()),
-                Q(_title_lemmatized__icontains=self.search_query.replace(" ", "")),
-                Q(_title_lemmatized__icontains=self.search_query.strip()),
-            ]
+            self.search_query = self.search_query.strip()
+            search_terms_list = self.search_query.split()
+
+            search_terms = []
+            for term in search_terms_list:
+                search_terms.extend([
+                    Q(title__icontains=term),
+                    Q(author__icontains=term),
+                    Q(filetype__icontains=term),
+                    Q(isbn__icontains=term),
+                    Q(_title_lemmatized__icontains=term.replace(" ", "")),
+                ])
 
             # combine the search terms with OR operator
             search_query = reduce(lambda x, y: x | y, search_terms)
