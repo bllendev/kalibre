@@ -100,7 +100,8 @@ def ai_librarian(request):
             else:
                 ai_response = query_ai(request, messages)
         except Exception as e:
-            return JsonResponse({'error': f'An error occurred while processing your request...{e}'}, status=500)  # 500 -> internal server error
+            print(f"ai.ajax.ai_librarian ERROR: {e}")
+            return JsonResponse({'error': f'An error occurred while processing your request...'}, status=500)  # 500 -> internal server error
 
         return JsonResponse({'message': ai_response})
 
