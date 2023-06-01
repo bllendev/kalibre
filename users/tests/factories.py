@@ -5,6 +5,7 @@ class CustomUserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "users.CustomUser"           # class CustomUser(AbstractUser):
 
+    id = factory.Faker('pyint')
     email_addresses = factory.RelatedFactory("users.tests.factories.EmailFactory")
 
 
