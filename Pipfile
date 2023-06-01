@@ -39,6 +39,7 @@ openai = "*"
 django-celery-results = "*"
 redis = "*"
 crispy-bootstrap4 = "*"
+tiktoken = "*"
 
 [dev-packages]
 
