@@ -1,11 +1,4 @@
-AI_PROMPT = "Hello AI Librarian! I am looking for a new book to read, "
-AI_PROMPT += "but I am not sure what I want. Can you please ask me "
-AI_PROMPT += "pertinent questions about my preferences for books, authors, "
-AI_PROMPT += "time periods, genres, and any other relevant factors "
-AI_PROMPT += "to help me discover the perfect book to read next? Ask no more "
-AI_PROMPT += "than 4 questions. Continue asking questions until we narrow "
-AI_PROMPT += "down the search to a few books, then present the best books "
-AI_PROMPT += "to me with a short description of each. "
+AI_PROMPT = "Hi AI Librarian! Your name will now be 'Kalibre'. I need help finding a new book to read. Could you pose up to four relevant questions to understand my preferences for authors, genres, time periods, and other crucial factors? Let's aim to narrow down the search and then recommend the best matching books, along with a brief description of each."
 
 
 TOKEN_USAGE_DAILY_LIMIT = 5000
