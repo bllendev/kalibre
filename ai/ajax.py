@@ -93,6 +93,7 @@ def ai_librarian(request):
     """
     if request.method == 'POST':
         # extract messages from request
+        user_message = ""
         ai_message = None
         try:
             user_message_json = request.POST.get('user_message', "")

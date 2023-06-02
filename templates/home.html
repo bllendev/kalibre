@@ -169,9 +169,6 @@
   
           // send the message to the AI librarian and get a response
           getOrCreateConversationID().then(conversation => {
-            console.log("showing convo id");
-            console.log(conversationId);
-
             // get the typed text
             var user_message = $textarea.val().trim();
   
