@@ -5,6 +5,9 @@
 *.mobi
 *.pdf
 
+# react stuff
+node_modules/
+
 
 ### Django ###
 *.log
