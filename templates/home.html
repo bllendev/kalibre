@@ -14,7 +14,7 @@
         <form id="search-form" class="form-inline mt-2 mt-md-0 d-flex justify-content-center" action="{% url 'search_results' %}" method="get">
           <div id="search-input-container" class="d-inline-flex">
             <input name="db_q" class="form-control w-75 mr-2 mt-3" type="text" placeholder="what do you wanna read?">
-            <button id="toggle-ai-librarian" onclick="init_ai_chatbox();" class="btn btn-sm btn-outline-secondary" title="AI Librarian" type="button" data-toggle="tooltip" data-placement="bottom" title="Toggle AI Librarian">
+            <button id="toggle-ai-librarian" onclick='$("#ai-chatbox").fadeToggle();' class="btn btn-sm btn-outline-secondary" title="AI Librarian" type="button" data-toggle="tooltip" data-placement="bottom" title="Toggle AI Librarian">
               <img id="toggle-ai-image" src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png" width="50" height="50"/>
             </button>
           </div>
@@ -128,9 +128,10 @@
 
   <script>
     let conversationHistory = [];
-
+    let conversationId = null; // set by getOrCreateConversationID
+  
     $(document).ready(function() {
-      // Load kalibre faces
+      //lLoad kalibre faces
       let kalibre_faces = [
         "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png",
         "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_1_sel9zm.png",
@@ -139,18 +140,19 @@
         "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_4_dbjaoj.png",
         "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
       ];
-
+  
+      // kalibre face change on hover *ai librarian*
       $('#toggle-ai-librarian').mouseover(function() {
         let randomIndex = Math.floor(Math.random() * kalibre_faces.length);
         $('#toggle-ai-image').attr('src', kalibre_faces[randomIndex]);
       });
-
+  
       // Enable the tooltip
       $('[data-toggle="tooltip"]').tooltip();
-
+  
       // Fade in the body
       $("body").css("transition", "opacity 0.5s").css("opacity", "1");
-
+  
       // Set a timeout to delay the entrance animations for h1 and the search input container
       setTimeout(function() {
         $("h1, #search-input-container").css("transition", "all 0.5s").css({
@@ -158,92 +160,121 @@
           "transform": "translateY(0)"
         });
       }, 100);
-
+  
+      // add an event listener for the 'Enter' key
       var $textarea = $("textarea");
-
-      // Add an event listener for the 'Enter' key
       $textarea.on("keydown", function(event) {
         if (event.key === "Enter") {
-          event.preventDefault(); // Prevent the default behavior (new line)
+          event.preventDefault(); // prevent the default behavior (new line)
+  
+          // send the message to the AI librarian and get a response
+          getOrCreateConversationID().then(conversation => {
+            console.log("showing convo id");
+            console.log(conversationId);
 
-          // Get the typed text
-          var typedText = $textarea.val().trim();
+            // get the typed text
+            var user_message = $textarea.val().trim();
+  
+            // if there's any text, store it in the chatbox div and clear the textarea
+            if (user_message) {
+              // append the typed text to the chatbox div
+              var messageDiv = $("<div>").text(user_message).addClass("user-message");
+              $("#message-container").append(messageDiv);
+  
+              // clear the textarea
+              $textarea.val("");
+  
+              // Show the loading animation
+              var loadingDiv = $("<div>").addClass("loading-animation");
+              var dot1 = $("<div>").addClass("dot");
+              var dot2 = $("<div>").addClass("dot");
+              var dot3 = $("<div>").addClass("dot");
+              loadingDiv.append(dot1, dot2, dot3);
+              $("#message-container").append(loadingDiv);
+  
+              // Update the conversation history with the user's message
+              //.push({"role": "user", "content": user_message});
+  
+              // send the message to the AI librarian and get a response
+              getAiLibrarianResponse(user_message).then(response => {
+                // Remove the loading animation
+                loadingDiv.remove();
+  
+                // add the AI response to the chatbox
+                var aiResponseDiv = $("<div>").text(response).addClass("ai-response");
+                $("#message-container").append(aiResponseDiv);
+  
+                // animate the ai response
+                aiResponseDiv.animate({opacity: 1}, 500);
+  
+                // update the conversation history with the AI's response
+                // conversationHistory.push({"role": "assistant", "content": response});
+              });
+            }
+          });
 
-          // If there's any text, store it in the chatbox div and clear the textarea
-          if (typedText) {
-            // Append the typed text to the chatbox div
-            var messageDiv = $("<div>").text(typedText).addClass("user-message");
-            $("#message-container").append(messageDiv);
-
-            // Clear the textarea
-            $textarea.val("");
-
-            // Show the loading animation
-            var loadingDiv = $("<div>").addClass("loading-animation");
-            var dot1 = $("<div>").addClass("dot");
-            var dot2 = $("<div>").addClass("dot");
-            var dot3 = $("<div>").addClass("dot");
-            loadingDiv.append(dot1, dot2, dot3);
-            $("#message-container").append(loadingDiv);
-
-            // Update the conversation history with the user's message
-            conversationHistory.push({"role": "user", "content": typedText});
-
-            // Send the message to the AI librarian and get a response
-            getAiLibrarianResponse(conversationHistory).then(response => {
-              // Remove the loading animation
-              loadingDiv.remove();
-
-              // Add the AI response to the chatbox
-              var aiResponseDiv = $("<div>").text(response).addClass("ai-response");
-              $("#message-container").append(aiResponseDiv);
-
-              // animate the ai response
-              aiResponseDiv.animate({opacity: 1}, 500);
-
-              // Update the conversation history with the AI's response
-              conversationHistory.push({"role": "assistant", "content": response});
-            });
-          }
         }
       });
-
-    async function getAiLibrarianResponse(messages) {
-      return new Promise(function(resolve, reject) {
-        $('#toggle-ai-image').addClass('rotate');
-        
-        $.ajax({
-          url: "/ai/ai-librarian/",
-          type: "POST",
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"), // Assuming you have a 'getCookie' function to fetch CSRF token
-          },
-          data: {
-            messages: JSON.stringify(messages),
-          },
-          success: function(data) {
-            resolve(data.message);
-          },
-          error: function(xhr, textStatus, errorThrown) {
-            reject(errorThrown);
-          }
-        }).always(function() {
-          $('#toggle-ai-image').removeClass('rotate');
-          $('#toggle-ai-image').css('transition', 'transform 0.5s'); // Smoothly return to initial position
-          $('#toggle-ai-image').css('transform', '');
+  
+      async function getAiLibrarianResponse(user_message) {
+        return new Promise(function(resolve, reject) {
+          $('#toggle-ai-image').addClass('rotate');
+      
+          $.ajax({
+            url: "/ai/ai-librarian/",
+            type: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            data: {
+              user_message: JSON.stringify(user_message),
+              conversation_id: conversationId,  // set by getOrCreateConversationID
+            },
+            success: function(data) {
+              resolve(data.message);
+            },
+            error: function(xhr, textStatus, errorThrown) {
+              reject(errorThrown);
+            }
+          }).always(function() {
+            $('#toggle-ai-image').removeClass('rotate');
+            $('#toggle-ai-image').css('transition', 'transform 0.5s'); // Smoothly return to initial position
+            $('#toggle-ai-image').css('transform', '');
+          });
         });
-      });
-    }
-  });
+      }
+      
+      // get or create a conversation if it doesn't exist or retrieve the existing one
+      async function getOrCreateConversationID() {
+        if (conversationId == null) {
+            // createConversation returns a Promise
+            return createConversation();
+        } else {
+            // wrap the existing conversationId in a resolved Promise
+            return Promise.resolve(conversationId);
+        }
+      }
 
-  function init_ai_chatbox() {
-    $("#ai-chatbox").fadeToggle();
-    if (conversationHistory.length === 0) {
-      var AI_PROMPT = "{{ AI_PROMPT }}";
-      conversationHistory.push({"role": "system", "content": AI_PROMPT});
-    }
-  }
-
+      async function createConversation() {
+        return new Promise(function(resolve, reject) {
+            $.ajax({
+              url: "/ai/create-conversation/",
+              type: "POST",
+              headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+              success: function(data) {
+                conversationId = data.conversation_id;
+                resolve(conversationId);
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                reject(errorThrown);
+              }
+            });
+        });
+      }
+    });
   </script>
+  
 
 {% endblock content %}
