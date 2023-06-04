@@ -1,9 +1,12 @@
 version: '3.7'
 
+networks:
+  backend:
+
 services:
   web:
     build: .
-    command: bash -c "celery -A bookstore_project worker --loglevel=info & gunicorn bookstore_project.wsgi -b 0.0.0.0:8000 --timeout 1000"
+    command: gunicorn bookstore_project.wsgi -b 0.0.0.0:8000 --timeout 1000
     environment:
       - DJANGO_SETTINGS_MODULE=bookstore_project.settings
       - ENVIRONMENT=${ENVIRONMENT}
@@ -25,7 +28,18 @@ services:
     depends_on:
       - db
       - rabbitmq
-      - redis
+    networks:
+      - backend
+
+  worker:
+    build: .
+    command: celery -A bookstore_project worker --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - web
+    networks:
+      - backend
 
   db:
     image: 'postgres:12-alpine'
@@ -33,17 +47,35 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - backend
 
   rabbitmq:
     image: 'rabbitmq:3-management'
-    ports:
-      - 15672:15672
-      - 5673:5672
+    networks:
+      - backend
   
   redis:
     image: "redis:alpine"
+    networks:
+      - backend
+
+  frontend:
+    restart: always
+    command : yarn build
+    container_name: frontend
+    build: 
+      context: ./kalibre
+      dockerfile: Dockerfile
+    volumes:
+      - ./kalibre:/app
     ports:
-      - 6379:6379
+      - 3000:3000
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   postgres_data:
+
+networks:
+  backend:
