@@ -5,11 +5,22 @@ from django.contrib.auth.mixins import (
 )
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
-from books.models import Book
 from django.views.decorators.cache import never_cache
+
+from rest_framework import viewsets
+
+
+# local
+from books.models import Book
+from books.serializers import BookSerializer
 
 
 CustomUser = get_user_model()
+
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
 
 
 class BookListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
