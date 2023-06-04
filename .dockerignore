@@ -1,0 +1,16 @@
+# Ignore node modules
+**/node_modules
+
+# Ignore Python cache files
+**/__pycache__
+
+# Ignore Git directories
+.git/
+
+# Ignore other unneeded directories/files
+docs/
+tests/
+*.md
+*.log
+*.bak
+*.swp
