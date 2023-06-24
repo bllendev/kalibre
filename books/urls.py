@@ -5,13 +5,14 @@ from books import views
 from books import ajax
 
 
-router = DefaultRouter()
-router.register('', views.BookViewSet)
+# leave disabled until react is fully implemented -@AG
+# router = DefaultRouter()
+# router.register('', views.BookViewSet)
 
 
 urlpatterns = [
     # core views
-    path('', include(router.urls)),
+    # path('', include(router.urls)),
     path('<uuid:pk>', views.BookDetailView.as_view(), name='book_detail'),
     path('search_results/', views.search_results, name='search_results'),
     path("my_emails/", views.my_emails, name="my_emails"),
