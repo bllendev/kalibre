@@ -23,8 +23,8 @@
         <div class="mt-4" id="ai-chatbox" style="display: none; background-color: #F1F8E9; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid #ccc; padding: 20px; overflow-y: scroll;">
           <div id="message-container">
             <!-- add text boxes dynamically using jQuery -->
-            <textarea class='form-control mb-3' placeholder="hi, i'm Kalibre! what type of book are you looking for?"></textarea>
           </div>
+          <textarea class='form-control mb-3' placeholder={% if request.user.is_authenticated %}"hi, i'm Kalibre! what type of book are you looking for?"{% else %}"hi, i'm Kalibre! it seems like you're not logged in! please feel free to make an account to get started!"{% endif %}></textarea>
         </div>
       </div>
     </div>
@@ -73,21 +73,20 @@
     }
 
     #ai-chatbox {
-      max-height: 300px;
-      overflow-y: scroll;
-      scroll-behavior: smooth;
-      border-radius: 10px; /* Increase from 5px to 10px */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 500px; /* adjust as necessary */
     }
 
     #message-container {
-      padding-top: 50px;
+      overflow-y: auto;
+      flex: 1;
     }
 
     textarea {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #F1F8E9;
+      width: 100%;
+      resize: none; /* disable resize */
     }
     
     .loading-animation {
