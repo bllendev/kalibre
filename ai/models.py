@@ -21,9 +21,9 @@ class Conversation(models.Model):
         unorganized_messages = self.messages.all().order_by('sent_at')
         organized_messages = []
         for idx, msg in enumerate(unorganized_messages):
-            if idx == 0: # system prompt
-                organized_messages.append(msg.get_message(role="system"))
-            organized_messages.append(msg.get_message())
+            if idx == 0:  # system prompt
+                organized_messages.append(msg.get_message(message_str=msg.text, role="system"))
+            organized_messages.append(msg.get_message(message_str=msg.text, role=msg.sender))
         return organized_messages
 
 
@@ -40,9 +40,8 @@ class Message(models.Model):
     text = models.CharField(default="", max_length=5000)
     sent_at = models.DateTimeField(auto_now_add=True)
 
-    def get_message(self, role=None):
-        role = self.sender if role is None else role
-
+    @staticmethod
+    def get_message(message_str, role):
         if role == "ai":
             role = "assistant"
-        return {"role": role, "content": self.text}
+        return {"role": role, "content": message_str}
