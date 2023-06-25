@@ -12,6 +12,7 @@ import json
 import copy
 
 from books.constants import EMAIL_TEMPLATE_LIST
+from books.managers import BookManager
 from books.utils import os_silent_remove
 from books._translate import EbookTranslate
 
@@ -38,6 +39,8 @@ class Book(models.Model):
     filetype = models.CharField(max_length=60, default="")
     isbn = models.CharField(max_length=200, default="")
     json_links = models.JSONField(null=True)
+
+    objects = BookManager()
 
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"
@@ -152,7 +155,6 @@ class Book(models.Model):
         permissions = [
             ('special_status', 'Can read all books'),
         ]
-
 
 class Review(models.Model):
 
