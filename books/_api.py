@@ -1,5 +1,7 @@
 # django
 from django.db.models import Q
+from django.db.models import Case, When
+from django.db import models
 from functools import reduce
 import json
 
@@ -102,7 +104,9 @@ class BookAPI:
             search_terms_list = self.search_query.split()
 
             search_terms = []
+            exact_match = []
             for term in search_terms_list:
+                exact_match.append(Q(title__iexact=term) | Q(author__iexact=term))
                 search_terms.extend([
                     Q(title__icontains=term),
                     Q(author__icontains=term),
@@ -113,7 +117,19 @@ class BookAPI:
 
             # combine the search terms with OR operator
             search_query = reduce(lambda x, y: x | y, search_terms)
-            books = Book.objects.filter(search_query)
+            exact_match_query = reduce(lambda x, y: x | y, exact_match)
+
+            # add a field that denotes an exact match
+            books = Book.objects.annotate(
+                is_exact_match=Case(
+                    When(exact_match_query, then=1),
+                    default=0,
+                    output_field=models.IntegerField()
+                )
+            ).filter(search_query)
+
+            # order by the new field, so exact matches come first
+            books = books.order_by('-is_exact_match')
 
         # return query the database to get matching books
         return books
@@ -124,15 +140,16 @@ class BookAPI:
             libgen_book_set = {APIBook(**book) for book in self.libgen_api.get_unique_book_list()}
             db_books.update(libgen_book_set)
 
-        # Create list of unique books to be created in the DB
+        # create list of unique books to be created in the db
         books_to_create = []
         for book in db_books:
-            # Check if book already exists in DB
+            # check if book already exists in db
             if not Book.objects.filter(isbn=book.isbn).exists():
                 books_to_create.append(Book(**book.values))
 
-        # Bulk create new books
+        # bulk create new books
         Book.objects.bulk_create(books_to_create)
+        # Book.objects.create_and_embed_books(**book_info)
 
         return self._book_db_search()
 
