@@ -1,6 +1,9 @@
 import openai
 from ai.models import Message
 
+import tiktoken
+from openai.embeddings_utils import get_embedding
+
 
 def fx_query_openai(**kwargs):
     """
@@ -38,3 +41,28 @@ def fx_query_openai(**kwargs):
         temperature=temperature,
     )
     return response['choices'][0]['message']['content'].strip()
+
+
+def get_openai_embeddings(texts, embedding_model="text-embedding-ada-002", max_tokens=8000):
+    """Compute embeddings for a list of texts using OpenAI's API.
+
+    Args:
+    texts (list of str): The texts to compute embeddings for.
+    embedding_model (str, optional): The OpenAI model to use for computing embeddings.
+    max_tokens (int, optional): The maximum number of tokens per text.
+
+    Returns:
+    list of embeddings: The embeddings computed by OpenAI's API.
+    """
+    pass
+    # embeddings = []
+    # tokenizer = tiktoken.get_encoding("cl100k_base")  # moved outside of the loop
+
+    # for text in texts:
+    #     token_ids = list(tokenizer.encode(text))
+    #     n_tokens = len(token_ids)
+    #     if n_tokens <= max_tokens:
+    #         embedding = get_embedding(text, engine=embedding_model)
+    #         embeddings.append(embedding)
+
+    # return embeddings
