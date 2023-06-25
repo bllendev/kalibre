@@ -2,12 +2,15 @@ import os
 from django.db import transaction
 from django.shortcuts import redirect
 
+from ai.models import Message
+
 # import nltk
 # # from textblob import TextBlob
 # from nltk.corpus import stopwords
 # from nltk.tokenize import word_tokenize
 # from nltk.stem import PorterStemmer
 import string
+import openai
 
 
 # # Download required resources
