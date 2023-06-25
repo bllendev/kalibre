@@ -41,6 +41,12 @@ redis = "*"
 crispy-bootstrap4 = "*"
 tiktoken = "*"
 djangorestframework = "*"
+matplotlib = "*"
+plotly = "*"
+pandas = "*"
+scipy = "*"
+sklearn = "*"
+scikit-learn = "*"
 
 [dev-packages]
 
