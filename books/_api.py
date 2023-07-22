@@ -125,11 +125,21 @@ class BookAPI:
                     When(exact_match_query, then=1),
                     default=0,
                     output_field=models.IntegerField()
+                ),
+                title_match=Case(
+                    When(Q(title__icontains=self.search_query), then=1),
+                    default=0,
+                    output_field=models.IntegerField(),
+                ),
+                author_match=Case(
+                    When(Q(author__icontains=self.search_query), then=1),
+                    default=0,
+                    output_field=models.IntegerField(),
                 )
             ).filter(search_query)
 
-            # order by the new field, so exact matches come first
-            books = books.order_by('-is_exact_match')
+            # order by the new field, so exact matches and then title matches and then author matches come first
+            books = books.order_by('-is_exact_match', '-title_match', '-author_match')
 
         # return query the database to get matching books
         return books
