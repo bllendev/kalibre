@@ -142,3 +142,13 @@ class AI_UtilsTest(TestCase):
                 max_tokens=2000,
                 temperature=0.7,
             )
+
+    class OpenAIAPITest(SimpleTestCase):
+        _multiprocess_can_split_ = True
+        _multiprocess_shared_ = False
+
+    def setUp(self):
+        openai.organization = "Personal"
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        print(f"openai.Model.list(): {openai.Model.list()}")
+        self.assertTrue(openai.Model.list())
