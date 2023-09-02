@@ -14,7 +14,7 @@ import copy
 from books.constants import EMAIL_TEMPLATE_LIST
 from books.managers import BookManager
 from books.utils import os_silent_remove
-from books._translate import EbookTranslate
+from translate._translate import EbookTranslate
 
 
 class Book(models.Model):
