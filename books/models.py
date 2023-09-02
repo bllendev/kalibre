@@ -1,9 +1,10 @@
+# django
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
-from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 
+# tools
 import urllib
 import uuid
 import requests
@@ -11,6 +12,7 @@ import os
 import json
 import copy
 
+# local
 from books.constants import EMAIL_TEMPLATE_LIST
 from books.managers import BookManager
 from books.utils import os_silent_remove
@@ -88,15 +90,6 @@ class Book(models.Model):
         temp_book_file_link = self._get_book_download_content()
         temp_book_file_dl = requests.get(temp_book_file_link)
 
-        # debug
-        # print(f"self BOOK @@@!!!: {self}")
-        # print(f"new_file_path: {new_file_path}")
-        # print(f"json_links: {self.json_links}")
-        # print(f"temp_book_file_link: {temp_book_file_link}")
-        # print(f"temp_book_file_dl: {temp_book_file_dl}")
-        # print(f"langauge: {language}")
-        # print(f"----------------------------------")
-
         # write book file content
         try:
 
@@ -112,13 +105,23 @@ class Book(models.Model):
                 ebook_translated_path = ebook_translate.get_translated_book_path()
 
         except Exception as e:
+            # attempt removal in case of error
+            os_silent_remove(new_file_path)
+
+            # debug
             print(f"ERROR OCCURED: {e}")
-            os_silent_remove(new_file_path)    # attempt removal in case of error (make sure we are keeping repo clean)
+            print(f"self BOOK @@@!!!: {self}")
+            print(f"new_file_path: {new_file_path}")
+            print(f"json_links: {self.json_links}")
+            print(f"temp_book_file_link: {temp_book_file_link}")
+            print(f"temp_book_file_dl: {temp_book_file_dl}")
+            print(f"langauge: {language}")
+            print("---------------------")
             raise e
 
         return ebook_translated_path
 
-    def get_book_file_path_from_links(self, language):
+    def get_book_file_path(self, language):
         # write file to path (will use file to send - then we will delete file)
         title = self.title.replace("/", "-").replace("//", "-").replace("\\", "-")
         new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
@@ -132,7 +135,7 @@ class Book(models.Model):
         from django.core import mail
 
         # get book file path (safety bypass if no path)
-        book_file_path = self.get_book_file_path_from_links(language)  # web scraper
+        book_file_path = self.get_book_file_path(language)  # web scraper
         if book_file_path is None:
             return
 
@@ -155,6 +158,7 @@ class Book(models.Model):
         permissions = [
             ('special_status', 'Can read all books'),
         ]
+
 
 class Review(models.Model):
 

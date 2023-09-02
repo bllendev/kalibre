@@ -17,6 +17,14 @@ from googletrans import Translator
 
 
 class Translate:
+    """Handles choosing the intended translator method,
+    and translating text
+
+    params:
+        fastapi - Use home-brewed api
+        openai - Use openai api
+        google_api - Use home-forked google translate api
+    """
     def __init__(self, fastapi=False, openai=False, google_api=True):
         # load models / apis
         self.fastapi = fastapi
@@ -408,7 +416,8 @@ class EbookTranslate:
         ... - writes the translated book to a new epub file
 
         params: test - boolean to indicate whether to run a test case
-        ... test::True - 1/4 of the book will be translated & log stats to the console and file
+        ... test::True - 1/4 of the book will be translated & log stats
+        to the console and file
         ... test::False - entire book will be translated, and no logs
 
         returns: translated_epub_path - the path to the translated epub file

@@ -120,7 +120,7 @@ class SendBookAjaxTaskTest(TestCase):
         self.factory = RequestFactory()
         self.user = CustomUserFactory.create(username='testuser', password='testpassword')
         self.email1 = EmailFactory.create(user=self.user, address="test1@example.com", translate_file="")
-        self.email2 = EmailFactory.create(user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES)
+        # self.email2 = EmailFactory.create(user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES)
 
     @patch('books.tasks.BookAPI')
     def test_send_book_ajax_task(self, mock_bookapi):

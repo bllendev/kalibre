@@ -1,4 +1,7 @@
 import factory
+import random
+
+from translate.constants import LANGUAGES
 
 
 class CustomUserFactory(factory.django.DjangoModelFactory):
@@ -14,3 +17,4 @@ class EmailFactory(factory.django.DjangoModelFactory):
         model = "users.Email"
 
     address = factory.Faker('email')
+    translate_file = random.choice(list(LANGUAGES.keys()))
