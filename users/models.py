@@ -1,13 +1,18 @@
 from django.db import models
 from django.conf import settings
 
+from translate.constants import LANGUAGES
+
+
+# ex. (("eng", "English"), ("es", "Español"), etc.)
+LANUAGES_CONSTANTS = (
+    (lang_code, lang_title)
+    for lang_code, lang_title in LANGUAGES.items()
+)
+
 
 class Email(models.Model):
-    TRANSLATE_EN_ES = 'English to Spanish'
-    _TRANSLATE_EN_ES = 'en-es'
-    TRANSLATE_CHOICES = (
-        (TRANSLATE_EN_ES, _TRANSLATE_EN_ES),
-    )
+    TRANSLATE_CHOICES = LANUAGES_CONSTANTS
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user', default=None, null=True)
     address = models.CharField(default="", max_length=120)
     translate_file = models.CharField(max_length=20, choices=TRANSLATE_CHOICES, default="", blank=True, null=False)

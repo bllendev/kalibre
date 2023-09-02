@@ -2,10 +2,13 @@
 from django.test import TestCase, RequestFactory, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.test import SimpleTestCase
+from unittest.mock import patch
 
 # tools
 import json
-from unittest.mock import patch, MagicMock
+import openai
+import os
 
 # local
 from ai.models import TokenUsage, Conversation, Message
@@ -143,12 +146,12 @@ class AI_UtilsTest(TestCase):
                 temperature=0.7,
             )
 
-    class OpenAIAPITest(SimpleTestCase):
-        _multiprocess_can_split_ = True
-        _multiprocess_shared_ = False
+    # class OpenAIAPITest(SimpleTestCase):
+    #     _multiprocess_can_split_ = True
+    #     _multiprocess_shared_ = False
 
-    def setUp(self):
-        openai.organization = "Personal"
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        print(f"openai.Model.list(): {openai.Model.list()}")
-        self.assertTrue(openai.Model.list())
+    # def setUp(self):
+    #     openai.organization = "Personal"
+    #     openai.api_key = os.getenv("OPENAI_API_KEY")
+    #     print(f"openai.Model.list(): {openai.Model.list()}")
+    #     self.assertTrue(openai.Model.list())

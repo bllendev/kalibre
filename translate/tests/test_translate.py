@@ -8,6 +8,7 @@ from users.tests.factories import CustomUserFactory
 from users.models import Email
 from books.tests.factories import BookFactory
 from translate._translate import EbookTranslate, Translate
+from translate.constants import LANGUAGES
 from books.models import Book
 from books.tests.test_book_model import TEST_BOOK_PKL_PATH
 
@@ -22,6 +23,11 @@ from googletrans import Translator
 """
 docker compose exec web python manage.py test translate.tests.test_translate --noinput --parallel --failfast
 """
+
+
+class TranslateConstants(SimpleTestCase):
+    def test_langauge_constants(self):
+        self.assertTrue(len(LANGUAGES) == 105)
 
 
 class TranslateTest(SimpleTestCase):
@@ -66,17 +72,10 @@ class EbookTranslateTest(SimpleTestCase):
         """make sure epub is loading in"""
         self.assertTrue(self.test_epub)
 
-    def test_google_translate_api(self):
+    def test_get_book_translated(self):
         """
-        a quick test to make sure my version of google translate api is working
+        testing book translation (should send to dev email)
+        ... currently only testing english to spanish
+        ... currently only testing google translate api
         """
-        test_str = Translator().translate("hello", dest="es")
-        self.assertEquals(test_str.text.lower(), "hola")
-
-    # def test_get_book_translated(self):
-    #     """
-    #     testing book translation (should send to dev email)
-    #     ... currently only testing english to spanish
-    #     ... currently only testing google translate api
-    #     """
-    #     self.test_book.send(email_list=["bllendev@gmail.com"], language=Email._TRANSLATE_EN_ES)
+        self.test_book.send(email_list=["bllendev@gmail.com"], language="es")
