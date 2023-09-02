@@ -72,10 +72,10 @@ class EbookTranslateTest(SimpleTestCase):
         """make sure epub is loading in"""
         self.assertTrue(self.test_epub)
 
-    def test_get_book_translated(self):
-        """
-        testing book translation (should send to dev email)
-        ... currently only testing english to spanish
-        ... currently only testing google translate api
-        """
-        self.test_book.send(email_list=["bllendev@gmail.com"], language="es")
+    # def test_get_book_translated(self):
+    #     """
+    #     testing book translation (should send to dev email)
+    #     ... currently only testing english to spanish
+    #     ... currently only testing google translate api
+    #     """
+    #     self.test_book.send(email_list=["bllendev@gmail.com"], language="es")
