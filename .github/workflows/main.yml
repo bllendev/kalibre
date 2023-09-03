@@ -47,10 +47,9 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        path: ~/.cache/pipenv
-        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pipenv-
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+
   
     - name: Install dependencies
       run: |
