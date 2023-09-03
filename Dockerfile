@@ -23,8 +23,8 @@ RUN apt-get update \
 WORKDIR /code
 
 # Install dependencies
-COPY Pipfile Pipfile.lock /code/
-RUN pip install pipenv && pipenv install --system
+COPY Pipfile /code/
+RUN pip install pipenv && pipenv install --system --skip-lock
 RUN pip install psycopg2-binary
 
 # Copy project

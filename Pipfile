@@ -44,9 +44,6 @@ djangorestframework = "*"
 matplotlib = "*"
 plotly = "*"
 pandas = "*"
-scipy = "*"
-sklearn = "*"
-scikit-learn = "*"
 
 [dev-packages]
 
