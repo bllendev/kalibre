@@ -45,6 +45,7 @@ matplotlib = "*"
 plotly = "*"
 pandas = "*"
 scipy = "*"
+sklearn = "*"
 
 [dev-packages]
 
