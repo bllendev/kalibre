@@ -44,6 +44,7 @@ djangorestframework = "*"
 matplotlib = "*"
 plotly = "*"
 pandas = "*"
+scipy = "*"
 
 [dev-packages]
 
