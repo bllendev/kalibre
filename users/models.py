@@ -15,7 +15,7 @@ class Email(models.Model):
     TRANSLATE_CHOICES = LANUAGES_CONSTANTS
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user', default=None, null=True)
     address = models.CharField(default="", max_length=120)
-    translate_file = models.CharField(max_length=20, choices=TRANSLATE_CHOICES, default="", blank=True, null=False)
+    translate_file = models.CharField(max_length=20, choices=TRANSLATE_CHOICES, default="en", blank=True, null=False)
 
     class Meta:
         ordering = ['address']

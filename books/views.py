@@ -13,6 +13,7 @@ from rest_framework import viewsets
 # local
 from books.models import Book
 from books.serializers import BookSerializer
+from translate.constants import LANGUAGES
 
 
 CustomUser = get_user_model()
@@ -97,5 +98,6 @@ def my_emails(request):
         {
             'username_str': username_str,
             'email_addresses': email_addresses,
+            'LANGUAGES': LANGUAGES,
         }
     )
