@@ -75,11 +75,14 @@
 </div>
 
 <script>
+
+  // languages
+  const LANGUAGES = {{ LANGUAGES|safe }};
   
   $(document).ready(function () {
     var token = '{{csrf_token}}';
 
-    // peas
+    // peas img
     var peas_img = $('<img id="peas">'); //Equivalent: $(document.createElement('img'))
     peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
     peas_img.attr('style', 'max-width:100%;background-color:transparent;position:absolute;left:70px');
@@ -104,6 +107,26 @@
     {% endfor %}
 
   });
+
+  function createLanguageDropdown(defaultLanguage) {
+    // create select element
+    var selectElement = $('<select>').addClass('form-control').attr('name', 'language_selection');
+
+    // populate it with options from LANGUAGES (defined server-side and sent to client-side somehow)
+    $.each(LANGUAGES, function(lang_code, lang_name) {
+        var optionElement = $('<option>').val(lang_code).text(lang_name);
+
+        // If the language is the default language, select it
+        if (lang_code === defaultLanguage) {
+            optionElement.attr('selected', 'selected');
+        }
+
+        selectElement.append(optionElement);
+    });
+
+    return selectElement;
+  }
+
 
 
   function add_email_form_onsubmit(token) {
@@ -134,16 +157,14 @@
           // create the first table cell with the email string
           var emailCell = $('<td>').text(email_str);
           
-          // translate cells
-          var translateCell = $('<td>').attr('align', 'center');
-          var translateCheckbox = $('<input>')
-              .addClass('form-check-input')
-              .attr('type', 'checkbox')
-              .attr('id', 'translate_email_check_' + email_pk);
-          var translateLabel = $('<label>')
-              .attr('for', 'translate_email_check_' + email_pk)
-              .html('(experimental | <b>en-es</b> only)');
-          translateCell.append(translateCheckbox).append(translateLabel);
+          // create a cell for the language dropdown
+          var languageCell = $('<td>').attr('align', 'center');
+
+          // Here 'en' is set as the default language (English)
+          var languageDropdown = createLanguageDropdown('en');
+
+          // append the dropdown to its cell
+          languageCell.append(languageDropdown);
   
           // create the delete form
           var deleteForm = $('<form>')
@@ -171,7 +192,7 @@
           buttonCell.append(deleteForm);
   
           // append the email cell, translate cell, and button cell to the new row
-          newRow.append(emailCell).append(translateCell).append(buttonCell);
+          newRow.append(emailCell).append(languageCell).append(buttonCell);
   
           // append the new row after the last row of the email_table
           $("#email_table tr:last").after(newRow);
