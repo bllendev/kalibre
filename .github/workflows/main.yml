@@ -44,11 +44,11 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+    # - name: Cache dependencies
+    #   uses: actions/cache@v2
+    #   with:
+    #     path: ~/.npm
+    #     key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
 
   
     - name: Install dependencies
