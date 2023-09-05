@@ -46,7 +46,7 @@
                 <td>{{ email }}</td>
 
                 <td align="center">
-                  <select class="form-control" id="language_selection" name="language_selection">
+                  <select class="form-control" id="language_selection_{{email.pk}}" name="language_selection">
                     <!-- Populate the options dynamically -->
                     {% for lang_code, lang_name in LANGUAGES.items %}
                       <option value="{{ lang_code }}" {% if email.translate_file == lang_code %} selected {% endif %}>
@@ -83,7 +83,7 @@
     var token = '{{csrf_token}}';
 
     // peas img
-    var peas_img = $('<img id="peas">'); //Equivalent: $(document.createElement('img'))
+    var peas_img = $('<img id="peas">');
     peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
     peas_img.attr('style', 'max-width:100%;background-color:transparent;position:absolute;left:70px');
     peas_img.appendTo('#peas_div');
@@ -108,9 +108,10 @@
 
   });
 
-  function createLanguageDropdown(defaultLanguage) {
+  function createLanguageDropdown(defaultLanguage, email_pk) {
     // create select element
-    var selectElement = $('<select>').addClass('form-control').attr('name', 'language_selection');
+    var selectElement = $('<select>').addClass('form-control').attr('name', 'language_selection_' + email_pk);
+    selectElement.attr('id', 'language_selection_' + email_pk);
 
     // populate it with options from LANGUAGES (defined server-side and sent to client-side somehow)
     $.each(LANGUAGES, function(lang_code, lang_name) {
@@ -161,7 +162,7 @@
           var languageCell = $('<td>').attr('align', 'center');
 
           // Here 'en' is set as the default language (English)
-          var languageDropdown = createLanguageDropdown('en');
+          var languageDropdown = createLanguageDropdown('en', email_pk);
 
           // append the dropdown to its cell
           languageCell.append(languageDropdown);
@@ -211,7 +212,7 @@
   
 
   function set_translate_form_onsubmit(email_pk, token) {
-    $("#translate_email_check_" + email_pk).on("change", function(event) {
+    $("#language_selection_" + email_pk).on("change", function(event) {
       // stop propogation 
       event.stopPropagation();
       event.preventDefault();
@@ -227,7 +228,7 @@
         },
         {
           name: this.name,
-          value: this.checked ? 'on' : 'off'
+          value: this.value,
         }
       ];
   

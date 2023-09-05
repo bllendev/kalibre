@@ -22,9 +22,11 @@ RUN apt-get update \
 # Set work directory
 WORKDIR /code
 
+COPY requirements.txt /code/
+
 # Install dependencies
 COPY Pipfile /code/
-RUN pip install pipenv && pipenv install --system
+RUN pip install -r "requirements.txt"
 RUN pip install psycopg2-binary
 
 # Copy project
