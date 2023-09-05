@@ -69,30 +69,42 @@ def delete_email(request):
 
 
 def toggle_translate_email(request):
-    from users.models import Email
+    """Sets the specific Email Model associated with a specific User language to
+    translate to when sending ebooks
 
+    params:
+       request (POST)
+
+    example:
+        list(request.POST.items()) - [('translate_email_pk[]', '7'), ('language_selection', 'bs')]
+    """
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    post_dict = {key: val for key, val in request.POST.items() if 'translate_email_pk' in key}
-    post_dict_values = list(post_dict.values())
+    post_dict = list(request.POST.items())
 
-    if is_ajax and request.method == 'POST':
-        # organize
-        post_dict = {key: val for key, val in request.POST.items() if 'translate_email_pk' in key}
-        post_dict_values = list(post_dict.values())
-        email_pk_to_translate = post_dict_values[0]
+    if is_ajax and request.method == 'POST' and post_dict:
+        # extract email
+        email_pk_to_translate__pk__tuple = post_dict[0]
+        email_pk_to_translate_pk = email_pk_to_translate__pk__tuple[1]
+
+        # extract language
+        language_selection__lang_code__tuple = post_dict[1]
+        lang_code = language_selection__lang_code__tuple[1]
 
         # extract user info and set translate
         username = request.user.username
-        user = CustomUser.objects.get(username=username)
-        user_email_to_translate = user.email_addresses.all().get(pk=email_pk_to_translate)
 
-        # set translate and save !
-        if user_email_to_translate.translate_file != "":
-            user_email_to_translate.translate_file = ""
-        else:
-            user_email_to_translate.translate_file = Email.TRANSLATE_EN_ES
-        user_email_to_translate.save()
+        try:
+            user = CustomUser.objects.get(username=username)
+            user_email_to_translate = user.email_addresses.all().get(pk=email_pk_to_translate_pk)
 
-        return JsonResponse({'status': True, 'translate_email_pk': email_pk_to_translate}, status=200)
+            # set translate and save !
+            user_email_to_translate.translate_file = lang_code  # NOTE: translate.constants
+            user_email_to_translate.save()
+
+            return JsonResponse({'status': True, 'translate_email_pk': email_pk_to_translate_pk}, status=200)
+
+        except Exception as e:
+            print(f"ERROR - toggle_translate_email - {e}")
+            return JsonResponse({'status': False}, status=400)
 
     return JsonResponse({'status': False}, status=400)
