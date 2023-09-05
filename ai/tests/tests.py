@@ -15,12 +15,6 @@ from ai.models import TokenUsage, Conversation, Message
 from ai.ajax import update_token_usage, query_ai, set_latest_messages, ai_librarian
 from ai.utils import fx_query_openai
 
-# factories
-from users.tests.factories import (
-    CustomUserFactory,
-    EmailFactory,
-)
-
 
 """
 docker compose exec web python manage.py test ai.tests --parallel --noinput --failfast
