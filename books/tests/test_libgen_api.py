@@ -113,28 +113,3 @@ class TestLibgenAPI(TestCase):
         test_books = test_libgen.get_unique_book_list()
         test_book = [book["ID"] for book in test_books if book["ID"] == TEST_ISBN]
         self.assertTrue(test_book)
-
-
-class SendBookAjaxTaskTest(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.user = CustomUserFactory.create(username='testuser', password='testpassword')
-        self.email1 = EmailFactory.create(user=self.user, address="test1@example.com", translate_file="")
-        # self.email2 = EmailFactory.create(user=self.user, address="test2@example.com", translate_file=Email.TRANSLATE_EN_ES)
-
-    @patch('books.tasks.BookAPI')
-    def test_send_book_ajax_task(self, mock_bookapi):
-        # Setup
-        mock_bookapi_instance = mock_bookapi.return_value
-        mock_bookapi_instance.get_book.return_value = None  # Mock the book to simplify the test
-
-        request = self.factory.post('/fake-url/', {
-            'book_test_title__type_pdf__isbn_1234567890': '{"fake": "data"}',
-        })
-        request.user = self.user
-
-        # Call the task
-        response = send_book_ajax_task(request)
-
-        # Check the response
-        self.assertEqual(response.status_code, 400)

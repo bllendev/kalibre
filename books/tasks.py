@@ -16,6 +16,7 @@ CustomUser = get_user_model()
 def send_book_ajax_task(request):
     """
     ajax celery task to send single ebook to user email addresses
+    - uses books.models.Book.ssn
     """
     import json
 
@@ -38,21 +39,15 @@ def send_book_ajax_task(request):
         user = CustomUser.objects.get(username=username)
         emails = user.email_addresses.all()
 
-        # group emails
-        email_group_dict = {
-            "en":  emails.filter(translate_file=""),
-            Email.TRANSLATE_EN_ES: emails.filter(translate_file=Email.TRANSLATE_EN_ES),
-        }
+        # extract emails
+        email_dict = Email.get_email_dict(emails)
 
         # get API book and send
         book_api = BookAPI()
-        for lang, email_group in email_group_dict.items():
-            book = None
-            if email_group:  # NOTE: if no emails, don't send book
-                book = book_api.get_book(isbn, book_title, filetype)
-                if book:  # NOTE: only send book if real
-                    email_group = [email.address for email in email_group]
-                    book.send(email_list=email_group, language=lang)
+        book = book_api.get_book(isbn, book_title, filetype)
+
+        for lang, emails in email_dict.items():
+            book.send(emails=emails, language=lang)
 
         return JsonResponse({'status': True}, status=200)
 

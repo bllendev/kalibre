@@ -48,7 +48,7 @@ class Book(models.Model):
         return f"{self.title} - {self.filetype} - {self.isbn}"
 
     @property
-    def ssn(self):
+    def ssn(self):  # NOTE: see send_book_ajax_task
         return f"book_{self.title}__type_{self.filetype}__isbn_{self.isbn}"
 
     def get_absolute_url(self):
@@ -130,7 +130,7 @@ class Book(models.Model):
         book_file_path = self._create_book_file(new_file_path, language)
         return book_file_path
 
-    def send(self, email_list, language="en"):
+    def send(self, emails, language="en"):
         """emails actual book file to recipient addresses"""
         from django.core import mail
 
@@ -142,7 +142,7 @@ class Book(models.Model):
         # send book as email to recipients
         with mail.get_connection() as connection:
             template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)  # NOTE: deep copy
-            template_message[3] = email_list
+            template_message[3] = emails
 
             email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
             email_message.attach_file(book_file_path)
