@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 
+from collections import defaultdict
+
 from translate.constants import LANGUAGES
 
 
@@ -16,6 +18,17 @@ class Email(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user', default=None, null=True)
     address = models.CharField(default="", max_length=120)
     translate_file = models.CharField(max_length=20, choices=TRANSLATE_CHOICES, default="en", blank=True, null=False)
+
+    @staticmethod
+    def get_email_dict(emails):
+        grouped_emails = defaultdict(list)
+
+        # build grouped emails (by language)
+        for email_obj in emails:
+            grouped_emails[email_obj.translate_file].append(email_obj.address)
+
+        # convert defaultdict to regular dict for the final result
+        return dict(grouped_emails)
 
     class Meta:
         ordering = ['address']
@@ -48,7 +61,7 @@ class CustomUser(AbstractUser):
         translate_book_bln = False
         if self.email_addresses.all().exists():
             for email in self.email_addresses.all():
-                if email.translate_file:
+                if email.translate_file != "en":
                     translate_book_bln = True
                     break
         return translate_book_bln
