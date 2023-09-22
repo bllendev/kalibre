@@ -1,16 +1,21 @@
 import factory
 import random
+from django.contrib.auth import get_user_model
+
 
 from translate.constants import LANGUAGES
 
 
 class CustomUserFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = "users.CustomUser"           # class CustomUser(AbstractUser):
+        model = get_user_model()
 
-    id = factory.Faker('pyint')
-    email_addresses = factory.RelatedFactory("users.tests.factories.EmailFactory")
+    username = "default_user"
+    email = factory.Faker('email')
 
+    @factory.post_generation
+    def password(self, create, extracted, **kwargs):
+        self.set_password("default_password")
 
 class EmailFactory(factory.django.DjangoModelFactory):
     class Meta:
