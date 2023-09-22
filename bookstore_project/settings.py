@@ -124,11 +124,8 @@ if "test" in argv or "test_coverage" in argv:
         f"--cover-package={APP_DIRECTORIES_COMMA_LIST}",
         "--stop",
         "--quiet",
-        "--logging-level=DEBUG",
-        "--debug=django_nose",
         "--exe",
         "--nocapture",
-        "--debug-log=test.log",
     ]
 
 

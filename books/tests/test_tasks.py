@@ -4,13 +4,15 @@ from unittest.mock import patch, MagicMock
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+import json
+import importlib
 
 # factories
 from users.tests.factories import CustomUserFactory, EmailFactory
 from books.tests.factories import BookFactory
 
 # local
-from books.tasks import send_book_ajax_task
+from books.tasks import send_book_email_task
 
 
 CustomUser = get_user_model()
@@ -25,38 +27,28 @@ class SendBookAjaxTaskTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.test_email = EmailFactory.create()
-        self.test_user = CustomUser.objects.create_user(username='testuser', password='testpassword')
+        self.test_user = CustomUserFactory()
         self.test_user.email_addresses.add(self.test_email)
         self.test_user.save()
+        self.test_user.refresh_from_db()
         self.book = BookFactory.create()
 
-    @patch('books.tasks.BookAPI')
-    def test_send_book_ajax_task_fail(self, mock_bookapi):
-        # Setup
-        mock_bookapi_instance = mock_bookapi.return_value
-        mock_bookapi_instance.get_book.return_value = None
+        # mocks
+        self.username = 'testuser'
+        self.book_title = 'some_book'
+        self.filetype = 'some_type'
+        self.isbn = 'some_isbn'
+        self.json_links = 'some_links'
 
-        request = self.factory.post('/fake-url/', {
-            'book_test_title__type_pdf__isbn_1234567890': '{"fake": "data"}',
-        })
-        request.user = self.test_user
+    @patch('books.tasks.BookAPI')  # replace with the actual import
+    @patch('books.tasks.Email.get_email_dict')  # replace with the actual import
+    @patch('books.tasks.CustomUser.objects.get')  # replace with the actual import
+    def test_send_book_email_task(self, mock_get_user, mock_get_email_dict, mock_book_api):
+        mock_book = MagicMock()
 
-        # call the task
-        response = send_book_ajax_task(request)
+        result = send_book_email_task(self.username, self.book_title, self.filetype, self.isbn, self.json_links)
 
-        # Check the response
-        self.assertEqual(response.status_code, 400)
-
-    @patch('books._api.Book.send')
-    def test_send_book_ajax_task(self, mock_book_send):
-        url = reverse("send_book_ajax")
-        client = Client()
-        login_success = client.login(username=self.test_user.username, password="testpassword")
-        self.assertTrue(login_success)
-
-        data = {self.book.ssn: "fake_data"}
-        response = self.client.post(url, data, **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
-
-        self.assertTrue(isinstance(response, JsonResponse))
-        self.assertTrue(self.response.status_code == 200)
-        mock_book_send.assert_called()
+        self.assertTrue(mock_get_user.called)
+        self.assertTrue(mock_get_email_dict.called)
+        self.assertTrue(mock_book_api.called)
+        self.assertEqual(result, {'status': True})

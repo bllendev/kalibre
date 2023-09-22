@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from users.models import Email
+from books.utils import request_is_ajax_bln
 
 import os
 import json
@@ -15,14 +16,34 @@ def send_book_ajax(request):
     - ajax view that sends a book to a user
     - books from libgen are allocated earlier in the flow,
     see LibgenAPI.
-    - uses celery tassk to send book (and translate if needed)
+    - uses celery task to send book (and translate if needed)
     """
-    from books.tasks import send_book_ajax_task
-    return send_book_ajax_task(request)  # --> celery task
+    from books.tasks import send_book_email_task
+
+    if not request_is_ajax_bln(request):
+        return JsonResponse({'status': False}, status=400)
+
+    post_dict = {key: val for key, val in request.POST.items() if "book" in key}
+
+    try:
+        post_dict_keys = list(post_dict.keys())
+        json_links = json.loads(post_dict[post_dict_keys[0]])
+        book_title, filetype, isbn = post_dict_keys[0].split("__")
+        book_title = book_title.replace("book_", "")
+        filetype = filetype.replace("type_", "")
+        isbn = isbn.replace("isbn_", "")
+
+        username = request.user.username
+    except Exception as e:
+        print(f"Error in send_book_ajax_view: {e}")
+        return JsonResponse({'status': False}, status=400)
+
+    send_book_email_task.delay(username, book_title, filetype, isbn, json_links)
+    return JsonResponse({'status': True}, status=200)
 
 
 def add_email(request):
-    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    is_ajax = request_is_ajax_bln(request)
     if is_ajax and request.method == 'POST':
         # organize
         post_dict = {key: val for key, val in request.POST.items() if "email_input" in key}
@@ -45,7 +66,7 @@ def add_email(request):
 
 
 def delete_email(request):
-    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    is_ajax = request_is_ajax_bln(request)
     if is_ajax and request.method == 'POST':
         # organize
         post_dict = {key: val for key, val in request.POST.items() if 'delete_email_pk' in key}
@@ -78,7 +99,7 @@ def toggle_translate_email(request):
     example:
         list(request.POST.items()) - [('translate_email_pk[]', '7'), ('language_selection', 'bs')]
     """
-    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    is_ajax = request_is_ajax_bln(request)
     post_dict = list(request.POST.items())
 
     if is_ajax and request.method == 'POST' and post_dict:

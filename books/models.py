@@ -48,7 +48,7 @@ class Book(models.Model):
         return f"{self.title} - {self.filetype} - {self.isbn}"
 
     @property
-    def ssn(self):  # NOTE: see send_book_ajax_task
+    def ssn(self):  # NOTE: see send_book_email_task
         return f"book_{self.title}__type_{self.filetype}__isbn_{self.isbn}"
 
     def get_absolute_url(self):

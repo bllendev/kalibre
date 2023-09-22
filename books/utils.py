@@ -56,3 +56,7 @@ def fx_return_to_sender(request, remove_GET=True):
     if request_http_referer and "?" in request_http_referer and remove_GET:
         request_http_referer = request_http_referer.split("?")[0]
     return redirect(request_http_referer)
+
+
+def request_is_ajax_bln(request):
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'

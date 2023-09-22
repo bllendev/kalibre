@@ -13,42 +13,22 @@ CustomUser = get_user_model()
 
 
 @shared_task
-def send_book_ajax_task(request):
+def send_book_email_task(username, book_title, filetype, isbn, json_links):
+    """celery task to send books to associated emails
     """
-    ajax celery task to send single ebook to user email addresses
-    - uses books.models.Book.ssn
-    """
-    import json
-
-    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    if is_ajax and request.method == 'POST':
-        # organize post data
-        post_dict = {key: val for key, val in request.POST.items() if "book" in key}
-        post_dict_keys = list(post_dict.keys())
-
-        # extract book info
-        # print(f"post_dict_keys: {post_dict_keys}")   # handy debug
-        json_links = json.loads(post_dict[post_dict_keys[0]])
-        book_title, filetype, isbn = post_dict_keys[0].split("__")
-        book_title = book_title.replace("book_", "")
-        filetype = filetype.replace("type_", "")
-        isbn = isbn.replace("isbn_", "")
-
-        # extract user info
-        username = request.user.username
+    try:
         user = CustomUser.objects.get(username=username)
         emails = user.email_addresses.all()
-
-        # extract emails
         email_dict = Email.get_email_dict(emails)
 
-        # get API book and send
         book_api = BookAPI()
         book = book_api.get_book(isbn, book_title, filetype)
 
         for lang, emails in email_dict.items():
             book.send(emails=emails, language=lang)
 
-        return JsonResponse({'status': True}, status=200)
+    except Exception as e:
+        print(f"Error in send_book_email_task: {e}")
+        return {"status": False}
 
-    return JsonResponse({'status': False}, status=400)
+    return {"status": True}
