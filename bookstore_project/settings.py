@@ -20,7 +20,11 @@ from os.path import (
     normpath,
 )
 from pathlib import Path
-from sys import argv
+from sys import arg
+
+
+ADMINS = [('allen', 'bllendev@gmail.com')]
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
