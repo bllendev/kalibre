@@ -1,5 +1,5 @@
 # --- Stage 1: Python setup ---
-FROM python:3.8 AS backend
+FROM python:3.11.2 AS backend
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
