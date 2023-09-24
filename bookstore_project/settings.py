@@ -20,7 +20,7 @@ from os.path import (
     normpath,
 )
 from pathlib import Path
-from sys import arg
+from sys import argv
 
 
 ADMINS = [('allen', 'bllendev@gmail.com')]
