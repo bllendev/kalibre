@@ -4,7 +4,6 @@ import requests
 import collections
 collections.Callable = collections.abc.Callable
 
-from bs4 import BeautifulSoup # for example
 from bs4 import BeautifulSoup
 from itertools import chain
 
