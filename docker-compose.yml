@@ -51,9 +51,10 @@ services:
       - backend
 
   rabbitmq:
-    image: 'rabbitmq:3-management'
-    networks:
-      - backend
+    image: "rabbitmq:management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
   
   redis:
     image: "redis:alpine"
