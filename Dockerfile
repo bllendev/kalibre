@@ -1,4 +1,4 @@
-# --- Stage 1: Python setup ---
+# Set Base Image
 FROM python:3.11.3 AS backend
 
 # Set environment variables
@@ -22,45 +22,19 @@ RUN apt-get update \
 # Set work directory
 WORKDIR /code
 
+# Copy requirements file to the docker image and install packages
 COPY requirements.txt /code/
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir psycopg2-binary
 
-# Install dependencies
-COPY Pipfile /code/
-RUN pip install -r "requirements.txt"
-RUN pip install psycopg2-binary
-
-# Copy project
+# Copy the rest of the project's code to the Docker image
 COPY . /code/
+
+# Set work directory for the application
+WORKDIR /app/kalibre
 
 # Expose the port for the application
 EXPOSE 8000
-
-# --- Stage 2: Node.js setup ---
-FROM node:16 AS frontend
-
-# Set environment to development to ensure devDependencies are installed
-ENV NODE_ENV=development
-
-# Set work directory
-WORKDIR /app/kalibre
-
-# Copy package.json and yarn.lock
-COPY kalibre/package.json kalibre/yarn.lock ./
-
-# Install Node.js dependencies
-RUN yarn install --frozen-lockfile
-
-# Copy the rest of the app
-COPY kalibre/ .
-
-# Build the React App using Vite.js
-RUN yarn run build
-
-# --- Final stage ---
-FROM backend as final
-
-# Copy the React app build folder to the Python backend container
-COPY --from=frontend /app/kalibre/dist /code/kalibre/build
 
 # Start Celery worker and Django application
 CMD (celery -A bookstore_project worker --loglevel=info &) && \

@@ -38,8 +38,8 @@ def send_book_ajax(request):
         print(f"Error in send_book_ajax_view: {e}")
         return JsonResponse({'status': False}, status=400)
 
-    send_book_email_task.delay(username, book_title, filetype, isbn, json_links)
-    return JsonResponse({'status': True}, status=200)
+    status, status_code = send_book_email_task.delay(username, book_title, filetype, isbn, json_links)
+    return JsonResponse({'status': status}, status=status_code)
 
 
 def add_email(request):
