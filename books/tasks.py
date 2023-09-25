@@ -28,7 +28,7 @@ def send_book_email_task(username, book_title, filetype, isbn, json_links):
             book.send(emails=emails, language=lang)
 
     except Exception as e:
-        print(f"Error in send_book_email_task: {e}")
-        return {"status": False}
+        print(f"Error in books.task.send_book_email_task: {e}")
+        return False, 400  # status and status_code
 
-    return {"status": True}
+    return True, 200
