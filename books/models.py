@@ -55,7 +55,10 @@ class Book(models.Model):
         return reverse('book_detail', args=[str(self.id)])
 
     def _get_book_file_download_link(self, link, inner_link_int):
+        import collections
+        collections.Callable = collections.abc.Callable
         from bs4 import BeautifulSoup
+
         book_download_link = None
         with urllib.request.urlopen(link) as response:
             soup = BeautifulSoup(response.read(), "html.parser")

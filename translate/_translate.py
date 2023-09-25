@@ -9,6 +9,8 @@ import time
 import redis
 from functools import lru_cache
 
+import collections
+collections.Callable = collections.abc.Callable
 
 from bs4 import BeautifulSoup, NavigableString
 import ebooklib
