@@ -30,7 +30,6 @@ RUN pip install --no-cache-dir psycopg2-binary
 # Copy the rest of the project's code to the Docker image
 COPY . /code/
 
-
 # Expose the port for the application
 EXPOSE 8000
 
