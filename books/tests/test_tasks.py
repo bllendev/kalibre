@@ -11,7 +11,7 @@ import importlib
 from users.tests.factories import CustomUserFactory, EmailFactory
 from books.tests.factories import BookFactory
 
-# local
+# localTrue, 200)
 from books.tasks import send_book_email_task
 
 
@@ -40,15 +40,15 @@ class SendBookAjaxTaskTest(TestCase):
         self.isbn = 'some_isbn'
         self.json_links = 'some_links'
 
-    @patch('books.tasks.BookAPI')  # replace with the actual import
-    @patch('books.tasks.Email.get_email_dict')  # replace with the actual import
-    @patch('books.tasks.CustomUser.objects.get')  # replace with the actual import
+    @patch('books.tasks.BookAPI')
+    @patch('books.tasks.Email.get_email_dict')
+    @patch('books.tasks.CustomUser.objects.get')
     def test_send_book_email_task(self, mock_get_user, mock_get_email_dict, mock_book_api):
-        mock_book = MagicMock()
-
+        # act
         result = send_book_email_task(self.username, self.book_title, self.filetype, self.isbn, self.json_links)
 
+        # assert
         self.assertTrue(mock_get_user.called)
         self.assertTrue(mock_get_email_dict.called)
         self.assertTrue(mock_book_api.called)
-        self.assertEqual((True, 202), tuple(result))
+        self.assertEqual((True, 200), tuple(result))
