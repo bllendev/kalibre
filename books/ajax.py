@@ -20,11 +20,12 @@ def send_book_ajax(request):
     """
     from books.tasks import send_book_email_task
 
+    # bypass: must be called via ajax
     if not request_is_ajax_bln(request):
         return JsonResponse({'status': False}, status=400)
 
+    # extract book information and user
     post_dict = {key: val for key, val in request.POST.items() if "book" in key}
-
     try:
         post_dict_keys = list(post_dict.keys())
         json_links = json.loads(post_dict[post_dict_keys[0]])
@@ -38,8 +39,11 @@ def send_book_ajax(request):
         print(f"Error in send_book_ajax_view: {e}")
         return JsonResponse({'status': False}, status=400)
 
-    status, status_code = send_book_email_task.delay(username, book_title, filetype, isbn, json_links)
-    return JsonResponse({'status': status}, status=status_code)
+    # book send task here
+    task = send_book_email_task.delay(username, book_title, filetype, isbn, json_links)
+
+    # return a response immediately, don’t wait for the task to finish
+    return JsonResponse({'status': True, 'task_id': str(task.id)}, status=202)
 
 
 def add_email(request):
