@@ -51,4 +51,4 @@ class SendBookAjaxTaskTest(TestCase):
         self.assertTrue(mock_get_user.called)
         self.assertTrue(mock_get_email_dict.called)
         self.assertTrue(mock_book_api.called)
-        self.assertEqual(result, {'status': True})
+        self.assertEqual((True, 202), tuple(result))
