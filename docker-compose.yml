@@ -51,11 +51,13 @@ services:
       - backend
 
   rabbitmq:
-    image: "rabbitmq:management"
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-  
+    image: 'rabbitmq:3-management'
+    ports: 
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - backend
+
   redis:
     image: "redis:alpine"
     networks:
@@ -78,5 +80,3 @@ services:
 volumes:
   postgres_data:
 
-networks:
-  backend:
