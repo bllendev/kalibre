@@ -63,7 +63,6 @@ class Book(models.Model):
         with urllib.request.urlopen(link) as response:
             soup = BeautifulSoup(response.read(), "html.parser")
             book_download_link = soup.find_all('a')[inner_link_int].get('href')
-            print(f"book_download_link: {book_download_link}")
         return book_download_link
 
     def _get_book_download_content(self, inner_link_int=1):
