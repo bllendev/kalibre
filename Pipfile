@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 googletrans = {git = "https://github.com/bllendev/py-googletrans.git"}
 django = "==4.2"
-psycopg2-binary = "==2.8.4"
 django-crispy-forms = "*"
 crispy-bootstrap5 = "*"
 django-allauth = "*"
@@ -46,6 +45,7 @@ plotly = "*"
 pandas = "*"
 scipy = "*"
 scikit-learn = "*"
+python-decouple = "*"
 
 [dev-packages]
 
