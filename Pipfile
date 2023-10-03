@@ -46,6 +46,7 @@ pandas = "*"
 scipy = "*"
 scikit-learn = "*"
 python-decouple = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
