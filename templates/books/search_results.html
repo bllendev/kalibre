@@ -147,7 +147,12 @@
                     alert("your book has been successfully sent!");
                 },
                 error: function (response) {
-                    alert("hmmm, there seems to have been an error sending your book!");
+                    console.error("Error response: ", response); // Log the response to debug
+                    var errorMessage = "hmmm, there seems to have been an error sending your book!";
+                    if(response && response.responseJSON && response.responseJSON.error){
+                        errorMessage += "\nDetails: " + response.responseJSON.error;
+                    }
+                    alert(errorMessage);
                 },
                 complete: function () {
                     loading_gif.hide();

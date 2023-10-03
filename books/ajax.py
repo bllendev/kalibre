@@ -37,13 +37,19 @@ def send_book_ajax(request):
         username = request.user.username
     except Exception as e:
         print(f"Error in send_book_ajax_view: {e}")
-        return JsonResponse({'status': False}, status=400)
+        error_message = str(e) if settings.DEBUG else "An unexpected error occurred."
+        return JsonResponse({'status': False, 'error': error_message}, status=400)
 
     # book send task here
-    task = send_book_email_task.delay(username, book_title, filetype, isbn, json_links)
+    try:
+        status_bln, status_code = send_book_email_task(username, book_title, filetype, isbn, json_links)
+    except Exception as e:
+        logger.error(f"Error triggering send_book_email_task: {e}")
+        error_message = str(e) if settings.DEBUG else "An unexpected error occurred while initiating the task."
+        return JsonResponse({'status': status_bln}, status=status_code)
 
     # return a response immediately, don’t wait for the task to finish
-    return JsonResponse({'status': True, 'task_id': str(task.id)}, status=202)
+    return JsonResponse({'status': status_bln}, status=status_code)
 
 
 def add_email(request):
