@@ -1,5 +1,5 @@
 # Set Base Image
-FROM python:3.11.3 AS backend
+FROM python:3.11.5 AS backend
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
