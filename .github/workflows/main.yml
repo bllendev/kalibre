@@ -42,7 +42,7 @@ jobs:
     - name: Set up Python 3.11.3
       uses: actions/setup-python@v2
       with:
-        python-version: 3.11.3
+        python-version: 3.12
 
     # - name: Cache dependencies
     #   uses: actions/cache@v2
