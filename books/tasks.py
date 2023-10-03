@@ -25,7 +25,11 @@ def send_book_email_task(username, book_title, filetype, isbn, json_links):
         book = book_api.get_book(isbn, book_title, filetype)
 
         for lang, emails in email_dict.items():
-            book.send(emails=emails, language=lang)
+            book_send_result = book.send(emails=emails, language=lang)
+
+            # raise Exception error if some result is false
+            if book_send_result is False:
+                raise Exception
 
     except Exception as e:
         print(f"Error in books.task.send_book_email_task: {e}")
