@@ -2,6 +2,10 @@
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
+
+
+CustomUser = get_user_model()
 
 # tools
 import os
