@@ -136,7 +136,7 @@
             });
         }
 
-        function fx_send_book_ajax(response, token, book_pk) {
+        function fx_send_book_ajax(token, book_pk) {
             var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
             $.ajax({
                 type: 'POST',
@@ -190,7 +190,7 @@
                     $(document).on('mousemove', updateGifPosition);
                     loading_gif.show();
                     
-                    fx_send_book_ajax(response, token, book_pk);
+                    fx_send_book_ajax(token, book_pk);
                 }
             }
         }

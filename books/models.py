@@ -25,6 +25,14 @@ class Book(models.Model):
     - we lemmatize the title of our books to improve searching,
     and to prevent duplicates as much as we can
     """
+    BOOK_FILETYPE_EPUB = "epub"
+    BOOK_FILETYPE_MOBI = "mobi"
+    BOOK_FILETYPE_PDF = "pdf"
+    # BOOK_FILETYPE_CHOICES = (
+    #     (BOOK_FILETYPE_EPUB, BOOK_FILETYPE_EPUB),
+    #     (BOOK_FILETYPE_MOBI, BOOK_FILETYPE_MOBI),
+    #     (BOOK_FILETYPE_PDF, BOOK_FILETYPE_PDF),
+    # )
 
     id = models.UUIDField(
         primary_key=True,
@@ -38,7 +46,7 @@ class Book(models.Model):
     author = models.CharField(max_length=500)
     price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
     cover = models.ImageField(upload_to='covers/', blank=True)
-    filetype = models.CharField(max_length=60, default="")
+    filetype = models.CharField(max_length=60, default="")  # choices=BOOK_FILETYPE_CHOICES
     isbn = models.CharField(max_length=200, default="")
     json_links = models.JSONField(null=True)
 
@@ -88,6 +96,9 @@ class Book(models.Model):
         returns:
             - path to saved book file (translated if needed)
         """
+        # set final_path
+        book_final_path = ""
+
         # get book file content
         temp_book_file_link = self._get_book_download_content()
         temp_book_file_dl = requests.get(temp_book_file_link)
@@ -95,8 +106,16 @@ class Book(models.Model):
         # write book file content
         try:
 
+            # check book file
+            book_file_bln = any([
+                self.BOOK_FILETYPE_EPUB in temp_book_file_link,
+                self.BOOK_FILETYPE_MOBI in temp_book_file_link,
+                self.BOOK_FILETYPE_PDF in temp_book_file_link,
+            ])
+            if not book_file_bln:
+                raise TypeError
+
             # save og file (used as reference for translation as well)
-            ebook_translated_path = new_file_path
             with temp_book_file_dl and open(new_file_path, "wb") as f:
                 f.write(temp_book_file_dl.content)
                 f.close()
@@ -104,7 +123,13 @@ class Book(models.Model):
             # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
             if language != "en":
                 ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
-                ebook_translated_path = ebook_translate.get_translated_book_path()
+                new_file_path = ebook_translate.get_translated_book_path()
+
+            # set final book path
+            book_final_path = new_file_path
+
+        except TypeError as e:
+            print(f"{e}: temp_book_file_link is not an allowable book file type... {temp_book_file_link}")
 
         except Exception as e:
             # attempt removal in case of error
@@ -121,7 +146,7 @@ class Book(models.Model):
             print("---------------------")
             raise e
 
-        return ebook_translated_path
+        return book_final_path
 
     def get_book_file_path(self, language):
         # write file to path (will use file to send - then we will delete file)
@@ -138,11 +163,13 @@ class Book(models.Model):
 
         # get book file path (safety bypass if no path)
         book_file_path = self.get_book_file_path(language)  # web scraper
-        if book_file_path is None:
-            return
+
+        if not book_file_path:
+            print(f"error books.models.send | book_file_path does not exist")
+            return False
 
         # send book as email to recipients
-        with mail.get_connection() as connection:
+        with book_file_path and mail.get_connection() as connection:
             template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)  # NOTE: deep copy
             template_message[3] = emails
 
@@ -152,6 +179,9 @@ class Book(models.Model):
 
         # delete book_file after sending!
         os_silent_remove(book_file_path)
+
+        # return true
+        return True
 
     class Meta:
         indexes = [

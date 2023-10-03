@@ -37,9 +37,14 @@ def query_ai(request, user_message, summary=False):
     """
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
+    # extract user info
+    username = request.user.username
+    user = CustomUser.objects.get(username=username)
+
     # create a conversation if not exists
     conversation_id = request.POST.get('conversation_id')
-    conversation = Conversation.objects.get(id=conversation_id, user=request.user)
+    conversation = Conversation.objects.get(id=conversation_id, user=user)
+
     # create a message from user
     Message.objects.create(
         conversation=conversation,
@@ -101,8 +106,12 @@ def ai_librarian(request):
         except Exception as e:
             print(f"ERROR: {e}")
 
+        # extract user info
+        username = request.user.username
+        user = CustomUser.objects.get(username=username)
+
         date_today = timezone.now().date()
-        token_usage, created = TokenUsage.objects.get_or_create(user=request.user, date=date_today)
+        token_usage, created = TokenUsage.objects.get_or_create(user=user, date=date_today)
         try:
             # check if the user has exceeded their daily token limit
             if token_usage.tokens_used > TOKEN_USAGE_DAILY_LIMIT:
@@ -121,15 +130,21 @@ def ai_librarian(request):
 @csrf_exempt
 def create_conversation(request):
     try:
+        # extract user info
+        username = request.user.username
+        user = CustomUser.objects.get(username=username)
+
         # check if conversation_id exists in the session
-        conversation = Conversation.objects.create(user=request.user)
+        conversation = Conversation.objects.create(user=user)
         system_query = [{"role": "system", "content": AI_PROMPT}]
+
         # create a message for the system prompt (ai)
         Message.objects.create(
             conversation=conversation,
             sender=Message.SENDER_AI,
             text=AI_PROMPT,
         )
+
         # return the conversation_id in the response
         return JsonResponse({'conversation_id': conversation.id})
 

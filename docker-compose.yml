@@ -51,7 +51,7 @@ services:
       - backend
 
   rabbitmq:
-    image: 'rabbitmq:3-management'
+    image: 'rabbitmq:management'
     ports: 
       - 5672:5672
       - 15672:15672
