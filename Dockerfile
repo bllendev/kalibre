@@ -27,7 +27,9 @@ WORKDIR /code
 COPY requirements.txt /code/
 
 RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install psycopg2-binary
+    && pip install psycopg2-binary \
+    && pip install psycopg2
+
 
 # Copy the rest of the project's code to the Docker image
 COPY . /code/
