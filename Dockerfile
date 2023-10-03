@@ -23,9 +23,11 @@ RUN apt-get update \
 WORKDIR /code
 
 # Copy requirements file to the docker image and install packages
+# COPY Pipfile /code/
 COPY requirements.txt /code/
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir psycopg2-binary
+
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir psycopg2
 
 # Copy the rest of the project's code to the Docker image
 COPY . /code/
