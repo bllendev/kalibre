@@ -1,7 +1,7 @@
-# from django.urls import path
-# from users import ajax
+from django.urls import path
+from users.views import MyProfile
 
 
-# urlpatterns = [
-#     path("add_email/", ajax.add_email, name="add_email"),
-# ]
+urlpatterns = [
+    path("my-profile/", MyProfile.as_view(), name="my_profile"),
+]
