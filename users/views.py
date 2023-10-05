@@ -15,4 +15,4 @@ class SignupPageView(generic.CreateView):
 
 
 class MyProfile(generic.TemplateView):
-    template_name = "my_profile.html"
+    template_name = "users/my_profile.html"
