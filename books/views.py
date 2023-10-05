@@ -71,6 +71,7 @@ def search_results(request):
         {
             'book_list': book_list,
             'translate_book_bln': translate_book_bln,
+            'valid_user': request.user.is_authenticated,
         }
     )
 
