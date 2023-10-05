@@ -6,7 +6,7 @@ networks:
 services:
   web:
     build: .
-    command: gunicorn bookstore_project.wsgi -b 0.0.0.0:8000 --timeout 1000
+    command: gunicorn bookstore_project.wsgi -b 0.0.0.0:8000 --timeout 1000 --reload
     environment:
       - DJANGO_SETTINGS_MODULE=bookstore_project.settings
       - ENVIRONMENT=${ENVIRONMENT}
