@@ -43,7 +43,6 @@
         <div id="search_result_div" style="opacity: 0; transition: opacity 1s ease;">
 
             <!--key jquery vals set here-->
-            {{ user.is_authenticated|json_script:"valid_user" }}
             {{ user.email_addresses_str|json_script:"email_address_list" }}
 
             <table class='table table-striped table-sortable' style="border-radius: 10px; overflow: hidden; transition: transform 1s ease;">
@@ -136,6 +135,14 @@
             });
         }
 
+
+        function fx_redirect_user_login() {
+            const currentURL = window.location.href;
+            window.location.href = `/accounts/login/?next=${currentURL}`;
+            return;  // Ensure that we exit after setting the window location
+        }
+
+
         function fx_send_book_ajax(token, book_pk) {
             var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
             $.ajax({
@@ -146,11 +153,14 @@
                 success: function (response) {
                     alert("your book has been successfully sent!");
                 },
-                error: function (response) {
-                    console.error("Error response: ", response); // Log the response to debug
+                error: function(xhr, status, error) {
+                    if (xhr.status === 401) {  // Unauthorized
+                        fx_redirect_user_login();
+                    }
+                    console.error("Error response: ", xhr);
                     var errorMessage = "hmmm, there seems to have been an error sending your book!";
-                    if(response && response.responseJSON && response.responseJSON.error){
-                        errorMessage += "\nDetails: " + response.responseJSON.error;
+                    if(xhr.responseJSON && xhr.responseJSON.error){
+                        errorMessage += "\nDetails: " + xhr.responseJSON.error;
                     }
                     alert(errorMessage);
                 },
@@ -160,20 +170,21 @@
                 }
             });
         }
-
+        
 
         function set_book_send_form_onsubmit(book_pk, token) {
             event.stopPropagation();
             event.preventDefault();
 
-            // bypass 1: not a valid user
+            const valid_user = {{valid_user|yesno:"true,false" }}
+            
+            // bypass 0: force redirect
             if (!valid_user) {
-                alert("you must be logged in to send books!");
-                return
+                fx_redirect_user_login();
             }
 
-            // bypass 2: no emails to send to
-            if (!emails_exist) {
+            // bypass 1: no emails to send to
+            if (valid_user && !emails_exist) {
                 alert("you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!");
                 return
             }
