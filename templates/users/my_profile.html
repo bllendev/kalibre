@@ -1,0 +1,37 @@
+{% extends "_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}My Profile{% endblock title %}
+
+{% block content %}
+
+
+<div class="mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-4 bg-light">
+                <h2 class="mb-4">My Profile</h2>
+                <p>Welcome User!</p>
+                <div class="d-flex justify-content-around mx-auto mb-4">
+                    <button id="btnBooks" class="btn btn-outline-primary m-1">My Books</button>
+                    <button id="btnEmails" class="btn btn-outline-primary m-1">My Emails</button>
+                    <button id="btnAI" class="btn btn-outline-primary m-1">My Kalibre AI</button>
+                    <button id="btnSearches" class="btn btn-outline-primary m-1">My Previous Searches</button>
+                </div>
+                <div class="card p-4 bg-white">
+                    <div id="dynamicContent">
+                        <!-- Dynamic content will be loaded here via AJAX -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+    });
+</script>
+
+{% endblock content %}
