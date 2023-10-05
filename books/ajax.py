@@ -24,11 +24,6 @@ def send_book_ajax(request):
     if not request_is_ajax_bln(request):
         return JsonResponse({'status': False}, status=400)
 
-    # bypass: user not logged in, redirect!
-    if not request.user.is_authenticated:
-        login_redirect = f"{reverse('account_login')}?next={request.path}"  # NOTE: set next to redirect back
-        return JsonResponse({'status': False}, status=302, redirect=login_redirect)
-
     # extract book information and user
     post_dict = {key: val for key, val in request.POST.items() if "book" in key}
     try:

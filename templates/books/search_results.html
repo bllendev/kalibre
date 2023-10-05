@@ -154,9 +154,6 @@
                     alert("your book has been successfully sent!");
                 },
                 error: function(xhr, status, error) {
-                    if (xhr.status === 401) {  // Unauthorized
-                        fx_redirect_user_login();
-                    }
                     console.error("Error response: ", xhr);
                     var errorMessage = "hmmm, there seems to have been an error sending your book!";
                     if(xhr.responseJSON && xhr.responseJSON.error){
