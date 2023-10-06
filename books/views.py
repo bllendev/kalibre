@@ -74,31 +74,3 @@ def search_results(request):
             'valid_user': request.user.is_authenticated,
         }
     )
-
-
-@never_cache
-def my_emails(request):
-    from books.utils import fx_return_to_sender
-
-    # build email_addresses and username_str
-    email_addresses = []
-    username_str = ''
-    if request.user.is_authenticated:
-        username = request.user.username
-        user = CustomUser.objects.get(username=username)
-        email_addresses = user.email_addresses.all()
-        username_str = f"{username}'s emails!"
-
-    # handle POST request
-    if request.method == "POST":
-        return fx_return_to_sender(request)
-
-    return render(
-        request,
-        'books/my_emails.html',
-        {
-            'username_str': username_str,
-            'email_addresses': email_addresses,
-            'LANGUAGES': LANGUAGES,
-        }
-    )
