@@ -41,7 +41,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class CustomUser(AbstractUser):
-    email_addresses = models.ManyToManyField(Email)
+    email_addresses = models.ManyToManyField("users.Email")
+    my_books = models.ManyToManyField("books.Book")
 
     @property
     def emails_exist(self):
