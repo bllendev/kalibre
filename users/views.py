@@ -24,20 +24,18 @@ class MyProfile(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        username = self.request.user.username  # view is inaccessible without user login
+        user = CustomUser.objects.get(username=username)
+
+        # -------------- #
+        # -- my_books -- #
+        # -------------- #
+        # context["my_books"] = user.my_books.all()  TODO: implement new foreignkey
 
         # -------------- #
         # -- my_email -- #
         # -------------- #
-        # build email_addresses and username_str
-        email_addresses = []
-        username_str = ''
-        if self.request.user.is_authenticated:
-            username = self.request.user.username
-            user = CustomUser.objects.get(username=username)
-            email_addresses = user.email_addresses.all()
-            username_str = f"{username}'s emails!"
-
         context["LANGUAGES"] = LANGUAGES
-        context["email_addresses"] = email_addresses
-        context["username_str"] = username_str
+        context["email_addresses"] = user.email_addresses.all()
+        context["username_str"] = f"{username}'s emails!"
         return context

@@ -14,8 +14,7 @@ urlpatterns = [
     # core views
     # path('', include(router.urls)),
     path('<uuid:pk>', views.BookDetailView.as_view(), name='book_detail'),
-    path('search_results/', views.search_results, name='search_results'),
-    path("my_emails/", views.my_emails, name="my_emails"),
+    path('search-results/', views.search_results, name='search_results'),
 
     # ajax
     path("send-book-ajax/", ajax.send_book_ajax, name="send_book_ajax"),
