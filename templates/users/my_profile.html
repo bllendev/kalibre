@@ -31,6 +31,33 @@
 
 <script>
     $(document).ready(function () {
+        
+        function loadContent(url) {
+            // Use the fadeOut effect to smoothly hide the current content
+            $("#dynamicContent").fadeOut(300, function() {
+                // Once the fadeOut is done, fetch new content
+                $.get(url, function(data) {
+                    // Update the div with new content and fadeIn
+                    $("#dynamicContent").html(data).fadeIn(300);
+                });
+            });
+        }
+
+        $("#btnBooks").click(function() {
+            loadContent('/my-books/');
+        });
+
+        $("#btnEmails").click(function() {
+            loadContent('/my-emails/');
+        });
+
+        $("#btnAI").click(function() {
+            loadContent('/my-ai/');
+        });
+
+        $("#btnSearches").click(function() {
+            loadContent('/my-searches/');
+        });
     });
 </script>
 
