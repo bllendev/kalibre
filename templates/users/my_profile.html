@@ -19,8 +19,16 @@
                     <button id="btnSearches" class="btn btn-outline-primary m-1">My Previous Searches</button>
                 </div>
                 <div class="card p-4 bg-white">
-                    <div id="dynamicContent">
-                        <!-- Dynamic content will be loaded here via AJAX -->
+                    <div id="dynamicBooks" style="display: none;">
+                    </div>
+                    <div id="dynamicEmails" style="display: none;">
+                        {% include "users/my_emails.html" %}
+                    </div>
+                    <div id="dynamicAI" style="display: none;">
+                        {% comment %} {% include "users/my_emails.html" %} {% endcomment %}
+                    </div>
+                    <div id="dynamicSearches" style="display: none;">
+                        {% comment %} {% include "users/my_emails.html" %} {% endcomment %}
                     </div>
                 </div>
             </div>
@@ -31,32 +39,36 @@
 
 <script>
     $(document).ready(function () {
-        
-        function loadContent(url) {
-            // Use the fadeOut effect to smoothly hide the current content
-            $("#dynamicContent").fadeOut(300, function() {
-                // Once the fadeOut is done, fetch new content
-                $.get(url, function(data) {
-                    // Update the div with new content and fadeIn
-                    $("#dynamicContent").html(data).fadeIn(300);
-                });
-            });
+        var dynamicBooks = $("#dynamicBooks") 
+        var dynamicEmails = $("#dynamicEmails") 
+        var dynamicAI = $("#dynamicAI") 
+        var dynamicSearches = $("#dynamicSearches") 
+
+        function close_dynamic_divs() {
+            dynamicBooks.hide();
+            dynamicEmails.hide();
+            dynamicAI.hide();
+            dynamicSearches.hide();
         }
 
         $("#btnBooks").click(function() {
-            loadContent('/my-books/');
+            close_dynamic_divs();
+            dynamicBooks.show();
         });
 
         $("#btnEmails").click(function() {
-            loadContent('/my-emails/');
+            close_dynamic_divs();
+            dynamicEmails.show();
         });
 
         $("#btnAI").click(function() {
-            loadContent('/my-ai/');
+            close_dynamic_divs();
+            dynamicAI.show();
         });
 
         $("#btnSearches").click(function() {
-            loadContent('/my-searches/');
+            close_dynamic_divs();
+            dynamicSearches.show();
         });
     });
 </script>
