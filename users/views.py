@@ -30,7 +30,7 @@ class MyProfile(generic.TemplateView):
         # -------------- #
         # -- my_books -- #
         # -------------- #
-        # context["my_books"] = user.my_books.all()  TODO: implement new foreignkey
+        context["my_books"] = user.my_books.all()
 
         # -------------- #
         # -- my_email -- #
