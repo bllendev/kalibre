@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from django.conf import settings
+
 from users.models import Email
 from books.utils import request_is_ajax_bln
 
@@ -19,6 +21,7 @@ def send_book_ajax(request):
     - uses celery task to send book (and translate if needed)
     """
     from books.tasks import send_book_email_task
+    from books._api import BookAPI
 
     # bypass: must be called via ajax
     if not request_is_ajax_bln(request):
@@ -34,19 +37,30 @@ def send_book_ajax(request):
         filetype = filetype.replace("type_", "")
         isbn = isbn.replace("isbn_", "")
 
+        # extract user info
         username = request.user.username
+        user = CustomUser.objects.get(username=username)
     except Exception as e:
         print(f"Error in send_book_ajax_view: {e}")
-        error_message = str(e) if settings.DEBUG else "An unexpected error occurred."
-        return JsonResponse({'status': False, 'error': error_message}, status=400)
+        # error_message = str(e) if settings.DEBUG else "An unexpected error occurred."
+        return JsonResponse({'status': False, 'error': e}, status=400)
 
     # book send task here
+    status_bln = False
+    status_code = 500
     try:
-        status_bln, status_code = send_book_email_task(username, book_title, filetype, isbn, json_links)
+        book_api = BookAPI()
+        book = book_api.get_book(isbn, book_title, filetype)
+        status_bln, status_code = send_book_email_task(username, book, json_links)            
     except Exception as e:
-        logger.error(f"Error triggering send_book_email_task: {e}")
-        error_message = str(e) if settings.DEBUG else "An unexpected error occurred while initiating the task."
-        return JsonResponse({'status': status_bln}, status=status_code)
+        print(f"Error in send_book_email_task: {e}")
+        # error_message = str(e) if settings.DEBUG else "An unexpected error occurred while initiating the task."
+        return JsonResponse({'status': False}, status=404)
+
+    # if book sent - add to users my_books !
+    if status_bln:
+        user.my_books.add(book)
+        user.save()
 
     # return a response immediately, don’t wait for the task to finish
     return JsonResponse({'status': status_bln}, status=status_code)
