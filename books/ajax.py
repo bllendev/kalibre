@@ -42,8 +42,7 @@ def send_book_ajax(request):
         user = CustomUser.objects.get(username=username)
     except Exception as e:
         print(f"Error in send_book_ajax_view: {e}")
-        # error_message = str(e) if settings.DEBUG else "An unexpected error occurred."
-        return JsonResponse({'status': False, 'error': e}, status=400)
+        return JsonResponse({'status': False}, status=400)
 
     # book send task here
     status_bln = False
@@ -54,7 +53,6 @@ def send_book_ajax(request):
         status_bln, status_code = send_book_email_task(username, book, json_links)            
     except Exception as e:
         print(f"Error in send_book_email_task: {e}")
-        # error_message = str(e) if settings.DEBUG else "An unexpected error occurred while initiating the task."
         return JsonResponse({'status': False}, status=404)
 
     # if book sent - add to users my_books !
