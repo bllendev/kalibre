@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "pages.apps.PagesConfig",
     "books.apps.BooksConfig",
+    "translate.apps.TranslateConfig",
     "ai.apps.AiConfig",
 
     # Media Cloudinary
@@ -106,20 +107,8 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 
-if "test" in argv or "test_coverage" in argv:
-    INSTALLED_APPS.append("django_nose")
-    TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
-    NOSE_ARGS = [
-        "--with-coverage",
-        "--cover-inclusive",
-        "--cover-erase",
-        "--cover-html",
-        f"--cover-package={APP_DIRECTORIES_COMMA_LIST}",
-        "--stop",
-        "--quiet",
-        "--exe",
-        "--nocapture",
-    ]
+# 
+
 
 
 AUTHENTICATION_BACKENDS = [
