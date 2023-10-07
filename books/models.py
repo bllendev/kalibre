@@ -61,6 +61,13 @@ class Book(models.Model):
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
+    
+    def get_cover_url(self):
+        cover_url = os.path.join("/static", "books", "generic_book_cover.jpg")
+        if self.cover:
+            cover_url = self.cover.url
+        return cover_url
+
 
     def _get_book_file_download_link(self, link, inner_link_int):
         import collections
