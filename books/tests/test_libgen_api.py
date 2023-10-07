@@ -90,26 +90,28 @@ class TestSearchRequest(TestCase):
         pass
 
 
-class TestLibgenAPI(TestCase):
+# class TestLibgenAPI(TestCase):
+"""NOTE: not testing api in ci/cd pipeline
+"""
 
-    _multiprocess_can_split_ = True
-    _multiprocess_shared_ = False
+#     _multiprocess_can_split_ = True
+#     _multiprocess_shared_ = False
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestLibgenAPI, cls).setUpClass()
+#     @classmethod
+#     def setUpClass(cls):
+#         super(TestLibgenAPI, cls).setUpClass()
 
-        # create libgen api instances (one for db search, one for api search)
-        cls.test_libgen_api = LibgenAPI(TEST_QUERY)
+#         # create libgen api instances (one for db search, one for api search)
+#         cls.test_libgen_api = LibgenAPI(TEST_QUERY)
 
-    def test_get_libgen_book_list(self):
-        api_book_choices = self.test_libgen_api._get_libgen_book_list()
-        api_book_choices_ids = [book["ID"] for book in api_book_choices if book["ID"] == TEST_ISBN]
-        self.assertTrue(api_book_choices_ids)
+#     def test_get_libgen_book_list(self):
+#         api_book_choices = self.test_libgen_api._get_libgen_book_list()
+#         api_book_choices_ids = [book["ID"] for book in api_book_choices if book["ID"] == TEST_ISBN]
+#         self.assertTrue(api_book_choices_ids)
 
-    def test_get_unique_book_list(self):
-        test_libgen = LibgenAPI(TEST_QUERY)
-        Book.objects.all().delete()     # clear books
-        test_books = test_libgen.get_unique_book_list()
-        test_book = [book["ID"] for book in test_books if book["ID"] == TEST_ISBN]
-        self.assertTrue(test_book)
+#     def test_get_unique_book_list(self):
+#         test_libgen = LibgenAPI(TEST_QUERY)
+#         Book.objects.all().delete()     # clear books
+#         test_books = test_libgen.get_unique_book_list()
+#         test_book = [book["ID"] for book in test_books if book["ID"] == TEST_ISBN]
+#         self.assertTrue(test_book)
