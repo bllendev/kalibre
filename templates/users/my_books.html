@@ -1,1 +1,40 @@
-{{my_books}}
+{% load static %}
+
+<style>
+    .book-cover {
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        overflow: hidden;  /* To ensure rounded corners on images too */
+    }
+    
+    .book-cover img {
+        display: block;
+        width: 75%;
+        margin: 0 auto;
+        border-radius: 5px;  /* Optional, if you want rounded corners on images */
+    }
+    
+    .book-cover:hover {
+        transform: scale(1.08);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1;  /* To ensure the hovered book is above its neighbors */
+    }
+    
+    .book-title {
+        font-weight: bold;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row">
+        {% for book in my_books %}
+            <div class="col-md-3 mb-4">
+                <div class="book-cover">
+                    <img src="{{book.get_cover_url}}" alt="{{book.title}}" class="img-fluid">
+                    <div class="book-title text-center mt-2">{{book.title}}</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
