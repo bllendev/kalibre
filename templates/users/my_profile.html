@@ -11,7 +11,8 @@
         <div class="col-12">
             <div class="card p-4 bg-light">
                 <h2 class="mb-4">My Profile</h2>
-                <p>Welcome User!</p>
+                <hr>
+                <p>Welcome {{username}}!</p>
                 <div class="d-flex justify-content-around mx-auto mb-4">
                     <button id="btnBooks" class="btn btn-outline-primary m-1">My Books</button>
                     <button id="btnEmails" class="btn btn-outline-primary m-1">My Emails</button>
@@ -46,30 +47,30 @@
         var dynamicSearches = $("#dynamicSearches") 
 
         function close_dynamic_divs() {
-            dynamicBooks.hide();
-            dynamicEmails.hide();
-            dynamicAI.hide();
-            dynamicSearches.hide();
+            dynamicBooks.hide("slow");
+            dynamicEmails.hide("slow");
+            dynamicAI.hide("slow");
+            dynamicSearches.hide("slow");
         }
 
         $("#btnBooks").click(function() {
             close_dynamic_divs();
-            dynamicBooks.show();
+            dynamicBooks.show("slow");
         });
 
         $("#btnEmails").click(function() {
             close_dynamic_divs();
-            dynamicEmails.show();
+            dynamicEmails.show("slow");
         });
 
         $("#btnAI").click(function() {
             close_dynamic_divs();
-            dynamicAI.show();
+            dynamicAI.show("slow");
         });
 
         $("#btnSearches").click(function() {
             close_dynamic_divs();
-            dynamicSearches.show();
+            dynamicSearches.show("slow");
         });
     });
 </script>

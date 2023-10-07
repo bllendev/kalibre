@@ -26,6 +26,7 @@ class MyProfile(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         username = self.request.user.username  # view is inaccessible without user login
         user = CustomUser.objects.get(username=username)
+        context["username"] = username
 
         # -------------- #
         # -- my_books -- #
