@@ -6,7 +6,7 @@
 <!-- Conversations list -->
 <div class="container"  id="conversations-container">
     {% for conversation in user_conversations %}
-    <div class="card mb-4">
+    <div class="card mb-4" style="transform is ease">
         <div class="card-header">
             <strong>Started at:</strong> {{ conversation.started_at }} | 
             <strong>Last updated:</strong> {{ conversation.last_updated }}
@@ -66,9 +66,10 @@
 
     // handle the search and highlight logic
     function handleSearch() {
-        var searchValue = $("#searchConversations").val().trim().split(' ');
+        // Get the search values, trim, split, and convert to lowercase.
+        var searchValue = $("#searchConversations").val().trim().toLowerCase().split(' ');
     
-        // Reset the conversations to their original state
+        // Reset the conversations to their original state.
         $(".card-body .mb-3").each(function(index) {
             if (!originalConversations[index]) {
                 originalConversations[index] = $(this).html();
@@ -77,14 +78,17 @@
             }
         });
     
-        // Collapse all conversations initially
+        // Collapse all conversations initially.
         $(".card .collapse").removeClass('show');
     
-        if (searchValue[0] !== "") { // Check if the user typed something
-            let matchedCards = [];  // Store the matched cards
+        if (searchValue[0] !== "") { // Check if the user typed something.
+            let matchedCards = [];  // Store the matched cards.
     
             $(".card-body .mb-3").each(function() {
-                let content = $(this).text();
+                // Convert content to lowercase for case-insensitive comparison.
+                let content = $(this).text().toLowerCase();
+    
+                // Check if any of the search values are present in the content.
                 if (searchValue.some(val => content.includes(val))) {
                     highlightText(this, searchValue);
                     let parentCard = $(this).closest(".card");
@@ -93,17 +97,18 @@
                 }
             });
     
-            // Move matched conversations to the top
+            // Move matched conversations to the top.
             for (let card of matchedCards.reverse()) {
                 card.prependTo("#conversations-container");
             }
         } else {
-            // If the search bar is cleared, reset the highlights
+            // If the search bar is cleared, reset the highlights.
             $(this).children('.highlight').each(function() {
                 $(this).contents().unwrap();
             });
         }
     }
+    
     
 
     // when a conversation is expanded, move it to the top of the list

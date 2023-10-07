@@ -20,6 +20,7 @@
                     <button id="btnSearches" class="btn btn-outline-primary m-1">My Previous Searches</button>
                 </div>
                 <div class="card p-4 bg-white">
+                    <h6 id="defaultText">choose an option above!<h6>
                     <div id="dynamicBooks" style="display: none;">
                         {% include "users/my_books.html" %}
                     </div>
@@ -41,12 +42,14 @@
 
 <script>
     $(document).ready(function () {
+        var defaultText = $("#defaultText")
         var dynamicBooks = $("#dynamicBooks") 
         var dynamicEmails = $("#dynamicEmails") 
         var dynamicAI = $("#dynamicAI") 
         var dynamicSearches = $("#dynamicSearches") 
 
         function close_dynamic_divs() {
+            defaultText.hide("slow");
             dynamicBooks.hide("slow");
             dynamicEmails.hide("slow");
             dynamicAI.hide("slow");
