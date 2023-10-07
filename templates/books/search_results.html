@@ -222,11 +222,9 @@
                 const fileType = $(this).find('td:nth-child(3)').text();
                 if (fileType) {
                     if (activeFileTypes.length === 0 || activeFileTypes.includes(fileType)) {
-                        $(this).css('display', '');
-                        $(this).css('opacity', '1');
+                        $(this).fadeIn(300);
                     } else {
-                        $(this).css('display', 'none');
-                        $(this).css('opacity', '0');
+                        $(this).fadeOut(300);
                     }
                 }
             });
