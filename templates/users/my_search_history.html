@@ -1,0 +1,31 @@
+<div id="searchHistoryContainer">
+    <h3>My Previous Searches</h3>
+    <ul id="searchHistoryList">
+        <!-- The search history will be populated here -->
+    </ul>
+</div>
+
+<script>
+    displayUserSearchHistory();
+
+    function displayUserSearchHistory() {
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || "[]");
+        let list = $("#searchHistoryList");
+        list.html('');  // Clear existing content
+    
+        searchHistory.forEach(term => {
+            // Create an anchor tag
+            let anchor = $('<a>').attr('href', '/books/search-results/?db_q=' + encodeURIComponent(term)).text(term);
+            
+            // Append the anchor tag inside a list item
+            let listItem = $('<li>').addClass('search-history-item').append(anchor);
+            
+            // Append the list item to the list
+            list.append(listItem);
+        });
+    
+        if (searchHistory.length === 0) {
+            list.append('<li>No previous searches found.</li>');
+        }
+    }
+</script>

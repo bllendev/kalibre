@@ -41,6 +41,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class CustomUser(AbstractUser):
+    """search history stoored and presented locally
+    """
     email_addresses = models.ManyToManyField("users.Email")
     my_books = models.ManyToManyField("books.Book")
 
