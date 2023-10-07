@@ -1,0 +1,105 @@
+<!--Conversation Search-->
+<div class="mb-4">
+    <input type="text" id="searchConversations" class="form-control" placeholder="Search conversations...">
+</div>
+
+<!-- Conversations list -->
+<div class="container"  id="conversations-container">
+    {% for conversation in user_conversations %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Started at:</strong> {{ conversation.started_at }} | 
+            <strong>Last updated:</strong> {{ conversation.last_updated }}
+        </div>
+        <!-- Short Summary of the conversation -->
+        <div class="card-body">
+            <a data-toggle="collapse" href="#conversation{{ conversation.id }}" role="button">
+                {{ conversation.get_messages.2.content|truncatechars:80 }}... <!-- show only the first message as summary -->
+            </a>
+        </div>
+        
+        <!-- Full Conversation hidden by default -->
+        <div class="collapse" id="conversation{{ conversation.id }}">
+            <div class="card-body">
+                {% for message in conversation.get_messages %}
+                <div class="mb-3 {{ message.role }}">
+                    <strong>{{ message.role|title }}:</strong> {{ message.content }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+
+    $(".card .collapse").removeClass('show');
+
+    let originalConversations = [];
+
+    // listen for user typing in the search input
+    $("#searchConversations").on("keyup", function() {
+        handleSearch();
+    });
+
+    // highlight function to make the matching text pop
+    function highlightText(element, terms) {
+        var text = $(element).text();
+        terms.forEach(term => {
+            var regex = new RegExp('(' + term + ')', 'gi');
+            text = text.replace(regex, '<span class="highlight">$1</span>');
+        });
+        $(element).html(text);
+    }
+
+    // handle the search and highlight logic
+    function handleSearch() {
+        var searchValue = $("#searchConversations").val().trim().split(' ');
+    
+        // Reset the conversations to their original state
+        $(".card-body .mb-3").each(function(index) {
+            if (!originalConversations[index]) {
+                originalConversations[index] = $(this).html();
+            } else {
+                $(this).html(originalConversations[index]);
+            }
+        });
+    
+        // Collapse all conversations initially
+        $(".card .collapse").removeClass('show');
+    
+        if (searchValue[0] !== "") { // Check if the user typed something
+            let matchedCards = [];  // Store the matched cards
+    
+            $(".card-body .mb-3").each(function() {
+                let content = $(this).text();
+                if (searchValue.some(val => content.includes(val))) {
+                    highlightText(this, searchValue);
+                    let parentCard = $(this).closest(".card");
+                    matchedCards.push(parentCard);
+                    parentCard.find(".collapse").addClass('show');
+                }
+            });
+    
+            // Move matched conversations to the top
+            for (let card of matchedCards.reverse()) {
+                card.prependTo("#conversations-container");
+            }
+        } else {
+            // If the search bar is cleared, reset the highlights
+            $(".highlight").each(function() {
+                var originalText = $(this).text();
+                $(this).replaceWith(originalText);
+            });
+        }
+    }
+    
+
+    // when a conversation is expanded, move it to the top of the list
+    $(document).on('show.bs.collapse', '.collapse', function() {
+        var card = $(this).closest('.card');
+        card.prependTo("#conversations-container");
+    });
+
+</script>
