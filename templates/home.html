@@ -211,6 +211,21 @@
 
         }
       });
+
+      function addSearchToHistory(searchTerm) {
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || "[]");
+        if (!searchHistory.includes(searchTerm)) { // Avoid duplicates
+            searchHistory.push(searchTerm);
+            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        }
+      }
+
+      $("#search-form").on("submit", function(event) {
+        let searchTerm = $(this).find("input[name='db_q']").val();
+        if (searchTerm) {
+            addSearchToHistory(searchTerm);
+        }
+      });    
   
       async function getAiLibrarianResponse(user_message) {
         return new Promise(function(resolve, reject) {
