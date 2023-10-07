@@ -33,10 +33,16 @@ class MyProfile(generic.TemplateView):
         # -------------- #
         context["my_books"] = user.my_books.all()
 
-        # -------------- #
-        # -- my_email -- #
-        # -------------- #
+        # --------------- #
+        # -- my_emails -- #
+        # --------------- #
         context["LANGUAGES"] = LANGUAGES
         context["email_addresses"] = user.email_addresses.all()
         context["username_str"] = f"{username}'s emails!"
+
+        # ------------------------- #
+        # -- my_ai_conversations -- #
+        # ------------------------- #
+        context["user_conversations"] = user.conversations.all()
+
         return context
