@@ -101,6 +101,9 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
+ROOT_URLCONF = "bookstore_project.urls"
+WSGI_APPLICATION = "bookstore_project.wsgi.application"
+
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
