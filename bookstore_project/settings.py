@@ -11,26 +11,16 @@ from pathlib import Path
 from sys import argv
 from decouple import config
 
+from bookstore_project.logging import *
 
+# admins
 ADMINS = [('allen', 'bllendev@gmail.com')]
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
-
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY", default="fake_test_key")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get("DEBUG", default=0))
-
 ENVIRONMENT = os.environ.get("ENVIRONMENT", default="development")
-
 ALLOWED_HOSTS = [
     "blendev.herokuapp.com",
     "localhost",
@@ -39,8 +29,14 @@ ALLOWED_HOSTS = [
     "kalibre-bllendev.herokuapp.com",
 ]
 
+# stripe
 STRIPE_LIVE_PUBLISHABLE_KEY = os.environ.get("STRIPE_LIVE_PUBLISHABLE_KEY")
 STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY")
+
+# django debug toolbar
+import socket
+hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
 
 # production
 if ENVIRONMENT == "production":
@@ -64,7 +60,6 @@ APP_DIRECTORIES_ABSOLUTE = [dir_ref for dir_ref in listdir(BASE_DIR) if Path(dir
 APP_DIRECTORIES_NAMES = [basename(normpath(dir_ref)) for dir_ref in APP_DIRECTORIES_ABSOLUTE]
 APP_DIRECTORIES = [dir_ref for dir_ref in APP_DIRECTORIES_NAMES if dir_ref not in EXCLUDED_APP_DIRECTORIES]
 APP_DIRECTORIES_COMMA_LIST = ",".join(APP_DIRECTORIES)
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -107,10 +102,6 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 
-# 
-
-
-
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -124,8 +115,6 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASS")
 DEFAULT_FROM_EMAIL = "noreply@gmail.com"
 
 ACCOUNT_SESSION_REMEMBER = True
-
-CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 AUTH_USER_MODEL = "users.CustomUser"
 LOGIN_REDIRECT_URL = "home"
@@ -154,24 +143,18 @@ MIDDLEWARE = [
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 CACHE_MIDDLEWARE_ALIAS = "default"
 CACHE_MIDDLEWARE_SECONDS = 604800
 CACHE_MIDDLEWARE_KEY_PREFIX = ""
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
 # Cloudinary stuff
 CLOUDINARY_STORAGE = {                  # TODO: add these to env vars
     "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
     "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 }
-
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-
-ROOT_URLCONF = "bookstore_project.urls"
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -187,14 +170,10 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "bookstore_project.wsgi.application"
-
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -206,14 +185,11 @@ DATABASES = {
     }
 }
 import dj_database_url
-
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES["default"].update(db_from_env)
 
 
 # Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -231,22 +207,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
@@ -254,37 +222,10 @@ STATICFILES_DIRS = [
 ]
 
 
-# django-debug-toolbar
-import socket
-hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
-
-
-## Celery / RabbitMQ ##
+# Celery / RabbitMQ
 CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672/"
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
-
-
-# LOGGING
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
