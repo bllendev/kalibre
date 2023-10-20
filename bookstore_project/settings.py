@@ -34,11 +34,6 @@ DEBUG = bool(os.environ.get("DEBUG", default=False))
 STRIPE_LIVE_PUBLISHABLE_KEY = os.environ.get("STRIPE_LIVE_PUBLISHABLE_KEY")
 STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY")
 
-# django debug toolbar
-import socket
-hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
-
 # production
 if ENVIRONMENT == "production":
     SECURE_BROWSER_XSS_FILTER = True
@@ -145,6 +140,14 @@ MIDDLEWARE = [
     "django.middleware.cache.FetchFromCacheMiddleware",
     "allauth.account.middleware.AccountMiddleware"
 ]
+
+
+# django debug toolbar
+import socket
+hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+# INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
+INTERNAL_IPS = ['127.0.0.1',]
+
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 CACHE_MIDDLEWARE_ALIAS = "default"
