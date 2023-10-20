@@ -77,7 +77,7 @@ class TestBookAjax(TestCase):
 
     @patch('books.ajax.request_is_ajax_bln', return_value=True)
     @patch('books.tasks.send_book_email_task', return_value=(True, 200))
-    @patch('books._api.BookAPI')
+    @patch('books.api.book_api.BookAPI')
     @patch('books.ajax.CustomUser.objects.get')
     def test_send_book_ajax(self, mock_get_custom_user, MockBookAPI, mock_send_book_email_task, mock_ajax_check):
         # mock user

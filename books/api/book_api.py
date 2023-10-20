@@ -5,10 +5,10 @@ from django.db import models
 from functools import reduce
 import json
 
-from books.api_libgen import LibgenAPI
-# from books.api_gutenberg import GutenbergAPI
+# local
 from books.models import Book
 from books.utils import process_text
+from books.api._api_libgen import LibgenAPI
 
 
 class APIBook:

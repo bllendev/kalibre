@@ -7,6 +7,7 @@ collections.Callable = collections.abc.Callable
 from bs4 import BeautifulSoup
 from itertools import chain
 
+
 MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Infura"]
 
 

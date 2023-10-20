@@ -22,8 +22,7 @@ from books.tests.constants import (
 # local
 from books.tasks import send_book_email_task
 from users.models import Email
-from books.api_libgen import LibgenSearch, SearchRequest
-from books.api_libgen import LibgenAPI
+from books.api._api_libgen import LibgenAPI, LibgenSearch, SearchRequest
 from books.models import Book
 
 

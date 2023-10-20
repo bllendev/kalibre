@@ -21,7 +21,7 @@ def send_book_ajax(request):
     - uses celery task to send book (and translate if needed)
     """
     from books.tasks import send_book_email_task
-    from books._api import BookAPI
+    from books.api.book_api import BookAPI
 
     # bypass: must be called via ajax
     if not request_is_ajax_bln(request):
