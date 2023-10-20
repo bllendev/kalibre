@@ -57,4 +57,4 @@ jobs:
         python -m pip install psycopg2
   
     - name: Run tests
-      run: python manage.py test --parallel 8 --noinput --failfast
+      run: coverage run manage.py test
