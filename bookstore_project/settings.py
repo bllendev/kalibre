@@ -52,13 +52,6 @@ if ENVIRONMENT == "production":
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # new
 
-    # Add mail_admins handler for production environment
-    LOGGING['handlers']['mail_admins'] = {
-        'level': 'ERROR',
-        'class': 'django.utils.log.AdminEmailHandler',
-    }
-    LOGGING['loggers']['django']['handlers'].append('mail_admins')
-
 # Application definition
 EXCLUDED_APP_DIRECTORIES = [
     "static", ".vscode", "cover", "media", "staticfiles", "templates",

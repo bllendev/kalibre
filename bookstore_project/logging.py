@@ -17,6 +17,16 @@ LOGGING = {
     },
 }
 
+import os
+ENVIRONMENT = os.environ.get("ENVIRONMENT", default="development")
+if ENVIRONMENT == "production":
+    # Add mail_admins handler for production environment
+    LOGGING['handlers']['mail_admins'] = {
+        'level': 'ERROR',
+        'class': 'django.utils.log.AdminEmailHandler',
+    }
+    LOGGING['loggers']['django']['handlers'].append('mail_admins')
+
 
 # logging decorator
 import functools
