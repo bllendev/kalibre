@@ -11,6 +11,7 @@ from pathlib import Path
 from sys import argv
 from decouple import config
 
+# LOGGING
 from bookstore_project.logging import *
 
 # admins
@@ -19,7 +20,6 @@ ADMINS = [('allen', 'bllendev@gmail.com')]
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", default="fake_test_key")
-DEBUG = bool(os.environ.get("DEBUG", default=0))
 ENVIRONMENT = os.environ.get("ENVIRONMENT", default="development")
 ALLOWED_HOSTS = [
     "blendev.herokuapp.com",
@@ -28,6 +28,7 @@ ALLOWED_HOSTS = [
     "kalibre-bllen.herokuapp.com",
     "kalibre-bllendev.herokuapp.com",
 ]
+DEBUG = bool(os.environ.get("DEBUG", default=False))
 
 # stripe
 STRIPE_LIVE_PUBLISHABLE_KEY = os.environ.get("STRIPE_LIVE_PUBLISHABLE_KEY")
@@ -50,6 +51,13 @@ if ENVIRONMENT == "production":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # new
+
+    # Add mail_admins handler for production environment
+    LOGGING['handlers']['mail_admins'] = {
+        'level': 'ERROR',
+        'class': 'django.utils.log.AdminEmailHandler',
+    }
+    LOGGING['loggers']['django']['handlers'].append('mail_admins')
 
 # Application definition
 EXCLUDED_APP_DIRECTORIES = [
