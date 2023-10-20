@@ -12,7 +12,7 @@ import pickle
 from users.tests.factories import CustomUserFactory
 from books.tests.factories import BookFactory
 from books.models import Book
-from books.tests.test_libgen_api import (
+from books.tests.test_api_libgen import (
     TEST_QUERY,
     TEST_ISBN,
     TEST_BOOK_FILETYPE,
