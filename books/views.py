@@ -41,7 +41,7 @@ class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 
 @never_cache
 def search_results(request):
-    from books._api import BookAPI
+    from books.api.book_api import BookAPI
 
     book_api = None
 

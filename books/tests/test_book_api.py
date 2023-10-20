@@ -12,7 +12,7 @@ from books.tests.constants import (
 )
 
 # local
-from books._api import BookAPI
+from books.api.book_api import BookAPI
 from books.models import Book
 
 
