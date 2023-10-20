@@ -31,6 +31,14 @@ def handler500(request):
         'error_description': 'There was an unexpected error processing your request.',
         'todo_description': 'Please try again later or contact our support team.',
     }
+
+    # Get exception info
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    exception_traceback = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+
+    # Log the complete traceback
+    logger.error('Internal Server Error: %s\n%s', request.path, exception_traceback, 
+                 extra={'status_code': 500, 'request': request})
     return HttpResponseServerError(render(request, 'error_page.html', context))
 
 
