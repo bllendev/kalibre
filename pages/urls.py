@@ -1,11 +1,11 @@
 from django.urls import path
 from pages.views import (
     AboutPageView,
-    home,
+    HomePageView,
 )
 
 
 urlpatterns = [
-    path("about/", AboutPageView.as_view(), name="about"),  # new
-    path("", home, name="home"),
+    path("about/", AboutPageView.as_view(), name="about"),
+    path("", HomePageView.as_view(), name="home"),
 ]
