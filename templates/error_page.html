@@ -1,0 +1,51 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+<div class="error-container">
+
+    <h2>{{ title }}</h2>
+    
+    <div class="error-description">
+        <p>{{ error_description }}</p>
+    </div>
+    
+    <div class="todo-description">
+        <h5>What to do next:</h5>
+        <p>{{ todo_description }}</p>
+    </div>
+
+</div>
+
+<style>
+    .error-container {
+        max-width: 800px;
+        margin: 5% auto;
+        padding: 2rem;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        background-color: #fff;
+        text-align: center;
+    }
+    
+    .error-container h2 {
+        color: #d32f2f; /* Red shade for error titles */
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    
+    .error-description p, .todo-description p {
+        color: #555;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .todo-description h5 {
+        color: #333;
+        font-weight: 500;
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock content %}

@@ -19,6 +19,11 @@ urlpatterns = [
     path('ai/', include('ai.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+handler500 = "pages.views.handler500"
+handler404 = "pages.views.handler404"
+handler400 = "pages.views.handler400"
+handler403 = "pages.views.handler403"
+
 if settings.DEBUG:
     import debug_toolbar
 
