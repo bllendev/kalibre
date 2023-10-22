@@ -35,7 +35,7 @@ class BookListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 @method_decorator(never_cache, name='dispatch')
 class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Book
-    context_object_name = 'book_list'
+    context_object_name = 'book'
     template_name = 'books/book_detail.html'
     login_url = 'account_login'
     permission_required = 'books.special_status'
