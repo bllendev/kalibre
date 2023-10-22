@@ -1,9 +1,14 @@
 # django
+import sys
+import traceback
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
+import logging
+
+logger = logging.getLogger(__name__)
 
 # local
 from ai.constants import AI_PROMPT
