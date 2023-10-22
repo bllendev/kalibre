@@ -22,7 +22,7 @@ class TestOpenLibraryAPI(unittest.TestCase):
     #     self.assertTrue(book_list)
     #     self.assertTrue(f"{book_list['docs']}")
 
-    @patch('books.api._api_openlibary.requests.get')
+    @patch('books.api._api_openlibrary.requests.get')
     def test_get_book_search_results_success(self, mock_get):
         """"""
         mock_response = Mock()
@@ -44,7 +44,7 @@ class TestOpenLibraryAPI(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["title"], "Test Book")
 
-    @patch('books.api._api_openlibary.requests.get')
+    @patch('books.api._api_openlibrary.requests.get')
     def test_get_book_search_results_failure(self, mock_get):
         # mocking a failed response from the requests.get method
         mock_response = Mock()
