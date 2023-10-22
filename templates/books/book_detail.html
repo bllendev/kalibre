@@ -1,22 +1,30 @@
 {% extends '_base.html' %}
+{% load static %}
 
-{% block title %}{{ book.title }}{% endblock title %}
+{% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
-    <div class="book-detail">
-        {% if book.cover %}
-            <img class="bookcover" src="{{ book.cover.url }}" alt="{{ book.title }}">
-        {% endif %}
-        <h2><a href="">{{ book.title }}</a></h2>
-        <p>Author: {{ book.author }}</p>
-        <p>Price: {{ book.price }}</p>
-        <div>
-            <h3>Reviews</h3>
-            <ul>
-            {% for review in book.reviews.all %}
-                <li>{{ review.review }} ({{ review.author }})</li>
-            {% endfor %}
-            </ul>
+<div class="container mt-4">
+    <div class="row">
+        <!-- Book Cover Image -->
+        <div class="col-md-4">
+            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="img-fluid rounded">
+        </div>
+        <!-- Book Details -->
+        <div class="col-md-8">
+            <h2 class="mb-3">{{ book.title }}</h2>
+            <p class="lead">Author: {{ book.author }}</p>
+            <p>ISBN: {{ book.isbn }}</p>
+            <p>Filetype: {{ book.filetype }}</p>
+            <p>Price: ${{ book.price }}</p>
+            
+            {# Optionally display JSON links or other details if necessary #}
+            <h4 class="mt-4">Additional Details:</h4>
+            <pre>{{ book.json_links }}</pre>
+
+            {# Link to return to book list or other related actions #}
+            {% comment %} <a href="{% url 'your_book_list_url_name' %}" class="btn btn-primary mt-4">Back to Book List</a> {% endcomment %}
         </div>
     </div>
-{% endblock content %}
+</div>
+{% endblock %}

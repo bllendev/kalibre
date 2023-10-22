@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import (
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 
 from rest_framework import viewsets
 
@@ -31,8 +32,10 @@ class BookListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = 'books.special_status'
 
 
+@method_decorator(never_cache, name='dispatch')
 class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Book
+    context_object_name = 'book_list'
     template_name = 'books/book_detail.html'
     login_url = 'account_login'
     permission_required = 'books.special_status'
