@@ -9,15 +9,19 @@
     </div>
   </div>
   <div>
-    <form method="POST" id="add_email_form">
-    {% csrf_token %}
-      <div class="input-group mb-3" style="width:75%">
-        <input id="email" name="email_input[]" type="text" class="form-control" placeholder="enter emails here!">
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="submit">submit</button>
+      <form id="add_email_form"
+      hx-post="{% url 'add_email' %}"
+      hx-target="#email_table"
+      hx-swap="beforeend"
+      hx-boost="true" >
+        {% csrf_token %} 
+        <div class="input-group mb-3" style="width:75%">
+            <input id="email" name="email_input[]" type="text" class="form-control" placeholder="enter emails here!">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">submit</button>
+            </div>
         </div>
-      </div>
-    </form>
+      </form>
   </div>
 
   <br>
@@ -25,7 +29,7 @@
   <div class="mb-5">
     <div class="row">  
       <div class="col-md-12">
-          <table class="table table-hover" id="email_table" style="width:66%">
+          <table class="table table-hover" hx-target="closest tr" hx-swap="outerHTML swap:1s" id="email_table" style="width:66%">
 
             <thead>
               <tr>
@@ -33,34 +37,11 @@
                 <th align="center" >Translate?</th>
               </tr>
             </thead>
+  
+            {% for email in email_addresses %}
+              {% include "users/components/email_entry.html" %}
+            {% endfor %}
 
-
-              {% for email in email_addresses %}
-                <tr id="{{email.pk}}">
-
-                  <td>{{ email }}</td>
-
-                  <td align="center">
-                    <select class="form-control" id="language_selection_{{email.pk}}" name="language_selection">
-                      <!-- Populate the options dynamically -->
-                      {% for lang_code, lang_name in LANGUAGES.items %}
-                        <option value="{{ lang_code }}" {% if email.translate_file == lang_code %} selected {% endif %}>
-                          {{ lang_name }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                </td>
-
-                  <form method="POST" id="delete_email_form_{{email.pk}}">
-                    {% csrf_token %} 
-                    <td align="right">
-                      <input type="hidden" name="delete_email_pk[]" value={{email.pk}}>
-                      <button type="submit" id="delete_email_{{email.pk}}" class="button btn-sm btn-danger text-nowrap">delete</button>
-                    </td>
-                  </form>
-
-                </tr>
-              {% endfor %}
           </table>
       </div>
     </div>
@@ -81,200 +62,4 @@
   peas_img.appendTo('#peas_div');
   peas_img.show();
 
-  // -------------------- //
-  // -- add email ajax -- //
-  // -------------------- //
-  add_email_form_onsubmit(token);
-
-  {% for email in email_addresses %}
-    // -------------------------- //
-    // -- translate email ajax -- //
-    // -------------------------- //
-    set_translate_form_onsubmit("{{email.pk}}", token);
-
-    // ----------------------- //
-    // -- delete email ajax -- //
-    // ----------------------- //
-    set_delete_form_onsubmit("{{email.pk}}", token);
-  {% endfor %}
-
-  function createLanguageDropdown(defaultLanguage, email_pk) {
-    // create select element
-    var selectElement = $('<select>').addClass('form-control').attr('name', 'language_selection_' + email_pk);
-    selectElement.attr('id', 'language_selection_' + email_pk);
-
-    // populate it with options from LANGUAGES (defined server-side and sent to client-side somehow)
-    $.each(LANGUAGES, function(lang_code, lang_name) {
-        var optionElement = $('<option>').val(lang_code).text(lang_name);
-
-        // If the language is the default language, select it
-        if (lang_code === defaultLanguage) {
-            optionElement.attr('selected', 'selected');
-        }
-
-        selectElement.append(optionElement);
-    });
-
-    return selectElement;
-  }
-
-
-
-  function add_email_form_onsubmit(token) {
-    $("#add_email_form").on("submit", function(event) {
-      // stop propagation 
-      event.stopPropagation();
-      event.preventDefault();
-     
-      // serialize the form data 
-      var data = $(this).serializeArray();
-  
-      // ajax ! - note: we are clearing our timeout func
-      $.ajax({
-        type : 'POST',
-        url :  "{% url 'add_email' %}",
-        data : data,
-        headers: { "X-CSRFToken": token },
-        success : function(response){
-          // update ui with jquery to reflect new addition of emails
-          var json_string = JSON.stringify(response);
-          var returned_data = JSON.parse(json_string);
-          var email_str = returned_data.email.toString();
-          var email_pk = returned_data.email_pk.toString();
-  
-          // create a new table row with the specified ID
-          var newRow = $('<tr>').attr('id', email_pk);
-  
-          // create the first table cell with the email string
-          var emailCell = $('<td>').text(email_str);
-          
-          // create a cell for the language dropdown
-          var languageCell = $('<td>').attr('align', 'center');
-
-          // Here 'en' is set as the default language (English)
-          var languageDropdown = createLanguageDropdown('en', email_pk);
-
-          // append the dropdown to its cell
-          languageCell.append(languageDropdown);
-  
-          // create the delete form
-          var deleteForm = $('<form>')
-              .attr('method', 'POST')
-              .attr('id', 'delete_email_form_' + email_pk);
-  
-          // append csrf_token to delete form
-          deleteForm.append('{% csrf_token %}');
-  
-          // create the third table cell with the alignment attribute
-          var buttonCell = $('<td>').attr('align', 'right');
-  
-          // create the delete button
-          var deleteButton = $('<button>')
-              .attr('type', 'submit')
-              .attr('id', 'delete_email_' + email_pk)
-              .addClass('button btn-sm btn-danger text-nowrap')
-              .text('delete');
-  
-          // append the hidden input to the delete form
-          deleteForm.append($('<input>').attr('type', 'hidden').attr('name', 'delete_email_pk[]').attr('value', email_pk));
-          deleteForm.append(deleteButton);
-  
-          // append the delete form to the button cell
-          buttonCell.append(deleteForm);
-  
-          // append the email cell, translate cell, and button cell to the new row
-          newRow.append(emailCell).append(languageCell).append(buttonCell);
-  
-          // append the new row after the last row of the email_table
-          $("#email_table tr:last").after(newRow);
-  
-          // after adding to the table, add the delete and translate ajax
-          set_translate_form_onsubmit(email_pk, token);
-          set_delete_form_onsubmit(email_pk, token);
-        },
-        error : function(response){
-            alert("hmmm, there seems to have been an error adding your email!");
-        },
-      });
-  
-    });
-  }
-  
-
-  function set_translate_form_onsubmit(email_pk, token) {
-    $("#language_selection_" + email_pk).on("change", function(event) {
-      // stop propogation 
-      event.stopPropagation();
-      event.preventDefault();
-  
-      // The parent form of the checkbox
-      var form = $(this).closest("form");
-  
-      // create the data object manually
-      var data = [
-        {
-          name: 'translate_email_pk[]',
-          value: email_pk
-        },
-        {
-          name: this.name,
-          value: this.value,
-        }
-      ];
-  
-      // ajax ! - note: we are clearing our timeout func
-      $.ajax({
-        type : 'POST',
-        url :  "{% url 'toggle_translate_email' %}",
-        data : data,
-        headers: { "X-CSRFToken": token },
-        success : function(response){
-          // update ui with jquery to reflect deletion of emails
-          var json_string = JSON.stringify(response);
-          var returned_data = JSON.parse(json_string);
-          var translate_email_pk = returned_data.translate_email_pk;
-        },
-        error : function(response){
-            alert("hmmm, there seems to have been an error, setting your email to translate!");
-        },
-      });
-  
-    });
-  }
-
-  function set_delete_form_onsubmit(email_pk, token) {
-    $("#delete_email_" + email_pk).on("click", function(event) {
-      // stop propogation 
-      event.stopPropagation();
-      event.preventDefault();
-
-      // serialize the form data 
-      // var data = $(this).serializeArray();
-      var data = [
-        {
-          name: 'delete_email_pk[]',
-          value: email_pk
-        },
-      ];
-
-      // ajax ! - note: we are clearing our timeout func
-      $.ajax({
-        type : 'POST',
-        url :  "{% url 'delete_email' %}",
-        data : data,
-        headers: { "X-CSRFToken": token },
-        success : function(response){
-          // update ui with jquery to reflect deletion of emails
-          var json_string = JSON.stringify(response);
-          var returned_data = JSON.parse(json_string);
-          var delete_email_pk = returned_data.delete_email_pk;
-          $("#" + delete_email_pk).remove();
-        },
-        error : function(response){
-            alert("hmmm, there seems to have been an error deleting your email!");
-        },
-      });
-
-    });
-  }
 </script>

@@ -38,6 +38,12 @@
 }
 
 
+tr.htmx-swapping td {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+
 
 #dim_wrapper {
   width: 100%;

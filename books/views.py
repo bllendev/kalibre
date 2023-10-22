@@ -13,7 +13,6 @@ from rest_framework import viewsets
 # local
 from books.models import Book
 from books.serializers import BookSerializer
-from translate.constants import LANGUAGES
 
 
 CustomUser = get_user_model()
