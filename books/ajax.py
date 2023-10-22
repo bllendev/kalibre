@@ -91,7 +91,7 @@ def add_email(request):
             user.email_addresses.add(email)
             user.save()
 
-            if is_ajax:  # If request is coming via HTMX
+            if is_ajax:
                 return render(request, 'users/components/email_entry.html', {'email': email, "LANGUAGES": LANGUAGES,})
 
             # For non-HTMX (no JS) requests:
@@ -102,9 +102,9 @@ def add_email(request):
 
     except Exception as e:
         logger.error(f"ERROR: books.ajax.add_email {e}")
+        if is_ajax:
+            return HttpResponseServerError("Error adding email.")
         raise e
-
-    return HttpResponseBadRequest("Error adding email.")
 
 
 def delete_email(request, pk):

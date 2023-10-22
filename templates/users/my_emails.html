@@ -1,20 +1,23 @@
 <div class="container">
+
   <div class="row mb-3">
       <div class="col-md-8"></div>
       <div class="col-md-4" id="peas_div"></div>
   </div>
+
   <div class="row">
     <div class="col-md-9">
       <h2 class="p-2">add emails you'd like to send your books to!</h2>
     </div>
   </div>
-  <div>
+
+  <div class="mb-3">
       <form id="add_email_form"
       hx-post="{% url 'add_email' %}"
       hx-target="#email_table"
       hx-swap="beforeend"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
       hx-boost="true" >
-        {% csrf_token %} 
         <div class="input-group mb-3" style="width:75%">
             <input id="email" name="email_input[]" type="text" class="form-control" placeholder="enter emails here!">
             <div class="input-group-append">
@@ -23,8 +26,6 @@
         </div>
       </form>
   </div>
-
-  <br>
 
   <div class="mb-5">
     <div class="row">  
@@ -49,12 +50,6 @@
 </div>
 
 <script>
-
-  // languages
-  const LANGUAGES = {{ LANGUAGES|safe }};
-  
-  var token = '{{csrf_token}}';
-
   // peas img
   var peas_img = $('<img id="peas">');
   peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
