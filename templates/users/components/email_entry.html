@@ -1,0 +1,31 @@
+<tr id="email_{{email.pk}}">
+
+    <td>{{ email }}</td>
+
+    <td align="center">
+        <select class="form-control" 
+        id="email_{{email.pk}}_language" 
+        name="email_{{email.pk}}_language" 
+        hx-swap="outerHTML swap:0s"
+        hx-post="{% url 'toggle_translate_email' email.pk %}" 
+        hx-trigger="change"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' >
+            <!-- Populate the options dynamically -->
+            {% for lang_code, lang_name in LANGUAGES.items %}
+                <option value="{{ lang_code }}" {% if email.translate_file == lang_code %} selected {% endif %}>
+                {{ lang_name }}
+                </option>
+            {% endfor %}
+        </select>
+    </td>
+
+    <td align="right">
+        <input type="hidden" name="delete_email_pk[]" value={{email.pk}}>
+        <button type="submit" 
+                hx-delete="{% url 'delete_email' email.pk %}" 
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
+                class="btn btn-sm btn-danger text-nowrap">delete
+        </button>
+    </td>
+
+</tr>

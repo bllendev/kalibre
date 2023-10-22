@@ -59,4 +59,4 @@ def fx_return_to_sender(request, remove_GET=True):
 
 
 def request_is_ajax_bln(request):
-    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    return request.headers.get('HX-Request') == 'true'
