@@ -4,23 +4,24 @@
 {% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row">
         <!-- Book Cover Image -->
-        <div class="col-md-4">
-            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="img-fluid rounded">
+        <div class="col-md-4 mb-4">
+            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="img-fluid rounded shadow">
         </div>
         <!-- Book Details -->
         <div class="col-md-8">
-            <h2 class="mb-3">{{ book.title }}</h2>
-            <p class="lead">Author: {{ book.author }}</p>
-            <p>ISBN: {{ book.isbn }}</p>
-            <p>Filetype: {{ book.filetype }}</p>
-            <p>Price: ${{ book.price }}</p>
+            <h2 class="mb-3 font-weight-bold">{{ book.title }}</h2>
+            <p class="lead font-weight-normal">Author: <span class="font-weight-bold">{{ book.author }}</span></p>
+            <p class="font-weight-light">ISBN: {{ book.isbn }}</p>
+            <p class="font-weight-light">Filetype: {{ book.filetype }}</p>
+            <p class="font-weight-light">Price: <span class="font-weight-bold">${{ book.price }}</span></p>
             
-            {# Optionally display JSON links or other details if necessary #}
-            <h4 class="mt-4">Additional Details:</h4>
+            {# Display JSON links more cleanly #}
+            <h4 class="mt-5">Additional Details:</h4>
             <pre>{{ book.json_links }}</pre>
+
 
             {# Link to return to book list or other related actions #}
             {% comment %} <a href="{% url 'your_book_list_url_name' %}" class="btn btn-primary mt-4">Back to Book List</a> {% endcomment %}
