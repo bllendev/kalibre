@@ -6,12 +6,16 @@ from django.views.decorators.cache import never_cache
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
-import logging
+from django.conf import settings
 
+# logger
+import logging
 logger = logging.getLogger(__name__)
 
 # local
 from ai.constants import AI_PROMPT
+from pages.constants import ERROR_EMAIL_TEMPLATE_LIST
+from books.utils import send_emails
 
 
 @method_decorator(never_cache, name='dispatch')
@@ -37,13 +41,24 @@ def handler500(request):
         'todo_description': 'Please try again later or contact our support team.',
     }
 
-    # Get exception info
+    # get exception info
     exc_type, exc_value, exc_traceback = sys.exc_info()
     exception_traceback = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    error_str = f'Internal Server Error: {request.path}\n{exception_traceback}'
 
-    # Log the complete traceback
-    logger.error('Internal Server Error: %s\n%s', request.path, exception_traceback, 
-                 extra={'status_code': 500, 'request': request})
+    # log the complete traceback
+    logger.error(error_str, extra={'status_code': 500, 'request': request})
+
+    # TODO: implement send_emails
+    if True or settings.ENVIRONMENT == "production":
+        template_message = copy.deepcopy(ERROR_EMAIL_TEMPLATE_LIST)
+        template_message[1] = error_str
+        status = send_emails(template_message)
+
+    response = HttpResponseServerError(render(request, 'error_page.html', context))
+    response.status_code = 500
+    return response
+
     return HttpResponseServerError(render(request, 'error_page.html', context))
 
 
