@@ -166,9 +166,14 @@ class Book(models.Model):
 
     def send(self, emails, language="en"):
         """emails actual book file to recipient addresses"""
+        # get book file path
         book_file_path = self.get_book_file_path(language)
+
+        # set template message (appropriate recipients)
         template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
         template_message[3] = emails
+
+        # send - return status
         status = send_emails(template_message, [book_file_path])
         return status
 
