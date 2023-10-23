@@ -1,5 +1,4 @@
 from django.conf import settings
-import os
 
 
 # UTILITY CONSTANTS

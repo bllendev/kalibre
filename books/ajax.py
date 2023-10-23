@@ -31,10 +31,6 @@ def send_book_ajax(request):
     from books.tasks import send_book_email_task
     from books.api.book_api import BookAPI
 
-    # bypass: must be called via ajax
-    if not request_is_ajax_bln(request):
-        return JsonResponse({'status': False}, status=400)
-
     # extract book information and user
     post_dict = {key: val for key, val in request.POST.items() if "book" in key}
     try:
@@ -108,7 +104,6 @@ def add_email(request):
 
 
 def delete_email(request, pk):
-    print(f"request.method: {request.method}")
     try:
         if request.method == 'DELETE':
             # extract user info
@@ -120,12 +115,12 @@ def delete_email(request, pk):
             if not user_email_to_delete:
                 return HttpResponseBadRequest("Email not found.")
 
-            # delete and save
+            # remove/delete email and save user
             user.email_addresses.remove(user_email_to_delete)
             user_email_to_delete.delete()
             user.save()
 
-            # Respond with No Content status for HTMX to recognize and remove the <tr>
+            # respond with No Content status for HTMX to recognize and remove the <tr>
             return HttpResponse(status=200)
 
         else:
@@ -163,10 +158,10 @@ def toggle_translate_email(request, pk):
             email.translate_file = lang_code  # NOTE: translate.constants
             email.save()
 
-            if is_ajax:  # If request is coming via HTMX
+            if is_ajax:  # if request is coming via HTMX
                 return render(request, 'users/components/email_entry.html', {'email': email, "LANGUAGES": LANGUAGES,})
 
-            # For non-HTMX (no JS) requests:
+            # for non-HTMX (no JS) requests:
             return reverse('my_profile')
         
         raise Exception("POST requests only.")

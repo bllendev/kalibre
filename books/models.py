@@ -15,7 +15,7 @@ import copy
 # local
 from books.constants import EMAIL_TEMPLATE_LIST
 from books.managers import BookManager
-from books.utils import os_silent_remove
+from books.utils import os_silent_remove, send_emails
 from translate._translate import EbookTranslate
 
 
@@ -166,37 +166,19 @@ class Book(models.Model):
 
     def send(self, emails, language="en"):
         """emails actual book file to recipient addresses"""
-        from django.core import mail
+        book_file_path = self.get_book_file_path(language)
+        template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
+        template_message[3] = emails
+        status = send_emails(template_message, [book_file_path])
+        return status
 
-        # get book file path (safety bypass if no path)
-        book_file_path = self.get_book_file_path(language)  # web scraper
-
-        if not book_file_path:
-            print(f"error books.models.send | book_file_path does not exist")
-            return False
-
-        # send book as email to recipients
-        with book_file_path and mail.get_connection() as connection:
-            template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)  # NOTE: deep copy
-            template_message[3] = emails
-
-            email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
-            email_message.attach_file(book_file_path)
-            email_message.send(fail_silently=False)
-
-        # delete book_file after sending!
-        os_silent_remove(book_file_path)
-
-        # return true
-        return True
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['id'], name='id_index'),
-        ]
-        permissions = [
-            ('special_status', 'Can read all books'),
-        ]
+    # class Meta:
+    #     indexes = [
+    #         models.Index(fields=['id'], name='id_index'),
+    #     ]
+    #     permissions = [
+    #         ('special_status', 'Can read all books'),
+    #     ]
 
 
 class Review(models.Model):
