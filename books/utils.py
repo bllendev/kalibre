@@ -1,6 +1,7 @@
 import os
 from django.db import transaction
 from django.shortcuts import redirect
+from django.core import mail
 
 from ai.models import Message
 
@@ -11,6 +12,10 @@ from ai.models import Message
 # from nltk.stem import PorterStemmer
 import string
 import openai
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # # Download required resources
@@ -41,11 +46,41 @@ def bulk_save(queryset):
         item.save()
 
 
+def send_emails(template_message, file_path_list=list):
+    status = None
+    try:
+        # send book as email to recipient
+        with mail.get_connection() as connection:
+            email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
+
+            for file_path in file_path_list:
+                # bypass - claimed file_path must exists !
+                if not file_path:
+                    raise OSError("file_path does not exist | {file_path}")
+
+                # attach file
+                email_message.attach_file(file_path)
+                email_message.send(fail_silently=False)
+
+        status = True
+
+    except Exception as e:
+        status = False
+        logger.error(f"ERROR: books.utils.send_emails | {e}")
+        raise e
+
+    finally:
+        for file_path in file_path_list:
+            os_silent_remove(file_path)
+
+        return status
+
+
 def os_silent_remove(filename):
     try:
         os.remove(filename)
     except OSError as e:
-        print(f"os_silent_remove: {e}")
+        logger.error(f"ERROR: books.utils.os_silent_remove | {e}")
 
 
 def fx_return_to_sender(request, remove_GET=True):

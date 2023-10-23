@@ -11,7 +11,7 @@ import importlib
 from users.tests.factories import CustomUserFactory, EmailFactory
 from books.tests.factories import BookFactory
 
-# localTrue, 200)
+# local
 from books.tasks import send_book_email_task
 
 
