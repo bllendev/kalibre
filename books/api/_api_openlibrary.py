@@ -28,6 +28,6 @@ class OpenLibraryAPI:
             _book_search_results = self._get_book_search_results(query)
             book_search_results = _book_search_results["docs"]
         except Exception as e:
-            logger.error(f"ERROR: books.api._api_openlibrary.get_book_search_results: {e}")
+            logger.error(f"{e}")
             raise e
         return book_search_results

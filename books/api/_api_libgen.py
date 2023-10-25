@@ -7,6 +7,11 @@ collections.Callable = collections.abc.Callable
 from bs4 import BeautifulSoup
 from itertools import chain
 
+from bookstore_project.logging import log
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Infura"]
 
@@ -33,26 +38,25 @@ class LibgenAPI:
 
     STABLE_FILE_TYPES = {"epub", "mobi"}
 
-    def __init__(self, search=None):
+    def __init__(self):
         self.libgen = LibgenSearch()
-        self.search_query = search
 
-    def _get_libgen_book_list(self):
+    def _get_book_search_results(self, query):
+        # get libgen book list
+        titles = self.libgen.search_title(query)
+        authors = self.libgen.search_author(query)
+        return [api_book for api_book in chain(titles, authors)]
+
+    @log
+    def get_book_search_results(self, query):
+        book_search_results = None
         try:
-            # get libgen book list
-            titles = self.libgen.search_title(self.search_query)
-            authors = self.libgen.search_author(self.search_query)
-            libgen_book_list = [api_book for api_book in chain(titles, authors)]
-
+            book_search_results = self._get_book_search_results(query)
         except Exception as e:
-            print(f"ERROR | _get_libgen_book_list | {e}")
-            libgen_book_list = []
-
+            logger.error("_api_libgen | {e}")
+            book_search_results = list()
         finally:
-            return libgen_book_list
-
-    def get_unique_book_list(self):
-        return self._get_libgen_book_list()
+            return sbook_search_results
 
 
 class LibgenSearch:
