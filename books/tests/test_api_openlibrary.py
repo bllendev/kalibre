@@ -15,12 +15,12 @@ class TestOpenLibraryAPI(unittest.TestCase):
     def setUp(self):
         self.api = OpenLibraryAPI()
     
-    # def test_get_book_search_results(self):
-    #     """tests the calling of the api, leave this commented as it tests the api through a real query"""
-    #     book_list = self.api._get_book_search_results(query="my sweet orange tree")
+    def test_get_book_search_results(self):
+        """tests the calling of the api, leave this commented as it tests the api through a real query"""
+        book_list = self.api._get_book_search_results(query="my sweet orange tree")
         
-    #     self.assertTrue(book_list)
-    #     self.assertTrue(f"{book_list['docs']}")
+        self.assertTrue(book_list)
+        self.assertTrue(f"{book_list['docs']}")
 
     @patch('books.api._api_openlibrary.requests.get')
     def test_get_book_search_results_success(self, mock_get):

@@ -1,10 +1,12 @@
 # django
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Case, When, Q
 from django.urls import reverse
 from django.conf import settings
 
 # tools
+from functools import reduce
 import urllib
 import uuid
 import requests
@@ -176,6 +178,55 @@ class Book(models.Model):
         # send - return status
         status = send_emails(template_message, [book_file_path])
         return status
+
+    @classmethod
+    def search(cls, query):
+        """checks db first to see if we may already have a record (bypass api query)"""
+        books = None
+        if query:
+            query = query.strip()
+            search_terms_list = query.split()
+
+            search_terms = []
+            exact_match = []
+            for term in search_terms_list:
+                exact_match.append(Q(title__iexact=term) | Q(author__iexact=term))
+                search_terms.extend([
+                    Q(title__icontains=term),
+                    Q(author__icontains=term),
+                    Q(filetype__icontains=term),
+                    Q(isbn__icontains=term),
+                    Q(_title_lemmatized__icontains=term.replace(" ", "")),
+                ])
+
+            # combine the search terms with OR operator
+            search_query = reduce(lambda x, y: x | y, search_terms)
+            exact_match_query = reduce(lambda x, y: x | y, exact_match)
+
+            # add a field that denotes an exact match
+            books = cls.objects.annotate(
+                is_exact_match=Case(
+                    When(exact_match_query, then=1),
+                    default=0,
+                    output_field=models.IntegerField()
+                ),
+                title_match=Case(
+                    When(Q(title__icontains=query), then=1),
+                    default=0,
+                    output_field=models.IntegerField(),
+                ),
+                author_match=Case(
+                    When(Q(author__icontains=query), then=1),
+                    default=0,
+                    output_field=models.IntegerField(),
+                )
+            ).filter(search_query)
+
+            # order by the new field, so exact matches and then title matches and then author matches come first
+            books = books.order_by('-is_exact_match', '-title_match', '-author_match')
+
+        # return query the database to get matching books
+        return books
 
     # class Meta:
     #     indexes = [

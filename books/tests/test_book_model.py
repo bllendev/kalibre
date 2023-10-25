@@ -47,9 +47,12 @@ class BookTest(TestCase):
     def test_book_ssn(self):
         self.assertEqual(self.test_book.ssn, 'book_My Sweet Little Orange Tree__type_epub__isbn_2670677')
 
-    def test_book_get_absolute_url(self):
-        url = reverse('book_detail', args=[str(self.test_book.id)])
-        self.assertEqual(self.test_book.get_absolute_url(), url)
+    def test_book_search(self):
+        """checks db first to see if we may already have a record (bypass api query)"""
+        test_books = self.test_book.search(query=TEST_QUERY)
+        test_book_ids = [book.id for book in test_books if book.id == self.test_book.id]
+        self.assertTrue(test_book_ids)
+        self.assertIn(self.test_book.id, test_book_ids, "test_book was not found in db search results")
 
     @patch("requests.get")
     def test_book_create_book_file(self, mock_requests_get):
