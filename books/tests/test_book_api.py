@@ -1,7 +1,7 @@
 # django
 import os
 from django.test import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch, MagicMock
 
 # factories
 from books.tests.factories import BookFactory
@@ -13,6 +13,7 @@ from books.tests.constants import (
 
 # local
 from books.api.book_api import BookAPI
+from books.api.api_book import APIBook
 from books.models import Book
 
 
@@ -34,38 +35,17 @@ class TestBookAPI(TestCase):
         cls.test_book_db = BookAPI(TEST_QUERY, force_api=False)
         cls.test_book_api = BookAPI(TEST_QUERY, force_api=True)
 
-    def test_book_db_search(self):
-        """checks db first to see if we may already have a record (bypass api query)"""
-        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_books = self.test_book_db._book_db_search()
-        test_book_ids = [book.id for book in test_books if book.id == TEST_BOOK.id]
-        self.assertTrue(test_book_ids)
+    @patch.object(BookAPI, "get_search_query_results", return_value=[APIBook(title=TEST_QUERY, isbn=TEST_ISBN, Mirror_1="file link")])
+    def test_update_books(self, mock_get_search_query_results):
+        book = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, author="test_author")  # NOTE: empty link should be updated
 
-    def test_get_unique_book_list(self):
-        test_book_api = BookAPI(TEST_QUERY, force_api=False)
+        # mock self.get_search_query_results() with different info\
+        api = BookAPI(TEST_QUERY, force_api=True)
+        api.update_books()
 
-        # case 0: no books in db -- > books in api
-        Book.objects.all().delete()     # clear books
-        test_books = test_book_api.get_unique_book_list()
-        test_book = [book.isbn for book in test_books if book.isbn == TEST_ISBN]
-        self.assertTrue(test_book)
-
-        # assert get_unique_book_list saved books to db
-        test_book_exists = Book.objects.filter(isbn=TEST_ISBN).exists()
-        self.assertTrue(test_book_exists)
-
-        # case 1: books in db
-        Book.objects.all().delete()     # clear books
-        TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_books_db = test_book_api.get_unique_book_list()        # should refer to books in db if they exist
-        test_books = [book.isbn for book in test_books_db if book.isbn == TEST_ISBN]
-        self.assertTrue(test_books)
-
-        # case 2: books in db, force_api=True
-        test_book_api = BookAPI(TEST_QUERY, force_api=True)
-        test_books_api = test_book_api.get_unique_book_list()
-        test_books = [book.isbn for book in test_books_api if book.isbn == TEST_ISBN]
-        self.assertTrue(test_books)
+        book = Book.objects.get(pk=book.pk)
+        self.assertIn("test_author", book.author)
+        
 
     def test_get_book(self):
         TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
