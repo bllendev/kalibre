@@ -1,14 +1,56 @@
 import json
+from rapidfuzz import fuzz
+import string
 
 from books.utils import process_text
 from books.api._api_openlibrary import OpenLibraryAPI
-        
+from books.api._api_libgen import LibgenAPI
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-
 openlibrary_api = OpenLibraryAPI()
+libgen_api = LibgenAPI()
+
+
+def normalize_text(text):
+    """Normalize the text for better comparison."""
+    return text.lower().translate(str.maketrans('', '', string.punctuation)).strip().replace("-", " ")
+
+def book_match_bln(book, other_book):
+    normalized_title = normalize_text(book['title'])
+    normalized_author = normalize_text(book['author'])
+    normalized_title_other = normalize_text(other_book['title'])
+    normalized_author_other = normalize_text(other_book['author'])
+    # Compare titles
+    title_similarity = fuzz.ratio(normalized_title, normalized_title_other)
+
+    # Compare authors
+    author_similarity = fuzz.ratio(normalized_author, normalized_author_other)
+
+    if title_similarity > 80 and author_similarity > 40:
+        return True
+    elif title_similarity >= 90:
+        return True
+
+    # print(f"normalized_title: {normalized_title}")
+    # print(f"normalized_author: {normalized_author}")
+    # print(f"normalized_title_other: {normalized_title_other}")
+    # print(f"normalized_author_other: {normalized_author_other}")
+
+    # print(f"title_similarity: {title_similarity}")
+    # print(f"author_similarity: {author_similarity}")
+    # print(F"---------------------------")
+    return False
+
+def find_matching_books(book, libgen_books, filetype):
+    for libgen_book in libgen_books:
+        if libgen_book["filetype"] == filetype:
+            if book_match_bln(book, libgen_book):
+                return libgen_book
+
+    return None
 
 
 class APIBook:
@@ -105,10 +147,26 @@ class APIBook:
         Returns:
             set: A set of `APIBook` instances representing the books found.
         """
+        # openlibrary api
         openlibrary_books = openlibrary_api.get_book_search_results(search_query)
         openlibrary_book_set = {cls(**book) for book in openlibrary_books}
-        # libgen_book_set = {APIBook(**book) for book in self.libgen_api.get_book_search_results(self.search_query)}
-        return openlibrary_book_set
+
+        # libgen api
+        libgen_books = libgen_api.get_book_search_results(search_query)
+        libgen_book_set = {cls(**book) for book in libgen_books}
+
+        # get final output
+        output_list = list()
+        for book in openlibrary_book_set:
+            epub_match = find_matching_books(book, libgen_book_set, "epub")
+
+            if epub_match:
+                book.json_links = epub_match.json_links
+                book.filetype = epub_match.filetype
+
+            output_list.append(book)
+        
+        return set(output_list)
 
     def __iter__(self):
         return iter(self.__dict__.items())
@@ -117,8 +175,8 @@ class APIBook:
         raise StopIteration()
 
     def __hash__(self):
-        """Return a unique hash value based on book's title and ISBN."""
-        return hash((self.title, self.isbn))
+        """Return a unique hash value based on book's title."""
+        return hash(normalize_text(self.title))
 
     def __eq__(self, other):
         """
@@ -132,7 +190,8 @@ class APIBook:
         """
         if not isinstance(other, APIBook):
             return NotImplemented
-        return self.title == other.title and self.author == other.author
+
+        return book_match_bln(self, other)
 
     def __getitem__(self, item):
         """

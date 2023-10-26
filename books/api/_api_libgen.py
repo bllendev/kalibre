@@ -56,7 +56,7 @@ class LibgenAPI:
             logger.error("_api_libgen | {e}")
             book_search_results = list()
         finally:
-            return sbook_search_results
+            return book_search_results
 
 
 class LibgenSearch:
