@@ -54,7 +54,7 @@ class BookAPI:
         # TODO: consider implementing embeddings
         # Book.objects.create_and_embed_books(**book_info)
 
-        return Book.search(self.search_query)  # fresh query after updating
+        return Book.search(self.search_query).order_by("-filetype")  # fresh query after updating
 
     def get_book(self, isbn, book_title, filetype):
         """

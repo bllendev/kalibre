@@ -15,12 +15,16 @@
             <h2 class="mb-3 font-weight-bold">{{ book.title }}</h2>
             <p class="lead font-weight-normal">Author: <span class="font-weight-bold">{{ book.author }}</span></p>
             <p class="font-weight-light">ISBN: {{ book.isbn }}</p>
-            <p class="font-weight-light">Filetype: {{ book.filetype }}</p>
-            <p class="font-weight-light">Price: <span class="font-weight-bold">${{ book.price }}</span></p>
+            {% if book.filetype %}
+                <p class="font-weight-light">Filetype: {{ book.filetype }}</p>
+            {% endif %}
+            {% comment %} <p class="font-weight-light">Price: <span class="font-weight-bold">${{ book.price }}</span></p> {% endcomment %}
             
             {# Display JSON links more cleanly #}
-            <h4 class="mt-5">Additional Details:</h4>
-            <pre>{{ book.json_links }}</pre>
+            {% if book.json_links %}
+                <h4 class="mt-5">Additional Details:</h4>
+                <pre>{{ book.json_links }}</pre>
+            {% endif %}
 
 
             {# Link to return to book list or other related actions #}

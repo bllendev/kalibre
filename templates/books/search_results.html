@@ -66,8 +66,10 @@
                                 <td><a href="{{ book.get_absolute_url }}" style="display: block; width: 100%;">{{book.title}}</td>
                                 <td>{{book.filetype}}</td>
                                 <td>
-                                    <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
-                                    <button class='btn-sm btn-outline-primary text-nowrap' type="submit">send</button>
+                                    {% if book.filetype %}
+                                        <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
+                                        <button class='btn-sm btn-outline-primary text-nowrap' type="submit">send</button>
+                                    {% endif %}
                                 </td> 
                             </tr>
                         </form>
