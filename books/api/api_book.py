@@ -7,8 +7,8 @@ from books.api._api_openlibrary import OpenLibraryAPI
 from books.api._api_libgen import LibgenAPI
 
 import logging
-
 logger = logging.getLogger(__name__)
+
 
 openlibrary_api = OpenLibraryAPI()
 libgen_api = LibgenAPI()
@@ -70,19 +70,6 @@ class APIBook:
         OPENLIBRARY_KEY_DICT (dict): Mapping of OpenLibrary API response keys to `APIBook` attributes.
     """
 
-    LIBGEN_KEY_DICT = {
-        "ID": "isbn",
-        "Author": "author",
-        "Title": "title",
-        "Extension": "filetype",
-    }
-
-    OPENLIBRARY_KEY_DICT = {
-        "key": "isbn",
-        "author_name": "author",  # author_key for id
-        "title": "title",
-    }
-
     def __init__(self, **kwargs):
         """
         Initialize an instance of `APIBook` using API response data.
@@ -96,16 +83,17 @@ class APIBook:
         self.title = ""
         self.filetype = ""
         self.json_links = ""
+        self.cover_url = ""
         self._title_lemmatized = ""
 
         for original_key, v in kwargs.items():
             # catch and prepare all libgen data
-            libgen_key = self.LIBGEN_KEY_DICT.get(original_key)
+            libgen_key = libgen_api.LIBGEN_KEY_DICT.get(original_key)
             if libgen_key:
                 setattr(self, libgen_key, str(v).replace("&amp", ""))
 
             # catch and prepare all openlibrary data
-            openlibrary_key = self.OPENLIBRARY_KEY_DICT.get(original_key)
+            openlibrary_key = openlibrary_api.OPENLIBRARY_KEY_DICT.get(original_key)
             if openlibrary_key:
                 # prepare author data
                 if original_key == "author_name":  # TODO: want this to save author and id and leverage db overtime
@@ -114,6 +102,12 @@ class APIBook:
                     # author_dict = openlibrary_api.get_author(author_list[0])  if id
                     # v = author_dict["name"]
 
+                if original_key == "cover_i":
+                    v = openlibrary_api.get_cover_url(cover_id=v, size="L")
+
+                if original_key == "isbn":
+                    isbn_list = list(v)
+                    v = isbn_list[0]
                 setattr(self, openlibrary_key, str(v))
 
 
@@ -125,16 +119,10 @@ class APIBook:
                 kwargs['Mirror_3'],
             ])
         except KeyError as e:
-            logger.error(f"OpenLibraryAPI does not have Mirror_* fields")
+            logger.info(f"OpenLibraryAPI does not have Mirror_* fields")
             self.filetype = ""
 
-        try:
-            # set lemmatized title
-            self._title_lemmatized = process_text(self.title)
-        except KeyError as e:
-            logger.error(f"OpenLibraryAPI does not have title ?")
-            logger.error(f"Values: {self.__dict__}")
-            raise e
+        self._title_lemmatized = process_text(self.title)
 
     @classmethod
     def __call__(cls, search_query):

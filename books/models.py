@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Case, When, Q
 from django.urls import reverse
+from django.core.files.base import ContentFile
 from django.conf import settings
 
 # tools
@@ -18,7 +19,12 @@ import copy
 from books.constants import EMAIL_TEMPLATE_LIST
 from books.managers import BookManager
 from books.utils import os_silent_remove, send_emails
+from books.api._api_openlibrary import OpenLibraryAPI
 from translate._translate import EbookTranslate
+
+# logs
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Book(models.Model):
@@ -47,6 +53,7 @@ class Book(models.Model):
     _title_lemmatized = models.CharField(max_length=500, default="")        # see LibgenBook.init()
     author = models.CharField(max_length=500)
     price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    cover_url = models.CharField(max_length=144, blank=True, default="")
     cover = models.ImageField(upload_to='covers/', blank=True)
     filetype = models.CharField(max_length=60, default="")  # choices=BOOK_FILETYPE_CHOICES
     isbn = models.CharField(max_length=200, default="")
@@ -57,6 +64,18 @@ class Book(models.Model):
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"
 
+    def set_cover(self):
+        if not self.cover_url:
+            raise KeyError("{self} - missing self.cover_url - should be set in books.book_api.update_books - see APIBook class")
+    
+        r = requests.get(self.cover_url)
+        if r.status_code == 200:
+            data = r.content
+            filename = self.cover_url.split('/')[-1]
+            self.cover.save(filename, ContentFile(data))
+            self.save()
+        return self.cover
+
     @property
     def ssn(self):  # NOTE: see send_book_email_task
         return f"book_{self.title}__type_{self.filetype}__isbn_{self.isbn}"
@@ -66,10 +85,17 @@ class Book(models.Model):
     
     def get_cover_url(self):
         cover_url = os.path.join("/static", "books", "generic_book_cover.jpg")
-        if self.cover:
-            cover_url = self.cover.url
-        return cover_url
+        try:
+            if self.cover:
+                cover_url = self.cover.url
+            else:
+                self.set_cover()
+                cover_url = self.cover.url
 
+            logger.info("cover_url - {cover_url}")
+        except Exception as e:
+            logger.error(f"unable to save cover ! {self} | {e} | {cover_url}")
+        return cover_url
 
     def _get_book_file_download_link(self, link, inner_link_int):
         import collections
@@ -145,14 +171,13 @@ class Book(models.Model):
             os_silent_remove(new_file_path)
 
             # debug
-            print(f"ERROR OCCURED: {e}")
-            print(f"self BOOK @@@!!!: {self}")
-            print(f"new_file_path: {new_file_path}")
-            print(f"json_links: {self.json_links}")
-            print(f"temp_book_file_link: {temp_book_file_link}")
-            print(f"temp_book_file_dl: {temp_book_file_dl}")
-            print(f"langauge: {language}")
-            print("---------------------")
+            error_log += f"self BOOK @@@!!!: {self}"
+            error_log += f"new_file_path: {new_file_path}"
+            error_log += f"json_links: {self.json_links}"
+            error_log += f"temp_book_file_link: {temp_book_file_link}"
+            error_log += f"temp_book_file_dl: {temp_book_file_dl}"
+            error_log += f"langauge: {language}"
+            logging.error(f"{e}: {error_log}")
             raise e
 
         return book_final_path
@@ -228,13 +253,14 @@ class Book(models.Model):
         # return query the database to get matching books
         return books
 
-    # class Meta:
-    #     indexes = [
-    #         models.Index(fields=['id'], name='id_index'),
-    #     ]
-    #     permissions = [
-    #         ('special_status', 'Can read all books'),
-    #     ]
+    class Meta:
+        indexes = [
+            models.Index(fields=['id'], name='id_index'),
+        ]
+        permissions = [
+            ('special_status', 'Can read all books'),
+        ]
+        ordering = ["-filetype", "-cover_url"]
 
 
 class Review(models.Model):

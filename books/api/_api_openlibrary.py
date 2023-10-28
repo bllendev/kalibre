@@ -11,6 +11,12 @@ class OpenLibraryAPI:
     BASE_URL = "https://openlibrary.org/"
     SEARCH_URL = f"{BASE_URL}search.json"
     AUTHOR_URL = f"{BASE_URL}authors/"  # /Oid.json
+    OPENLIBRARY_KEY_DICT = {
+        "key": "isbn",
+        "author_name": "author",  # author_key for id
+        "title": "title",
+        "cover_i": "cover_url",
+    }
 
     def __init__(self):
         pass
@@ -54,3 +60,16 @@ class OpenLibraryAPI:
             raise e
 
         return author
+
+    @staticmethod
+    def get_cover_url(cover_id, size="M"):
+        """gets cover url for openlibrary link to cover of book
+        - param size: "S", "M", "L"
+        """
+        cover_id = str(cover_id)  # force cast str
+        if size not in ["S", "M", "L"]:
+            raise NotImplementedError("get_cover_url - must have a size of the following choices ... S, M, L | you had size: {size}")
+        if "OL" in cover_id:
+            return f"https://covers.openlibrary.org/b/olid/{cover_id.split('works/')[1]}-{size}.jpg"
+        else:
+            return f"https://covers.openlibrary.org/b/id/{cover_id}-{size}.jpg"
