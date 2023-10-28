@@ -11,7 +11,7 @@ class OpenLibraryAPI:
     BASE_URL = "https://openlibrary.org/"
     SEARCH_URL = f"{BASE_URL}search.json"
     AUTHOR_URL = f"{BASE_URL}authors/"  # /Oid.json
-    OPENLIBRARY_KEY_DICT = {
+    KEY_DICT = {
         "key": "isbn",
         "author_name": "author",  # author_key for id
         "title": "title",
@@ -36,9 +36,9 @@ class OpenLibraryAPI:
         book_search_results = None
         try:
             _book_search_results = self._get_book_search_results(query)
-            book_search_results = _book_search_results["docs"]
+            book_search_results = [book for book in _book_search_results["docs"]]
         except Exception as e:
-            logger.error(f"{e}")
+            logger.error(f"get_book_search_results - {e}")
             raise e
         return book_search_results
 
@@ -56,7 +56,7 @@ class OpenLibraryAPI:
                 response.raise_for_status()
 
         except Exception as e:
-            logger.error(e)
+            logger.error(f"get_author - {e}")
             raise e
 
         return author
