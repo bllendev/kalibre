@@ -10,13 +10,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-openlibrary_api = OpenLibraryAPI()
-libgen_api = LibgenAPI()
-
-
 def normalize_text(text):
     """Normalize the text for better comparison."""
-    return text.lower().translate(str.maketrans('', '', string.punctuation)).strip().replace("-", " ")
+    return text.lower().translate(str.maketrans('', '', string.punctuation + "- ")).strip()
 
 def book_match_bln(book, other_book):
     normalized_title = normalize_text(book['title'])
@@ -29,9 +25,10 @@ def book_match_bln(book, other_book):
     # Compare authors
     author_similarity = fuzz.ratio(normalized_author, normalized_author_other)
 
-    if title_similarity > 80 and author_similarity > 40:
+    if title_similarity > 70 and author_similarity > 42:
         return True
-    elif title_similarity >= 90:
+
+    elif title_similarity >= 85:
         return True
 
     # print(f"normalized_title: {normalized_title}")
@@ -44,12 +41,11 @@ def book_match_bln(book, other_book):
     # print(F"---------------------------")
     return False
 
-def find_matching_books(book, libgen_books, filetype):
-    for libgen_book in libgen_books:
-        if libgen_book["filetype"] == filetype:
-            if book_match_bln(book, libgen_book):
-                return libgen_book
-
+def find_matching_books(book, other_books, filetype):
+    for other_book in other_books:
+        if other_book["filetype"] == filetype:
+            if book_match_bln(book, other_book):
+                return other_book
     return None
 
 
@@ -69,6 +65,8 @@ class APIBook:
         LIBGEN_KEY_DICT (dict): Mapping of LibGen API response keys to `APIBook` attributes.
         OPENLIBRARY_KEY_DICT (dict): Mapping of OpenLibrary API response keys to `APIBook` attributes.
     """
+    OPENLIBRARY_KEY_DICT = OpenLibraryAPI.KEY_DICT
+    LIBGEN_KEY_DICT = LibgenAPI.KEY_DICT
 
     def __init__(self, **kwargs):
         """
@@ -88,12 +86,12 @@ class APIBook:
 
         for original_key, v in kwargs.items():
             # catch and prepare all libgen data
-            libgen_key = libgen_api.LIBGEN_KEY_DICT.get(original_key)
+            libgen_key = self.LIBGEN_KEY_DICT.get(original_key)
             if libgen_key:
                 setattr(self, libgen_key, str(v).replace("&amp", ""))
 
             # catch and prepare all openlibrary data
-            openlibrary_key = openlibrary_api.OPENLIBRARY_KEY_DICT.get(original_key)
+            openlibrary_key = self.OPENLIBRARY_KEY_DICT.get(original_key)
             if openlibrary_key:
                 # prepare author data
                 if original_key == "author_name":  # TODO: want this to save author and id and leverage db overtime
@@ -103,7 +101,7 @@ class APIBook:
                     # v = author_dict["name"]
 
                 if original_key == "cover_i":
-                    v = openlibrary_api.get_cover_url(cover_id=v, size="L")
+                    v = OpenLibraryAPI.get_cover_url(cover_id=v, size="L")
 
                 if original_key == "isbn":
                     isbn_list = list(v)
@@ -123,38 +121,6 @@ class APIBook:
             self.filetype = ""
 
         self._title_lemmatized = process_text(self.title)
-
-    @classmethod
-    def __call__(cls, search_query):
-        """
-        Fetch books based on a search query from OpenLibrary API.
-
-        Args:
-            search_query (str): The search term to find books.
-
-        Returns:
-            set: A set of `APIBook` instances representing the books found.
-        """
-        # openlibrary api
-        openlibrary_books = openlibrary_api.get_book_search_results(search_query)
-        openlibrary_book_set = {cls(**book) for book in openlibrary_books}
-
-        # libgen api
-        libgen_books = libgen_api.get_book_search_results(search_query)
-        libgen_book_set = {cls(**book) for book in libgen_books}
-
-        # get final output
-        output_list = list()
-        for book in openlibrary_book_set:
-            epub_match = find_matching_books(book, libgen_book_set, "epub")
-
-            if epub_match:
-                book.json_links = epub_match.json_links
-                book.filetype = epub_match.filetype
-
-            output_list.append(book)
-        
-        return set(output_list)
 
     def __iter__(self):
         return iter(self.__dict__.items())
@@ -179,7 +145,8 @@ class APIBook:
         if not isinstance(other, APIBook):
             return NotImplemented
 
-        return book_match_bln(self, other)
+        if book_match_bln(self, other):
+            return True
 
     def __getitem__(self, item):
         """

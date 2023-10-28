@@ -36,7 +36,7 @@ class LibgenAPI:
         "Edit",
     ]
 
-    LIBGEN_KEY_DICT = {
+    KEY_DICT = {
         "ID": "isbn",
         "Author": "author",
         "Title": "title",

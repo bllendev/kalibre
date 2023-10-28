@@ -27,11 +27,19 @@ class TestAPIBook(TestCase):
             "isbn": "works/OL20157354W",
             "author": "John Doe",
             "title": "Sample Book",
-            "cover_url": "https://covers.openlibrary.org/b/id/8802446-M.jpg",  # OL20157354W
+            "cover_url": "https://covers.openlibrary.org/b/id/8802446-L.jpg",  # OL20157354W
         }
         
         for key, value in expected_values.items():
             self.assertEqual(book[key], value)
+
+    def test_set_api_books(self):
+        """calling set() should unique-ify books"""
+        # openlibrary
+        book1 = APIBook(ID="12345", Author="John Doe", Title="Sample Book", Extension="epub")
+        book2 = APIBook(ID="12345", Author="John Doe", Title="Sample Book", Extension="epub")
+        book_set = set([book1, book2])
+        self.assertTrue(len(book_set) == 1)
     
     def test_iter(self):
         book = APIBook(ID="12345", Author="John Doe", Title="Sample Book", Extension="pdf")

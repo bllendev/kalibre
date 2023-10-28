@@ -14,6 +14,8 @@ from books.tests.constants import (
 # local
 from books.api.book_api import BookAPI
 from books.api.api_book import APIBook
+from books.api._api_openlibrary import OpenLibraryAPI
+from books.api._api_libgen import LibgenAPI
 from books.models import Book
 
 
@@ -31,9 +33,37 @@ class TestBookAPI(TestCase):
     def setUpClass(cls):
         super(TestBookAPI, cls).setUpClass()
 
-        # create book api instances (one for db search, one for api search)
-        cls.test_book_db = BookAPI(TEST_QUERY, force_api=False)
-        cls.test_book_api = BookAPI(TEST_QUERY, force_api=True)
+        # openlibrary apibook
+        cls.openlibrary_book = {
+            "key": "12345",
+            "author_name": "test_author",  # author_key for id
+            "title": "test_title",
+            "cover_i": "test_cover_url",
+        }
+
+        # libgen apibook
+        cls.libgen_book = {
+            "ID": "12345",
+            "Author": "test_author",
+            "Title": "test_title",
+            "Extension": "epub",
+        }
+    
+    @patch.object(OpenLibraryAPI, "get_book_search_results")
+    @patch.object(LibgenAPI, "get_book_search_results")
+    def test_get_search_query_results(self, mock_libgen_api, mock_openlibrary_api):
+        # mock
+        mock_libgen_api.return_value = [self.libgen_book]
+        mock_openlibrary_api.return_value = [self.openlibrary_book]
+
+        # act
+        books = BookAPI().get_search_query_results()
+
+        # assert
+        self.assertTrue(books, "bad books!")
+        self.assertEquals(len(books), 1)
+        mock_libgen_api.called_once()
+        mock_openlibrary_api.called_once()
 
     @patch.object(BookAPI, "get_search_query_results", return_value=[APIBook(title=TEST_QUERY, isbn=TEST_ISBN, Mirror_1="file link")])
     def test_update_books(self, mock_get_search_query_results):
@@ -46,8 +76,7 @@ class TestBookAPI(TestCase):
         book = Book.objects.get(pk=book.pk)
         self.assertIn("test_author", book.author)
         
-
     def test_get_book(self):
         TEST_BOOK = BookFactory.create(title=TEST_QUERY, isbn=TEST_ISBN, filetype=TEST_BOOK_FILETYPE)
-        test_book = self.test_book_db.get_book(TEST_BOOK.isbn, TEST_BOOK.title, TEST_BOOK.filetype)
+        test_book = BookAPI().get_book(TEST_BOOK.isbn, TEST_BOOK.title, TEST_BOOK.filetype)
         self.assertEqual(test_book, TEST_BOOK)
