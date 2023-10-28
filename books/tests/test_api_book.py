@@ -21,12 +21,13 @@ class TestAPIBook(TestCase):
             self.assertEqual(book[key], value)
 
     def test_openlibrary_data(self):
-        book = APIBook(key="12345", author_name=["John Doe"], title="Sample Book")
-        
-        expected_values = {
-            "isbn": "12345",
+        book = APIBook(key="works/OL20157354W", author_name=["John Doe"], title="Sample Book", cover_i=8802446)
+
+        expected_values = {  # NOTE: should correspond Book db fields
+            "isbn": "works/OL20157354W",
             "author": "John Doe",
-            "title": "Sample Book"
+            "title": "Sample Book",
+            "cover_url": "https://covers.openlibrary.org/b/id/8802446-M.jpg",  # OL20157354W
         }
         
         for key, value in expected_values.items():

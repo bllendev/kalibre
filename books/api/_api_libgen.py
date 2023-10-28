@@ -36,6 +36,13 @@ class LibgenAPI:
         "Edit",
     ]
 
+    LIBGEN_KEY_DICT = {
+        "ID": "isbn",
+        "Author": "author",
+        "Title": "title",
+        "Extension": "filetype",
+    }
+
     STABLE_FILE_TYPES = {"epub", "mobi"}
 
     def __init__(self):
