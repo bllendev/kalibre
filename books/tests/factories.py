@@ -29,6 +29,7 @@ class BookFactory(factory.django.DjangoModelFactory):
     title = factory.Faker('sentence', nb_words=4)
     author = factory.Faker('name')
     price = factory.Faker('pydecimal', left_digits=4, right_digits=2, positive=True)
+    cover_url = factory.Faker('url')
     cover = factory.django.ImageField(filename='test_cover.jpg')
     filetype = factory.Faker('file_extension')
     isbn = factory.Faker('isbn13')
