@@ -63,11 +63,27 @@ class Book(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"
-
-    def set_cover(self):
-        if not self.cover_url:
-            raise KeyError("{self} - missing self.cover_url - should be set in books.book_api.update_books - see APIBook class")
     
+    def _set_cover_url(self):
+        """sets the cover_url link in db which is used to set the cover images"""
+        # setup
+        status = None
+        openlibrary_api = OpenLibraryAPI()
+
+        # get data
+        openlibrary_book = openlibrary_api.get_book(self.isbn)
+        cover_id = openlibrary_book["covers"][0]
+        cover_url = openlibary_api.get_cover_url(cover_id)
+        if not cover_url:
+            raise TypeError("no cover_url was returned !")
+
+        # save to db
+        self.cover_url = cover_url
+        self.save()
+        return
+
+    def _set_cover(self, cover_url):
+        cover_url = cover_url if cover_url else self.cover_url
         r = requests.get(self.cover_url)
         if r.status_code == 200:
             data = r.content
@@ -84,17 +100,21 @@ class Book(models.Model):
         return reverse('book_detail', args=[str(self.id)])
     
     def get_cover_url(self):
+        cover = None
         cover_url = os.path.join("/static", "books", "generic_book_cover.jpg")
         try:
+            if not self.cover_url and not self.cover:
+                self._set_cover_url()
+                self._set_cover()
+            elif self.cover_url and not self.cover:
+                self._set_cover()
             if self.cover:
                 cover_url = self.cover.url
             else:
-                self.set_cover()
-                cover_url = self.cover.url
-
-            logger.info("cover_url - {cover_url}")
+                raise Exception("unable to get final image of saved cover.url !")
+            logger.info(f"get_cover_url - {cover_url}")
         except Exception as e:
-            logger.error(f"unable to save cover ! {self} | {e} | {cover_url}")
+            logger.error(f"get_cover_url | {self} | {e} | {cover_url}")
         return cover_url
 
     def _get_book_file_download_link(self, link, inner_link_int):
@@ -164,7 +184,7 @@ class Book(models.Model):
             book_final_path = new_file_path
 
         except TypeError as e:
-            print(f"{e}: temp_book_file_link is not an allowable book file type... {temp_book_file_link}")
+            logging.error(f"{e}: temp_book_file_link is not an allowable book file type... {temp_book_file_link}")
 
         except Exception as e:
             # attempt removal in case of error

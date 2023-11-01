@@ -25,7 +25,6 @@ class OpenLibraryAPI:
         params = {"q": query}
         response = requests.get(self.SEARCH_URL, params=params)
         
-        # It's better to check the response status code
         if response.status_code == 200:
             return response.json()
         else:
@@ -41,6 +40,15 @@ class OpenLibraryAPI:
             logger.error(f"get_book_search_results - {e}")
             raise e
         return book_search_results
+
+    def get_book(self, book_id):
+        # key implies we are using works/oid
+        if "key" in self.KEY_DICT:
+            response = requests.get(f"self.{BASE_URL}/works/{book_id}.json")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                response.raise_for_status()
 
     @log
     def get_author(self, author_id):
