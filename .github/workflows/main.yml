@@ -29,7 +29,6 @@ jobs:
       KALIBRE_PRIVADO: ${{ secrets.KALIBRE_PRIVADO }}
       KALIBRE_EBOOK_CONVERT_URL=${{KALIBRE_EBOOK_CONVERT_URL}}
 
-
     services:
       db:
         image: postgres:12-alpine
