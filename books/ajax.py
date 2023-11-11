@@ -15,7 +15,6 @@ from translate.constants import LANGUAGES
 
 import os
 import json
-import requests
 
 
 CustomUser = get_user_model()
