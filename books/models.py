@@ -202,26 +202,67 @@ class Book(models.Model):
 
         return book_final_path
 
-    def get_book_file_path(self, language):
+    def _convert_book_file(self, book_file_path, convert_output_format):
+        """ Function to convert book file format using kalibre-ebook-convert microservice. """
+
+        base_url = os.getenv('KALIBRE_EBOOK_CONVERT_URL')
+        api_endpoint = "api/convert/"
+        url = f"{base_url}{api_endpoint}?output_format={convert_output_format}"
+        headers = {
+            'X-API-Key': os.getenv("KALIBRE_PRIVADO")
+        }
+
+        # Ensure the file exists
+        if not os.path.isfile(book_file_path):
+            raise RuntimeError(f"File not found: {book_file_path}")
+
+        # Prepare the file to be uploaded
+        with open(book_file_path, 'rb') as f:
+            files = {'input_file': (os.path.basename(book_file_path), f)}
+            response = requests.post(url, headers=headers, files=files)
+
+        # Handle the response
+        output_path = f"output.{convert_output_format}"
+        if response.status_code == 200:
+            # Optionally, handle the file response, e.g., save it to disk
+            with open(output_path, 'wb') as out:
+                out.write(response.content)
+            logging.info("Success: File converted and saved.")
+        else:
+            logging.error("Error:", response.status_code, response.text)
+            raise RuntimeError(f"could not convert book_file ! {book_file_path} | {convert_output_format}")
+
+        return output_path
+
+    def get_book_file_path(self, language, convert_output_format=""):
         # write file to path (will use file to send - then we will delete file)
         title = self.title.replace("/", "-").replace("//", "-").replace("\\", "-")
         new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
 
         # create book file
         book_file_path = self._create_book_file(new_file_path, language)
+
+        # convert if necessary
+        if convert_output_format:
+            book_file_path = self._convert_book_file(book_file_path, convert_output_format)
+
         return book_file_path
 
     def send(self, emails, language="en"):
         """emails actual book file to recipient addresses"""
         # get book file path
-        book_file_path = self.get_book_file_path(language)
+        try:
+            book_file_path = self.get_book_file_path(language)
 
-        # set template message (appropriate recipients)
-        template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
-        template_message[3] = emails
+            # set template message (appropriate recipients)
+            template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
+            template_message[3] = emails
 
-        # send - return status
-        status = send_emails(template_message, [book_file_path])
+            # send - return status
+            status = send_emails(template_message, [book_file_path])
+        except Exception as e:
+            logging.error(f"books.send - {e}")
+            status = False
         return status
 
     @classmethod

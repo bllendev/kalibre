@@ -132,6 +132,11 @@ class BookTest(TestCase):
             # assert
             self.assertEqual(cover_url, "/static/books/generic_book_cover.jpg")
 
+    # def test_convert_book_file(self):  # NOTE: does actual call to kalibre-ebook-convert microservice
+    #     TEST_FILE = os.path.join(settings.BASE_DIR, "requirements.txt")
+    #     book_file_path = self.test_book._convert_book_file(TEST_FILE, "pdf")
+    #     self.assertTrue(book_file_path)
+
     # @patch("books.models.Book._get_book_download_content")
     # def test_book_get_book_file_path_from_links(self, mock_get_book_download_content):
     #     # Set up the mock _get_book_download_content() response

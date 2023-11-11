@@ -22,6 +22,8 @@ services:
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
       - DEBUG=${DEBUG}
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - KALIBRE_PRIVADO=${KALIBRE_PRIVADO}
+      - KALIBRE_EBOOK_CONVERT_URL=${KALIBRE_EBOOK_CONVERT_URL}
     volumes:
       - .:/code
     ports:
