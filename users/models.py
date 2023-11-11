@@ -37,6 +37,26 @@ class Email(models.Model):
         return self.address
 
 
+class UserSettings(models.Model):
+    # notifications
+    notifications = models.JSONField(default={
+        "notify_ebook_convert": True,
+    })
+
+    # settings
+    setting_ebook_convert = models.CharField(default="", blank=True)
+
+    def get_notification(self, notification_str):
+        return self.notifications.get(notification_str, None)
+
+    def set_notification(self, notification_str, set_bool):
+        current_value = self.notifications.get(notification_str)
+    
+        # Check if the notification setting exists and if the new value is different
+        if current_value is not None and current_value != set_bool:
+            self.notifications[notification_str] = set_bool
+            self.save()
+
 from django.contrib.auth.models import AbstractUser
 
 
@@ -45,6 +65,7 @@ class CustomUser(AbstractUser):
     """
     email_addresses = models.ManyToManyField("users.Email")
     my_books = models.ManyToManyField("books.Book")
+    settings = models.OneToOneField("users.UserSettings", on_delete=models.CASCADE, related_name='user', null=True)
 
     @property
     def emails_exist(self):
