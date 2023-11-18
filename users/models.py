@@ -57,6 +57,11 @@ class UserSettings(models.Model):
             self.notifications[notification_str] = set_bool
             self.save()
 
+    class Meta:
+        verbose_name = "User Setting"
+        verbose_name_plural = "User Settings"
+
+
 from django.contrib.auth.models import AbstractUser
 
 
