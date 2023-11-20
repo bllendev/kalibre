@@ -4,10 +4,6 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from bookstore_project.logging import log
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 from users.models import Email
 from books.utils import request_is_ajax_bln
@@ -15,6 +11,9 @@ from translate.constants import LANGUAGES
 
 import os
 import json
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 CustomUser = get_user_model()
@@ -44,7 +43,7 @@ def send_book_ajax(request):
         username = request.user.username
         user = CustomUser.objects.get(username=username)
     except Exception as e:
-        print(f"Error in send_book_ajax_view: {e}")
+        logger.error(f"ERROR: books.ajax.send_book_ajax {e}")
         return JsonResponse({'status': False}, status=400)
 
     # book send task here
@@ -53,7 +52,7 @@ def send_book_ajax(request):
     try:
         book_api = BookAPI()
         book = book_api.get_book(isbn, book_title, filetype)
-        status_bln, status_code = send_book_email_task(username, book, json_links)            
+        status_bln, status_code = send_book_email_task(username, book)            
     except Exception as e:
         logger.error(f"ERROR: books.ajax.send_book_ajax {e}")
         return JsonResponse({'status': False}, status=404)

@@ -10,7 +10,6 @@ from books.api._api_libgen import LibgenAPI
 
 # logging
 import logging
-
 logger = logging.getLogger(__name__)
 
 

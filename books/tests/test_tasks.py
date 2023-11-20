@@ -33,13 +33,18 @@ class SendBookAjaxTaskTest(TestCase):
         self.isbn = 'some_isbn'
         self.json_links = 'some_links'
 
-    @patch('books.tasks.Email.get_email_dict')
     @patch('books.tasks.CustomUser.objects.get')
-    def test_send_book_email_task(self, mock_get_user, mock_get_email_dict):
+    @patch('books.models.Book.send', return_value=(True, 200))
+    def test_send_book_email_task(self, mock_book_send, mock_get_user):
+        mock_user = CustomUserFactory.create(username=self.username)
+        mock_get_user.return_value = mock_user
+        mock_user.get_email_dict = MagicMock(return_value={"es": "test@email.com"})
+
         # act
-        result = send_book_email_task(self.username, self.book, self.json_links)
+        result = send_book_email_task(self.username, self.book)
 
         # assert
-        self.assertTrue(mock_get_user.called)
-        self.assertTrue(mock_get_email_dict.called)
+        mock_get_user.assert_called_once_with(username=self.username)
+        mock_user.get_email_dict.assert_called_once()
+        mock_book_send.assert_called_once()
         self.assertEqual((True, 200), tuple(result))

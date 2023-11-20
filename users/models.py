@@ -72,6 +72,11 @@ class CustomUser(AbstractUser):
     my_books = models.ManyToManyField("books.Book")
     settings = models.OneToOneField("users.UserSettings", on_delete=models.CASCADE, related_name='user', null=True)
 
+    def get_email_dict(self):
+        emails = self.email_addresses.all()
+        email_dict = Email.get_email_dict(emails)
+        return email_dict
+
     @property
     def emails_exist(self):
         return self.email_addresses.all().exists()

@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 
-
 CustomUser = get_user_model()
 
 # tools
@@ -16,6 +15,10 @@ import openai
 from ai.models import TokenUsage, Conversation, Message
 from ai.constants import TOKEN_USAGE_DAILY_LIMIT, AI_PROMPT
 import tiktoken
+
+# logging
+import logging
+logger = logging.getLogger(__name__)
 
 
 # update your `update_token_usage` function to use `tiktoken`
@@ -108,7 +111,7 @@ def ai_librarian(request):
             user_message_json = request.POST.get('user_message', "")
             user_message = json.loads(user_message_json)
         except Exception as e:
-            print(f"ERROR: {e}")
+            logger.error(f"ERROR: ai.ajax.ai_librarian {e}")
 
         # extract user info
         username = request.user.username
@@ -123,7 +126,7 @@ def ai_librarian(request):
             else:
                 ai_message = query_ai(request, user_message)
         except Exception as e:
-            print(f"ai.ajax.ai_librarian ERROR: {e}")
+            logger.error(f"ai.ajax.ai_librarian ERROR: {e}")
             return JsonResponse({'error': f'An error occurred while processing your request...'}, status=500)  # 500 -> internal server error
 
         return JsonResponse({'message': ai_message})
@@ -153,5 +156,5 @@ def create_conversation(request):
         return JsonResponse({'conversation_id': conversation.id})
 
     except Exception as e:
-        print(f"create_conversation - ERROR: {e}")
+        logger.error(f"ai.ajax.create_conversation {e}")
         return JsonResponse({'error': 'Internal Server Error'}, status=500)
