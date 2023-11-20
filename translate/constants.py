@@ -105,3 +105,9 @@ LANGUAGES = {
     'yi': 'ייִדיש (Yiddish)',
     'zu': 'Zulu',
 }
+
+# ex. (("eng", "English"), ("es", "Español"), etc.)
+TRANSLATE_CHOICES = (
+    (lang_code, lang_title)
+    for lang_code, lang_title in LANGUAGES.items()
+)

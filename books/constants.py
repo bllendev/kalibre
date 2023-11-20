@@ -8,3 +8,10 @@ EMAIL_TEMPLATE_LIST = [
     str(settings.DEFAULT_FROM_EMAIL),        # from email
     list(),                             # recipient_list
 ]
+
+# EBOOK CONVERT CONSTANTS
+EBOOK_CONVERT = (
+    ("pdf", "PDF"),
+    ("epub", "EPUB"),
+    ("mobi", "MOBI"),
+)

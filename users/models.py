@@ -1,23 +1,18 @@
 from django.db import models
 from django.conf import settings
-
 from collections import defaultdict
 
-from translate.constants import LANGUAGES
-
-
-# ex. (("eng", "English"), ("es", "Español"), etc.)
-LANUAGES_CONSTANTS = (
-    (lang_code, lang_title)
-    for lang_code, lang_title in LANGUAGES.items()
-)
+from translate.constants import TRANSLATE_CHOICES
+from books.constants import EBOOK_CONVERT
 
 
 class Email(models.Model):
-    TRANSLATE_CHOICES = LANUAGES_CONSTANTS
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user', default=None, null=True)
-    address = models.CharField(default="", max_length=120)
+    address = models.CharField(default="", max_length=120)  # email address
+
+    # settings
     translate_file = models.CharField(max_length=20, choices=TRANSLATE_CHOICES, default="en", blank=True, null=False)
+    ebook_convert = models.CharField(default="", choices=EBOOK_CONVERT, max_length=5, blank=True)
 
     @staticmethod
     def get_email_dict(emails):
@@ -44,7 +39,8 @@ class UserSettings(models.Model):
     })
 
     # settings
-    setting_ebook_convert = models.CharField(default="", blank=True)
+    setting_ebook_convert = models.CharField(default="", choices=EBOOK_CONVERT, max_length=5, blank=True)
+    # setting_translate_file = models.CharField(default="", blank=True)
 
     def get_notification(self, notification_str):
         return self.notifications.get(notification_str, None)
