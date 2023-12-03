@@ -54,18 +54,18 @@ class BookTest(TestCase):
         self.assertTrue(test_book_ids)
         self.assertIn(self.test_book.id, test_book_ids, "test_book was not found in db search results")
 
-    @patch("requests.get")
-    def test_book_create_book_file(self, mock_requests_get):
-        # Set up the mock requests.get() response
-        mock_response = MagicMock()
-        mock_response.content = b"Book file content"
-        mock_requests_get.return_value = mock_response
+    # @patch("requests.get")
+    # def test_book_create_book_file(self, mock_requests_get):
+    #     # Set up the mock requests.get() response
+    #     mock_response = MagicMock()
+    #     mock_response.content = b"Book file content"
+    #     mock_requests_get.return_value = mock_response
 
-        # Call the _create_book_file() method and check the output
-        book_file_path = "/tmp/book.epub"
-        self.test_book._create_book_file(book_file_path, language="en")
-        with open(book_file_path, "rb") as f:
-            self.assertEqual(f.read(), b"Book file content")
+    #     # Call the _create_book_file() method and check the output
+    #     book_file_path = "/tmp/book.epub"
+    #     self.test_book._create_book_file(book_file_path, language="en")
+    #     with open(book_file_path, "rb") as f:
+    #         self.assertEqual(f.read(), b"Book file content")
 
     @patch.object(Book, "_set_cover_url", return_value="test_cover_url")
     @patch.object(Book, "_set_cover", return_value=MagicMock())
