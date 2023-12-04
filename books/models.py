@@ -133,13 +133,20 @@ class Book(models.Model):
             - this takes scraps self.link, finding the
             specific download link to the book file.
         """
+        book_download_link = None
         try:
             json_links = json.loads(self.json_links)
             book_download_link = self._get_book_file_download_link(json_links[0], inner_link_int)
         except Exception as e:
             book_download_link = self._get_book_file_download_link(json_links[1], 1)
-            print(f"_get_book_download_content - BAD LINK: {e}")
+            logging.error(f"_get_book_download_content - BAD LINK: {e}")
         return book_download_link
+
+    def _write_book_file(self, temp_book_file_dl, new_file_path):
+        # save og file (used as reference for translation as well)
+        with temp_book_file_dl and open(new_file_path, "wb") as f:
+            f.write(temp_book_file_dl.content)
+            f.close()
 
     def _create_book_file(self, new_file_path, language):
         """
@@ -156,50 +163,27 @@ class Book(models.Model):
 
         # get book file content
         temp_book_file_link = self._get_book_download_content()
+
+        # check book file
+        book_file_bln = any([
+            self.BOOK_FILETYPE_EPUB in temp_book_file_link,
+            self.BOOK_FILETYPE_MOBI in temp_book_file_link,
+            self.BOOK_FILETYPE_PDF in temp_book_file_link,
+        ])
+        if not book_file_bln:
+            raise TypeError(f"Book File Boolean must be pdf, epub, or mobi... {temp_book_file_link}")
+
+        # save og file (used as reference for translation as well)
         temp_book_file_dl = requests.get(temp_book_file_link)
+        self._write_book_file(temp_book_file_dl, new_file_path)
 
-        # write book file content
-        try:
+        # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
+        if language and language != "en":
+            ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
+            new_file_path = ebook_translate.get_translated_book_path()
 
-            # check book file
-            book_file_bln = any([
-                self.BOOK_FILETYPE_EPUB in temp_book_file_link,
-                self.BOOK_FILETYPE_MOBI in temp_book_file_link,
-                self.BOOK_FILETYPE_PDF in temp_book_file_link,
-            ])
-            if not book_file_bln:
-                raise TypeError
-
-            # save og file (used as reference for translation as well)
-            with temp_book_file_dl and open(new_file_path, "wb") as f:
-                f.write(temp_book_file_dl.content)
-                f.close()
-
-            # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
-            if language != "en":
-                ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
-                new_file_path = ebook_translate.get_translated_book_path()
-
-            # set final book path
-            book_final_path = new_file_path
-
-        except TypeError as e:
-            logging.error(f"{e}: temp_book_file_link is not an allowable book file type... {temp_book_file_link}")
-
-        except Exception as e:
-            # attempt removal in case of error
-            os_silent_remove(new_file_path)
-
-            # debug
-            error_log += f"self BOOK @@@!!!: {self}"
-            error_log += f"new_file_path: {new_file_path}"
-            error_log += f"json_links: {self.json_links}"
-            error_log += f"temp_book_file_link: {temp_book_file_link}"
-            error_log += f"temp_book_file_dl: {temp_book_file_dl}"
-            error_log += f"langauge: {language}"
-            logging.error(f"{e}: {error_log}")
-            raise e
-
+        # set final book path
+        book_final_path = new_file_path
         return book_final_path
 
     def _convert_book_file(self, book_file_path, convert_output_format):
@@ -235,34 +219,44 @@ class Book(models.Model):
         return output_path
 
     def get_book_file_path(self, language, convert_output_format=""):
-        # write file to path (will use file to send - then we will delete file)
-        title = self.title.replace("/", "-").replace("//", "-").replace("\\", "-")
-        new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
+        book_file_path = None
+        try:
+            # write file to path (will use file to send - then we will delete file)
+            title = self.title.replace("/", "-").replace("//", "-").replace("\\", "-")
+            new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
 
-        # create book file
-        book_file_path = self._create_book_file(new_file_path, language)
+            # create book file
+            book_file_path = self._create_book_file(new_file_path, language)
 
-        # convert if necessary
-        if convert_output_format:
-            book_file_path = self._convert_book_file(book_file_path, convert_output_format)
+            # convert if necessary
+            if convert_output_format:
+                book_file_path = self._convert_book_file(book_file_path, convert_output_format)
+            
+        except TypeError as e:
+            logging.error(f"_create_book_file ERROR")
+
+        except RuntimeError as e:
+            logging.error(f"_convert_book_file ERROR")
+
+        except Exception as e:
+            os_silent_remove(book_file_path)
+            logging.error(f"books.get_book_file_path - {e}")
 
         return book_file_path
 
     def send(self, emails, language="en"):
         """emails actual book file to recipient addresses"""
         # get book file path
-        try:
-            book_file_path = self.get_book_file_path(language)
+        book_file_path = self.get_book_file_path(language)
 
+        status = False
+        if book_file_path:
             # set template message (appropriate recipients)
             template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
             template_message[3] = emails
 
             # send - return status
             status = send_emails(template_message, [book_file_path])
-        except Exception as e:
-            logging.error(f"books.send - {e}")
-            status = False
         return status
 
     @classmethod

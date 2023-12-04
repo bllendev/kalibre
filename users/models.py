@@ -39,9 +39,9 @@ class Email(models.Model):
 
 class UserSettings(models.Model):
     # notifications
-    notifications = models.JSONField(default={
+    notifications = models.JSONField(default=({
         "notify_ebook_convert": True,
-    })
+    }))
 
     # settings
     setting_ebook_convert = models.CharField(default="", blank=True)
