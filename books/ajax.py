@@ -166,7 +166,7 @@ def toggle_translate_email(request, pk):
         raise Exception("POST requests only.")
 
     except Exception as e:
-        logger.error(f"ERROR: books.ajax.delete_email | {e}")
+        logger.error(f"ERROR: books.ajax.toggle_translate_email | {e}")
         raise e
 
     return JsonResponse({'status': False}, status=400)
