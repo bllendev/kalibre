@@ -1,60 +1,51 @@
 <div class="container">
 
-  <div class="row mb-3">
-      <div class="col-md-8"></div>
-      <div class="col-md-4" id="peas_div"></div>
-  </div>
-
   <div class="row">
-    <div class="col-md-9">
-      <h2 class="p-2">add emails you'd like to send your books to!</h2>
-    </div>
-  </div>
-
-  <div class="mb-3">
-      <form id="add_email_form"
-      hx-post="{% url 'add_email' %}"
-      hx-target="#email_table"
-      hx-swap="beforeend"
-      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
-      hx-boost="true" >
-        <div class="input-group mb-3" style="width:75%">
-            <input id="email" name="email_input[]" type="text" class="form-control" placeholder="enter emails here!">
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="submit">submit</button>
-            </div>
+    <div class="col-8">
+      <div class="row">
+        <div class="col-12 text-center">
+          <h3 class="p-2">Add emails you'd like to send your books to!</h3>
         </div>
-      </form>
-  </div>
-
-  <div class="mb-5">
-    <div class="row">  
-      <div class="col-md-12">
-          <table class="table table-hover" hx-target="closest tr" hx-swap="outerHTML swap:1s" id="email_table" style="width:66%">
-
-            <thead>
-              <tr>
-                <th>my emails</th>
-                <th align="center" >Translate?</th>
-              </tr>
-            </thead>
-  
-            {% for email in email_addresses %}
-              {% include "users/components/email_entry.html" %}
-            {% endfor %}
-
-          </table>
       </div>
+
+      <div class="mb-3">
+        <form id="add_email_form"
+              hx-post="{% url 'add_email' %}"
+              hx-target="#email_cards"
+              hx-swap="beforeend"
+              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
+              hx-boost="true" >
+                <div class="input-group mb-3">
+                  <input id="email" name="email_input[]" type="text" class="form-control" placeholder="Enter emails here!">
+                  <div class="input-group-append">
+                      <button class="btn btn-outline-secondary" type="submit">Submit</button>
+                  </div>
+                </div>
+        </form>
+      </div>
+
+      <div class="mb-5">
+        <div class="row">
+          <div class="col-12">
+            
+            <!--Email Cards-->
+            <div id="email_cards" class="d-block">
+              {% for email in email_addresses %}
+                  {% include "users/components/email_entry.html" %}
+              {% endfor %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <div class="col-4" id="peas_div">
+      <!-- Peas image will now be within this div and responsive -->
+      <img id="peas" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif" style="max-width:100%; background-color:transparent;" class="img-fluid">
+    </div>
+
   </div>
+
 </div>
-
-<script>
-  // peas img
-  var peas_img = $('<img id="peas">');
-  peas_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif");
-  peas_img.attr('style', 'max-width:100%;background-color:transparent;position:absolute;left:70px');
-  peas_img.appendTo('#peas_div');
-  peas_img.show();
-
-</script>

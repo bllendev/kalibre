@@ -4,8 +4,10 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from users.models import Email
 
-
 from celery import shared_task
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 CustomUser = get_user_model()
@@ -28,7 +30,7 @@ def send_book_email_task(username, book, json_links):
                 raise Exception
 
     except Exception as e:
-        print(f"Error in books.task.send_book_email_task: {e}")
+        logging.error(f"books.task.send_book_email_task: {e}")
         return False, 400  # status and status_code
 
     return True, 200

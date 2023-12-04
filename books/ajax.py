@@ -109,7 +109,7 @@ def delete_email(request, pk):
             user = CustomUser.objects.get(username=username)
             user_email_to_delete = user.email_addresses.all().filter(pk=pk).first()
 
-            # Ensure email exists before deleting
+            # ensure email exists before deleting
             if not user_email_to_delete:
                 return HttpResponseBadRequest("Email not found.")
 
@@ -144,6 +144,7 @@ def toggle_translate_email(request, pk):
     is_ajax = request_is_ajax_bln(request)
 
     try:
+        logger.error(f"request.method: {request.method}")
         if is_ajax and request.method == 'POST':
             username = request.user.username
             user = CustomUser.objects.get(username=username)

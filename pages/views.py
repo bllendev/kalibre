@@ -51,7 +51,7 @@ def handler500(request):
     logger.error(error_str, extra={'status_code': 500, 'request': request})
 
     # TODO: implement send_emails
-    if True or settings.ENVIRONMENT == "production":
+    if settings.ENVIRONMENT == "production":
         template_message = copy.deepcopy(ERROR_EMAIL_TEMPLATE_LIST)
         template_message[1] = error_str
         status = send_emails(template_message)
@@ -59,8 +59,6 @@ def handler500(request):
     response = HttpResponseServerError(render(request, 'error_page.html', context))
     response.status_code = 500
     return response
-
-    return HttpResponseServerError(render(request, 'error_page.html', context))
 
 
 def handler404(request, exception):

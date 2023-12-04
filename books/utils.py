@@ -80,7 +80,7 @@ def os_silent_remove(filename):
     try:
         os.remove(filename)
     except OSError as e:
-        logger.error(f"ERROR: books.utils.os_silent_remove | {e}")
+        logger.warning(f"ERROR: books.utils.os_silent_remove | {e}")
 
 
 def fx_return_to_sender(request, remove_GET=True):
