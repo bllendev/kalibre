@@ -1,31 +1,29 @@
-<tr id="email_{{email.pk}}">
-
-    <td>{{ email }}</td>
-
-    <td align="center">
-        <select class="form-control" 
-        id="email_{{email.pk}}_language" 
-        name="email_{{email.pk}}_language" 
-        hx-swap="outerHTML swap:0s"
-        hx-post="{% url 'toggle_translate_email' email.pk %}" 
-        hx-trigger="change"
-        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' >
-            <!-- Populate the options dynamically -->
-            {% for lang_code, lang_name in LANGUAGES.items %}
-                <option value="{{ lang_code }}" {% if email.translate_file == lang_code %} selected {% endif %}>
-                {{ lang_name }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
-
-    <td align="right">
-        <input type="hidden" name="delete_email_pk[]" value={{email.pk}}>
-        <button type="submit" 
+<div class="card mb-2" id="email_{{ email.pk }}">
+    <div class="card-body">
+        <h5 class="card-title">{{ email.address }}</h5>
+        <p class="card-text">
+            <select class="form-control" 
+                    id="email_{{ email.pk }}_language" 
+                    name="email_{{ email.pk }}_language"
+                    hx-post="{% url 'toggle_translate_email' email.pk %}" 
+                    hx-trigger="change"
+                    hx-target="#email_{{ email.pk }}"
+                    hx-boost="true"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                {% for lang_code, lang_name in LANGUAGES.items %}
+                    <option value="{{ lang_code }}" {% if email.translate_file == lang_code %}selected{% endif %}>
+                        {{ lang_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </p>
+        <button type="button"
                 hx-delete="{% url 'delete_email' email.pk %}" 
-                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
-                class="btn btn-sm btn-danger text-nowrap">delete
+                hx-trigger="click"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                hx-target="#email_{{ email.pk }}"
+                hx-boost="true"
+                class="btn btn-sm btn-danger">Delete
         </button>
-    </td>
-
-</tr>
+    </div>
+</div>
