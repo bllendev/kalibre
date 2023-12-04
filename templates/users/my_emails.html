@@ -1,7 +1,6 @@
 <div class="container">
-
-  <div class="row">
-    <div class="col-8">
+  <div class="row align-items-center">
+    <div class="col-8 mt-5">
       <div class="row">
         <div class="col-12 text-center">
           <h3 class="p-2">Add emails you'd like to send your books to!</h3>
@@ -23,29 +22,28 @@
                 </div>
         </form>
       </div>
-
-      <div class="mb-5">
-        <div class="row">
-          <div class="col-12">
-            
-            <!--Email Cards-->
-            <div id="email_cards" class="d-block">
-              {% for email in email_addresses %}
-                  {% include "users/components/email_entry.html" %}
-              {% endfor %}
-            </div>
-
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <div class="col-4" id="peas_div">
+    <div class="col-4 mt-2" id="peas_div">
       <!-- Peas image will now be within this div and responsive -->
       <img id="peas" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif" style="max-width:100%; background-color:transparent;" class="img-fluid">
     </div>
 
   </div>
+
+    <div class="mt-4 mb-5">
+      <div class="row">
+        <div class="col-12">
+          
+          <!--Email Cards-->
+          <div id="email_cards" class="d-block">
+            {% for email in email_addresses %}
+                {% include "users/components/email_entry.html" %}
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
 
 </div>
