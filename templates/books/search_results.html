@@ -7,7 +7,7 @@
 
     <h1><a href="{% url 'home' %}" class="text-secondary search-results-title">search results</a></h1>
 
-    <form class="form-inline mt-2 mt-md-0 mb-4" action="{% url 'search_results' %}" method="get">
+    <form class="form-inline mb-4" action="{% url 'search_results' %}" method="get">
         <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="try searching again here to make double sure!" aria-label="try searching again here to make double sure!">
     </form>
 
@@ -17,66 +17,52 @@
         }
 
         .filetype-toggle {
-          display: inline-block;
-          font-size: 14px;
-          padding: 8px 16px;
-          border: none;
-          border-radius: 100px;
-          background-color: #e0e0e0;
-          color: #757575;
-          cursor: pointer;
-          transition: background-color 0.2s, color 0.2s;
+            /* Other styles */
         }
-      
+        
         .filetype-toggle.active {
-          background-color: #A7E0AB; /* Soft pastel color */
-          color: #fff;
+            /* Other styles */
         }
-      </style>
-      
-      <div class="toggle-container">
-        <button class="filetype-toggle" data-filetype="pdf">PDF</button>
-        <button class="filetype-toggle" data-filetype="mobi">MOBI</button>
-        <button class="filetype-toggle" data-filetype="epub">EPUB</button>
-      </div>
 
-        <div id="search_result_div" style="opacity: 0; transition: opacity 1s ease;">
-
-            <!--key jquery vals set here-->
-            {{ user.email_addresses_str|json_script:"email_address_list" }}
-
-            <table class='table table-striped table-sortable sortable' style="border-radius: 10px; overflow: hidden; transition: transform 1s ease;">
-                <thead>
-
-                    {% comment %} <th></th> <!--save book for later button--> {% endcomment %}
-                    <th style="width:20%">author</th>
-                    <th style="width:50%">title</th>
-                    <th style="white-space:nowrap">file-type</th>
-                    {% comment %} <th>links</th> <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
-                    <th></th> <!--send now button-->
-
-                </thead>
-                <br>
-                    {% for book in book_list %}
-                        <form method="POST" id="book_send_form_{{book.pk}}">
-                            {% csrf_token %}
-                            <tr class="book-row" style="opacity: 0;">
-                                {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
-                                <td>{{book.author}}</td>
-                                <td><a href="{{ book.get_absolute_url }}" style="display: block; width: 100%;">{{book.title}}</td>
-                                <td>{{book.filetype}}</td>
-                                <td>
-                                    {% if book.filetype %}
-                                        <input type="hidden" id="book_{{forloop.counter}}" name="{{book.ssn}}" value="{{book.json_links}}">
-                                        <button class='btn-sm btn-outline-primary text-nowrap' type="submit">send</button>
-                                    {% endif %}
-                                </td> 
-                            </tr>
-                        </form>
-                    {% endfor %}
-            </table>
-
+        #search_result_div {
+            max-height: 80vh; /* 70% of the viewport height */
+            overflow-y: auto; /* Enables vertical scrolling */
+            transition: opacity 1s ease;
+        }
+    </style>
+        
+    <div class="row mb-2">
+        <div class="toggle-container col-12">
+            <button class="filetype-toggle" data-filetype="pdf">PDF</button>
+            <button class="filetype-toggle" data-filetype="mobi">MOBI</button>
+            <button class="filetype-toggle" data-filetype="epub">EPUB</button>
         </div>
+    </div>
+
+
+    <div id="search_result_div" class="col-12" style="opacity: 0; transition: opacity 1s ease;">
+
+        <div id="loading_notification">
+            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading..." class="img-fluid">
+        </div>
+
+        <table class='table table-striped table-sortable sortable' style="border-radius: 10px; overflow: hidden; transition: transform 1s ease;">
+            <thead class="mb-5">
+
+                {% comment %} <th></th> <!--save book for later button--> {% endcomment %}
+                <th style="width:20%">author</th>
+                <th style="width:50%">title</th>
+                <th style="white-space:nowrap">file-type</th>
+                {% comment %} <th>links</th> <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
+                <th></th> <!--send now button-->
+
+            </thead>
+            {% for book in book_list %}
+                {% include "books/components/book_entry.html" %}
+            {% endfor %}
+
+        </table>
+    </div>
 
 </div>
 
@@ -86,26 +72,17 @@
         $("#search_result_div").css("opacity", "1");
         $(".table-sortable").css("transform", "translateY(0)");
 
-        // key vals used in
-        var token = '{{csrf_token}}';
-        var emails_exist = {{ user.emails_exist|yesno:"true,false" }};
-        var translate_book_bln = {{ translate_book_bln|yesno:"true,false" }};
-        const email_address_list = JSON.parse(document.getElementById('email_address_list').textContent);
-
-        // every book row should have submit listener (to send book)
-        $("form[id^='book_send_form_']").each(function () {
-            $(this).on('submit', function (event) {
-                event.preventDefault();
-                var bookPk = $(this).attr('id').replace('book_send_form_', '');
-                set_book_send_form_onsubmit(bookPk, token);
-            });
+        // HTMX
+        $(document).on('htmx:beforeRequest', function () {
+            $('#loading_notification').show();
         });
-
-        // loading gif
-        var loading_gif = $('<img id="loading_gif">');
-        loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
-        loading_gif.attr('style', 'max-width:50px;max-height:50px;background-color:transparent;position:absolute;display:none;z-index:1000;');
-        $('body').append(loading_gif);
+        $(document).on('htmx:afterRequest', function () {
+            $('#loading_notification').hide();
+        });
+        $(document).on('htmx:responseError', function (event) {
+            var message =  "Ooops! Looks like an error occurred during the request!"
+            alert(message);
+        });
 
         // ahndle the toggle button clicks - (sets setting via Cookies)
         $('.filetype-toggle').on('click', function() {
@@ -128,89 +105,6 @@
         // --------------- //        
         // -- functions -- //
         // --------------- //        
-
-        // function to update the gif position on mouse movement when sending
-        function updateGifPosition(e) {
-            loading_gif.css({
-                top: e.pageY + 15,
-                left: e.pageX + 15
-            });
-        }
-
-
-        function fx_redirect_user_login() {
-            const currentURL = window.location.href;
-            window.location.href = `/accounts/login/?next=${currentURL}`;
-            return;  // Ensure that we exit after setting the window location
-        }
-
-
-        function fx_send_book_ajax(token, book_pk) {
-            var data = $("form[id='book_send_form_" + book_pk + "']").serialize();
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'send_book_ajax' %}",
-                data: data,
-                headers: {"X-CSRFToken": token},
-                success: function (response) {
-                    alert("your book has been successfully sent!");
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error response: ", xhr);
-                    var errorMessage = "hmmm, there seems to have been an error sending your book!";
-                    if(xhr.responseJSON && xhr.responseJSON.error){
-                        errorMessage += "\nDetails: " + xhr.responseJSON.error;
-                    }
-                    alert(errorMessage);
-                },
-                complete: function () {
-                    loading_gif.hide();
-                    $(document).off('mousemove', updateGifPosition);
-                }
-            });
-        }
-        
-
-        function set_book_send_form_onsubmit(book_pk, token) {
-            event.stopPropagation();
-            event.preventDefault();
-
-            const valid_user = {{valid_user|yesno:"true,false" }}
-            
-            // bypass 0: force redirect
-            if (!valid_user) {
-                fx_redirect_user_login();
-            }
-
-            // bypass 1: no emails to send to
-            if (valid_user && !emails_exist) {
-                alert("you haven't added any emails to your account yet! add emails to send your books to in 'my emails'!");
-                return
-            }
-
-            // attempt book send
-            if (emails_exist) {
-
-                // create confirmation alert
-                var alert_email_confirm = "do you want to send this book to the following emails?...";
-                alert_email_confirm = alert_email_confirm + "\n" + email_address_list;
-
-                // add translation to confirmation
-                if (translate_book_bln) {
-                    alert_email_confirm = alert_email_confirm + "\n\n" + "One or more of your emails will send a translated version of this book, you can change this in 'my emails' if you like!";
-                }
-
-                // if confirmed, send !
-                if (valid_user && confirm(alert_email_confirm)) {
-                    $(document).on('mousemove', updateGifPosition);
-                    loading_gif.show();
-                    
-                    fx_send_book_ajax(token, book_pk);
-                }
-            }
-        }
-
-
         function filterResults() {
             const activeFileTypes = [];
         

@@ -1,0 +1,20 @@
+<tr class="book-row" id="book_{{book.pk}}" style="opacity: 0;">
+    {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
+    <td>{{book.author}}</td>
+    <td><a href="{{ book.get_absolute_url }}" style="display: block; width: 100%;">{{book.title}}</td>
+    <td>{{book.filetype}}</td>
+    <td>
+        {% if book.filetype %}
+            <button type="button"
+                    hx-post="{% url 'send_book_ajax' book.pk %}" 
+                    hx-trigger="click"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    hx-target="#book_{{ book.pk }}"
+                    hx-indicator="#loading_notification"
+                    hx-boost="true"
+                    hx-confirm="{{hx_confirm_str}}"
+                    class="btn btn-sm btn-primary">send
+            </button>
+        {% endif %}
+    </td>
+</tr>

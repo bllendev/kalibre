@@ -5,7 +5,6 @@ from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 
 from users.forms import CustomUserCreationForm
-
 from translate.constants import LANGUAGES
 
 

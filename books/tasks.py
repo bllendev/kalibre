@@ -14,7 +14,7 @@ CustomUser = get_user_model()
 
 
 @shared_task
-def send_book_email_task(username, book, json_links):
+def send_book_email_task(username, book):
     """celery task to send books to associated emails
     """
     try:
@@ -27,7 +27,7 @@ def send_book_email_task(username, book, json_links):
 
             # raise Exception error if some result is false
             if book_send_result is False:
-                raise Exception
+                raise Exception(f"Book failed to send! - {book}")
 
     except Exception as e:
         logging.error(f"books.task.send_book_email_task: {e}")

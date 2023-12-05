@@ -67,6 +67,12 @@ def search_results(request):
     if request.user.is_authenticated:
         translate_book_bln = request.user.translate_book_bln
 
+    # hx_confirm_str
+    hx_confirm_str = "Be sure to login to send books to you emails!"
+    if request.user.is_authenticated:
+        hx_confirm_str = "do you want to send this book to the following emails?...\n"
+        hx_confirm_str += request.user.email_addresses_str
+
     return render(
         request,
         'books/search_results.html',
@@ -74,5 +80,6 @@ def search_results(request):
             'book_list': book_list,
             'translate_book_bln': translate_book_bln,
             'valid_user': request.user.is_authenticated,
+            'hx_confirm_str': hx_confirm_str
         }
     )
