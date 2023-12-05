@@ -6,7 +6,8 @@ from django.conf import settings
 from bookstore_project.logging import log
 
 from users.models import Email
-from books.utils import request_is_ajax_bln
+from books.models import Book
+from books.utils import request_is_ajax_bln, fx_return_to_sender
 from translate.constants import LANGUAGES
 
 import os
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 CustomUser = get_user_model()
 
 
-def send_book_ajax(request):
+def send_book_ajax(request, pk):
     """
     - ajax view that sends a book to a user
     - books from libgen are allocated earlier in the flow,
@@ -29,41 +30,47 @@ def send_book_ajax(request):
     from books.tasks import send_book_email_task
     from books.api.book_api import BookAPI
 
-    # extract book information and user
-    post_dict = {key: val for key, val in request.POST.items() if "book" in key}
+    # check authenticated user, send to login with next if not authenticated
+    if not request.user.is_authenticated:
+        return redirect(f"{reverse('account_login')}?next={request.get_full_path()}")
+
     try:
-        post_dict_keys = list(post_dict.keys())
-        json_links = json.loads(post_dict[post_dict_keys[0]])
-        book_title, filetype, isbn = post_dict_keys[0].split("__")
-        book_title = book_title.replace("book_", "")
-        filetype = filetype.replace("type_", "")
-        isbn = isbn.replace("isbn_", "")
+        if request.method == 'POST':
+            # organize
+            book = Book.objects.get(pk=pk)
 
-        # extract user info
-        username = request.user.username
-        user = CustomUser.objects.get(username=username)
+            # extract user info
+            username = request.user.username
+            user = CustomUser.objects.get(username=username)
+
+            # book send task here
+            status_bln, status_code = send_book_email_task(username, book)            
+
+            # if book sent - add to users my_books ! else raise error
+            if status_bln:
+                user.my_books.add(book)
+                user.save()
+            else:
+                raise RuntimeError(f"{book}, failed to send!")
+
+            return HttpResponse(status=200)
+
+        else:
+            raise Exception("POST requests only.")
+
+    except CustomUser.DoesNotExist as e:
+        logger.error(e)
+        return redirect(f"{reverse('account_signup')}?next={request.get_full_path()}")
+
+    except Book.DoesNotExist as e:
+        logger.error(e)
+    
+    except RuntimeError as e:
+        logger.error(e)
+
     except Exception as e:
-        logger.error(f"send_book_ajax_view: {e} | {post_dict}")
-        return JsonResponse({'status': False}, status=400)
-
-    # book send task here
-    status_bln = False
-    status_code = 500
-    try:
-        book_api = BookAPI()
-        book = book_api.get_book(isbn, book_title, filetype)
-        status_bln, status_code = send_book_email_task(username, book, json_links)            
-    except Exception as e:
-        logger.error(f"books.ajax.send_book_ajax {e}")
-        return JsonResponse({'status': False}, status=404)
-
-    # if book sent - add to users my_books !
-    if status_bln:
-        user.my_books.add(book)
-        user.save()
-
-    # return a response immediately, don’t wait for the task to finish
-    return JsonResponse({'status': status_bln}, status=status_code)
+        logger.error(f"ERROR: books.ajax.send_book_ajax {e}")
+        return HttpResponseServerError("Error sending book.")
 
 
 def add_email(request):

@@ -44,9 +44,6 @@ class BookTest(TestCase):
     def test_book_pkl(self):
         self.assertTrue(self.test_epub)
 
-    def test_book_ssn(self):
-        self.assertEqual(self.test_book.ssn, 'book_My Sweet Little Orange Tree__type_epub__isbn_2670677')
-
     def test_book_search(self):
         """checks db first to see if we may already have a record (bypass api query)"""
         test_books = self.test_book.search(query=TEST_QUERY)

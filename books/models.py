@@ -23,6 +23,7 @@ from books.api._api_openlibrary import OpenLibraryAPI
 from translate._translate import EbookTranslate
 
 # logs
+from bookstore_project.logging import log
 import logging
 logger = logging.getLogger(__name__)
 
@@ -84,17 +85,13 @@ class Book(models.Model):
 
     def _set_cover(self, cover_url):
         cover_url = cover_url if cover_url else self.cover_url
-        r = requests.get(self.cover_url)
+        r = requests.get(cover_url)
         if r.status_code == 200:
             data = r.content
-            filename = self.cover_url.split('/')[-1]
+            filename = cover_url.split('/')[-1]
             self.cover.save(filename, ContentFile(data))
             self.save()
         return self.cover
-
-    @property
-    def ssn(self):  # NOTE: see send_book_email_task
-        return f"book_{self.title}__type_{self.filetype}__isbn_{self.isbn}"
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
@@ -233,10 +230,10 @@ class Book(models.Model):
                 book_file_path = self._convert_book_file(book_file_path, convert_output_format)
             
         except TypeError as e:
-            logging.error(f"_create_book_file ERROR")
+            logging.error(f"_create_book_file ERROR - {e}")
 
         except RuntimeError as e:
-            logging.error(f"_convert_book_file ERROR")
+            logging.error(f"_convert_book_file ERROR - {e}")
 
         except Exception as e:
             os_silent_remove(book_file_path)
@@ -244,8 +241,11 @@ class Book(models.Model):
 
         return book_file_path
 
+    @log
     def send(self, emails, language="en"):
         """emails actual book file to recipient addresses"""
+        logger.info(f"sending the following book: {self}")
+
         # get book file path
         book_file_path = self.get_book_file_path(language)
 
