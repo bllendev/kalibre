@@ -69,14 +69,6 @@
           blue_reading_img.appendTo('#blue_reading_div');
           blue_reading_img.show();
 
-          // loading gif
-          var loading_gif = $('<img id="loading_gif">'); //Equivalent: $(document.createElement('img'))
-          loading_gif.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif");
-          loading_gif.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
-
-          // hide our gif div on loadup
-          $('#loading_div').hide();
-          loading_gif.hide();
 
           // handy centering function (centering our gif)
           $.fn.center = function () {

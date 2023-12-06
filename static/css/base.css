@@ -98,6 +98,7 @@ th:hover {
 
 .card {
   transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+  background-color: #F6EED8;
 }
 
 .card:hover {
@@ -121,7 +122,7 @@ th:hover {
   display: none;
   position: fixed;
   right: 10px;
-  top: 10px;
+  top: 15px;
   z-index: 1050; /* Ensure it's above other fixed elements */
   max-width: 50px;
   max-height: 50px;
@@ -157,10 +158,6 @@ img.bookcover {
   background-color: #ffeded;
   border-radius: 5px;
   padding: 5px;
-}
-
-.loading-cursor {
-  cursor: url('https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif'), progress !important;
 }
 
 body {

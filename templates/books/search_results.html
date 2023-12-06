@@ -5,8 +5,6 @@
 {% block content %}
 <div id='dim_wrapper' style='width:100%; height:100%; z-index:10'>
 
-    <h1><a href="{% url 'home' %}" class="text-secondary search-results-title">search results</a></h1>
-
     <form class="form-inline mb-4" action="{% url 'search_results' %}" method="get">
         <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="text" placeholder="try searching again here to make double sure!" aria-label="try searching again here to make double sure!">
     </form>
@@ -16,62 +14,41 @@
             transition: opacity 0.3s ease-out;
         }
 
-        .filetype-toggle {
-            /* Other styles */
-        }
-        
-        .filetype-toggle.active {
-            /* Other styles */
-        }
-
         #search_result_div {
-            max-height: 80vh; /* 70% of the viewport height */
+            max-height: 80vh;
             overflow-y: auto; /* Enables vertical scrolling */
             transition: opacity 1s ease;
         }
     </style>
         
-    <div class="row mb-2">
+    {% comment %} <div class="row mb-2">
         <div class="toggle-container col-12">
             <button class="filetype-toggle" data-filetype="pdf">PDF</button>
             <button class="filetype-toggle" data-filetype="mobi">MOBI</button>
             <button class="filetype-toggle" data-filetype="epub">EPUB</button>
         </div>
-    </div>
+    </div> {% endcomment %}
 
 
-    <div id="search_result_div" class="col-12" style="opacity: 0; transition: opacity 1s ease;">
-
-        <div id="loading_notification">
+    <div id="search_result_div" class="row" style="transition: opacity 1s ease;">
+        <!-- Loading Notification -->
+        <div id="loading_notification" class="col-12">
             <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading..." class="img-fluid">
         </div>
 
-        <table class='table table-striped table-sortable sortable' style="border-radius: 10px; overflow: hidden; transition: transform 1s ease;">
-            <thead class="mb-5">
-
-                {% comment %} <th></th> <!--save book for later button--> {% endcomment %}
-                <th style="width:20%">author</th>
-                <th style="width:50%">title</th>
-                <th style="white-space:nowrap">file-type</th>
-                {% comment %} <th>links</th> <th></th> <!--Queue/add-to-cart button--> {% endcomment %}
-                <th></th> <!--send now button-->
-
-            </thead>
-            {% for book in book_list %}
-                {% include "books/components/book_entry.html" %}
-            {% endfor %}
-
-        </table>
+        <!-- Book Cards -->
+        {% for book in book_list %}
+            {% include "books/components/book_entry.html" %}
+        {% endfor %}
     </div>
-
 </div>
+
 
 <script>
     $(document).ready(function () {
-        // Fade in the search results and animate the table
+        // Fade in the search results and animate the cards
         $("#search_result_div").css("opacity", "1");
-        $(".table-sortable").css("transform", "translateY(0)");
-
+    
         // HTMX
         $(document).on('htmx:beforeRequest', function () {
             $('#loading_notification').show();
@@ -84,44 +61,25 @@
             alert(message);
         });
 
-        // ahndle the toggle button clicks - (sets setting via Cookies)
+        // Handle the toggle button clicks
         $('.filetype-toggle').on('click', function() {
-            const fileType = $(this).data('filetype');
-            $(this).toggleClass('active');
-            if ($(this).hasClass('active')) {
-                setCookie(fileType, '1', 30);
-            } else {
-                setCookie(fileType, '0', 30);
-            }
+            // Existing toggle logic
             filterResults();
         });
 
-        // Initially show all rows
-        $('#search_result_div tr.book-row').each(function() {
-            $(this).css('display', '');
-            $(this).css('opacity', '1');
-        });
-
-        // --------------- //        
-        // -- functions -- //
-        // --------------- //        
+        // Filter function adjusted for cards
         function filterResults() {
             const activeFileTypes = [];
-        
-            // Get the active file types from the toggles
             $('.filetype-toggle.active').each(function() {
                 activeFileTypes.push($(this).data('filetype'));
             });
-        
-            // Show/hide the rows based on the active file types
-            $('#search_result_div tr.book-row').each(function() {
-                const fileType = $(this).find('td:nth-child(3)').text();
-                if (fileType) {
-                    if (activeFileTypes.length === 0 || activeFileTypes.includes(fileType)) {
-                        $(this).fadeIn(300);
-                    } else {
-                        $(this).fadeOut(300);
-                    }
+
+            $('#search_result_div .book-row').each(function() {
+                const fileType = $(this).find('.card-text').last().text().trim();
+                if (activeFileTypes.length === 0 || activeFileTypes.includes(fileType)) {
+                    $(this).fadeIn(300);
+                } else {
+                    $(this).fadeOut(300);
                 }
             });
         }

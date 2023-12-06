@@ -64,9 +64,11 @@ def send_book_ajax(request, pk):
 
     except Book.DoesNotExist as e:
         logger.error(e)
+        return HttpResponseServerError("Error sending book.")
     
     except RuntimeError as e:
         logger.error(e)
+        return HttpResponseServerError("Error sending book.")
 
     except Exception as e:
         logger.error(f"ERROR: books.ajax.send_book_ajax {e}")
