@@ -83,7 +83,7 @@ class Book(models.Model):
         self.save()
         return
 
-    def _set_cover(self, cover_url):
+    def _set_cover(self, cover_url=None):
         cover_url = cover_url if cover_url else self.cover_url
         r = requests.get(cover_url)
         if r.status_code == 200:
