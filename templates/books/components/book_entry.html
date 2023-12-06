@@ -1,20 +1,35 @@
-<tr class="book-row" id="book_{{book.pk}}" style="opacity: 0;">
-    {% comment %} <td><button class='btn-sm btn-secondary' style='white-space:nowrap'>save book</button></td>{% endcomment %}
-    <td>{{book.author}}</td>
-    <td><a href="{{ book.get_absolute_url }}" style="display: block; width: 100%;">{{book.title}}</td>
-    <td>{{book.filetype}}</td>
-    <td>
-        {% if book.filetype %}
-            <button type="button"
-                    hx-post="{% url 'send_book_ajax' book.pk %}" 
-                    hx-trigger="click"
-                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                    hx-target="#book_{{ book.pk }}"
-                    hx-indicator="#loading_notification"
-                    hx-boost="true"
-                    hx-confirm="{{hx_confirm_str}}"
-                    class="btn btn-sm btn-primary">send
-            </button>
-        {% endif %}
-    </td>
-</tr>
+<!-- Bootstrap card for each book, adjusted for a 3x4 grid -->
+<div class="col-6 col-md-4 col-lg-3 mb-4 book-row" id="book_{{ book.pk }}">
+    <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+            <!-- Book Cover Image -->
+            {% comment %} <div class="book-cover mb-2 flex-grow-1">
+                <img src="{{ book.get_cover_url }}" alt="{{ book.title }}" class="img-fluid">
+            </div> {% endcomment %}
+            <!-- Book Title -->
+            <h5 class="card-title mb-1">
+                <a href="{{ book.get_absolute_url }}" class="text-dark text-decoration-none">
+                    {{ book.title }}
+                </a>
+            </h5>
+            <!-- Book Author -->
+            <p class="card-text small text-muted mb-1">{{ book.author }}</p>
+            <!-- Book File Type -->
+            <p class="card-text small text-muted">{{ book.filetype }}</p>
+            <!-- Send Button -->
+            {% if book.filetype %}
+                <button type="button"
+                        hx-post="{% url 'send_book_ajax' book.pk %}"
+                        hx-trigger="click"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        hx-target="#book_{{ book.pk }}"
+                        hx-indicator="#loading_notification"
+                        hx-boost="true"
+                        hx-confirm="{{ hx_confirm_str }}"
+                        class="btn btn-sm btn-primary mt-auto">
+                    Send
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>

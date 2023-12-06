@@ -5,14 +5,15 @@ from django.contrib.auth import get_user_model
 import json
 from unittest.mock import Mock, patch
 
+from books.tests.factories import BookFactory
 from users.tests.factories import (
     CustomUserFactory,
     EmailFactory,
 )
-from books.tests.factories import BookFactory
 
 from users.models import Email
-from books.ajax import toggle_translate_email, send_book_ajax, add_email
+from users.ajax import toggle_translate_email, add_email
+from books.ajax import send_book_ajax
 
 
 """
@@ -76,31 +77,6 @@ class TestBookAjax(TestCase):
         self.user.save()
         self.book = BookFactory.create()
         self.factory = RequestFactory()
-
-    def test_add_email_ajax(self):
-        url = reverse('add_email')
-        request = self.factory.post(url, {'email_input': 'test@example.com'}, HTTP_HX_RESPONSE_FORMAT='mobile')
-        request.user = self.user
-        
-        # Mock the request_is_ajax_bln to always return True
-        with patch('books.ajax.request_is_ajax_bln', return_value=True):
-            response = add_email(request)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(Email.objects.filter(address='test@example.com').exists())
-        self.assertIn('text/html', response['Content-Type'])
-
-    def test_add_email_non_ajax(self):
-        url = reverse('add_email')
-        request = self.factory.post(url, {'email_input': 'test@example.com'})
-        request.user = self.user
-        
-        # No mocking needed here as we are testing non-AJAX functionality
-        response = add_email(request)
-
-        # Expecting a redirect to 'my_profile', so status code should be 302
-        self.assertTrue(response)
-        self.assertTrue(Email.objects.filter(address='test@example.com').exists())
 
     def test_send_book_ajax(self):
         pass
