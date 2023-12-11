@@ -27,6 +27,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "kalibre-bllen.herokuapp.com",
     "kalibre-bllendev.herokuapp.com",
+    "kalibre-staging-4a8f41dbada8.herokuapp.com"
 ]
 DEBUG = bool(os.environ.get("DEBUG", default=False))
 
