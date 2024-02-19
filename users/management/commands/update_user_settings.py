@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Create UserSettings for existing users'
 
     def handle(self, *args, **kwargs):
-        users_without_settings = get_user_model().objects.filter(user_settings__isnull=True)
+        users_without_settings = get_user_model().objects.filter(settings__isnull=True)
         for user in users_without_settings:
             UserSettings.objects.create(user=user)
             self.stdout.write(self.style.SUCCESS(f'Created settings for {user.username}'))
