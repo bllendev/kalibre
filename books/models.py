@@ -15,6 +15,7 @@ import requests
 import os
 import json
 import copy
+import io
 
 # local
 from books.constants import EMAIL_TEMPLATE_LIST
@@ -140,25 +141,15 @@ class Book(models.Model):
             logging.error(f"_get_book_download_content - BAD LINK: {e}")
         return book_download_link
 
-    def _write_book_file(self, temp_book_file_dl, new_file_path):
-        # save og file (used as reference for translation as well)
-        with temp_book_file_dl and open(new_file_path, "wb") as f:
-            f.write(temp_book_file_dl.content)
-            f.close()
-
-    def _create_book_file(self, new_file_path, language):
+    def _create_book_file(self, language):
         """
         creates book file from links, will translate if needed
 
         params:
-            - new_file_path: path to save book file
             - language: language to translate to (if needed)
         returns:
             - path to saved book file (translated if needed)
         """
-        # set final_path
-        book_final_path = ""
-
         # get book file content
         temp_book_file_link = self._get_book_download_content()
 
@@ -171,18 +162,19 @@ class Book(models.Model):
         if not book_file_bln:
             raise TypeError(f"Book File Boolean must be pdf, epub, or mobi... {temp_book_file_link}")
 
-        # save og file (used as reference for translation as well)
-        temp_book_file_dl = requests.get(temp_book_file_link)
-        self._write_book_file(temp_book_file_dl, new_file_path)
+        # save og file in memory buffer (used as reference for translation as well)
+        response = requests.get(temp_book_file_link)
+        if response.status_code == 200:
+            file_buffer = io.BytesIO(response.content)  # keep the file in an in-memory buffer
+        else:
+            raise RuntimeError("Failed to download book file")
 
-        # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
-        if language and language != "en":
-            ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
-            new_file_path = ebook_translate.get_translated_book_path()
+        # # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
+        # if language and language != "en":
+        #     ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
+        #     new_file_path = ebook_translate.get_translated_book_path()
 
-        # set final book path
-        book_final_path = new_file_path
-        return book_final_path
+        return file_buffer
 
     def _convert_book_file(self, book_file_path, convert_output_format):
         """ Function to convert book file format using kalibre-ebook-convert microservice. """
@@ -217,47 +209,27 @@ class Book(models.Model):
         return output_path
 
     def get_book_file_path(self, language, convert_output_format=""):
-        book_file_path = None
         try:
-            # write file to path (will use file to send - then we will delete file)
-            title = self.title.replace("/", "-").replace("//", "-").replace("\\", "-")
-            new_file_path = os.path.join(settings.BASE_DIR, f"{title}.{self.filetype}")
-
-            # create book file
-            book_file_path = self._create_book_file(new_file_path, language)
-
-            # convert if necessary
+            book_file_buffer = self._create_book_file(language)
             if convert_output_format:
-                book_file_path = self._convert_book_file(book_file_path, convert_output_format)
-            
-        except TypeError as e:
-            logging.error(f"_create_book_file ERROR - {e}")
-
-        except RuntimeError as e:
-            logging.error(f"_convert_book_file ERROR - {e}")
-
+                book_file_buffer = self._convert_book_file(book_file_buffer, convert_output_format)
         except Exception as e:
-            os_silent_remove(book_file_path)
-            logging.error(f"books.get_book_file_path - {e}")
+            logging.error(f"Error processing book file: {e}")
+            raise e
 
-        return book_file_path
+        return book_file_buffer
 
     @log
     def send(self, emails, language="en"):
-        """emails actual book file to recipient addresses"""
-        logger.info(f"sending the following book: {self}")
+        book_file_buffer = self.get_book_file_path(language)
 
-        # get book file path
-        book_file_path = self.get_book_file_path(language)
-
-        status = False
-        if book_file_path:
-            # set template message (appropriate recipients)
+        if book_file_buffer:
             template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
             template_message[3] = emails
+            status = send_emails(template_message, book_file_buffer, self.title)
+        else:
+            status = False
 
-            # send - return status
-            status = send_emails(template_message, [book_file_path])
         return status
 
     @classmethod
