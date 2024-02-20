@@ -63,12 +63,10 @@
           // blue reading
           var blue_reading_img = $('<img id="blue_reading_img">'); //Equivalent: $(document.createElement('img'))
           blue_reading_img.addClass("background-image");
-          // blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_qqnhmb.gif");
           blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
           blue_reading_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
           blue_reading_img.appendTo('#blue_reading_div');
           blue_reading_img.show();
-
 
           // handy centering function (centering our gif)
           $.fn.center = function () {
@@ -90,11 +88,11 @@
             return $("#email_address_list").length > 0
           }
 
-          // Fade in the body
+          // fade in the body
           $("body").css("opacity", "1");
           $("body").css("background-color", "#E1E6DD");
     
-          // Set a timeout to delay the entrance animations for the page content
+          // set a timeout to delay the entrance animations for the page content
           setTimeout(function() {
             $(".page-content").css({
               "opacity": "1",

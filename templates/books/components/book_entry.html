@@ -9,13 +9,13 @@
             <!-- Book Title -->
             <h5 class="card-title mb-1">
                 <a href="{{ book.get_absolute_url }}" class="text-dark text-decoration-none">
-                    {{ book.title }}
+                    {{ book.title|truncatechars:50 }}
                 </a>
             </h5>
             <!-- Book Author -->
-            <p class="card-text small text-muted mb-1">{{ book.author }}</p>
+            <p class="card-text small text-muted mb-1">{{ book.author|truncatechars:50 }}</p>
             <!-- Book File Type -->
-            <p class="card-text small text-muted">{{ book.filetype }}</p>
+            <p class="card-text small text-muted">{{ book.filetype|truncatechars:50 }}</p>
             <!-- Send Button -->
             {% if book.filetype %}
                 <button type="button"
