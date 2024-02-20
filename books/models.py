@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 
 # tools
+from decouple import config
 from functools import reduce
 import urllib
 import uuid
@@ -186,11 +187,11 @@ class Book(models.Model):
     def _convert_book_file(self, book_file_path, convert_output_format):
         """ Function to convert book file format using kalibre-ebook-convert microservice. """
 
-        base_url = os.getenv('KALIBRE_EBOOK_CONVERT_URL')
+        base_url = config('KALIBRE_EBOOK_CONVERT_URL')
         api_endpoint = "api/convert/"
         url = f"{base_url}{api_endpoint}?output_format={convert_output_format}"
         headers = {
-            'X-API-Key': os.getenv("KALIBRE_PRIVADO")
+            'X-API-Key': config("KALIBRE_PRIVADO")
         }
 
         # Ensure the file exists

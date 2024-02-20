@@ -4,13 +4,13 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 
-
 CustomUser = get_user_model()
 
 # tools
 import os
 import json
 import openai
+from decouple import config
 
 # local
 from ai.models import TokenUsage, Conversation, Message
@@ -39,7 +39,7 @@ def query_ai(request, user_message, summary=False):
     returns:
        the AI's response (str)
     """
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+    openai.api_key = config("OPENAI_API_KEY")
 
     # extract user info
     username = request.user.username

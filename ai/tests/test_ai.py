@@ -146,6 +146,6 @@ class AI_UtilsTest(TestCase):
 
     # def setUp(self):
     #     openai.organization = "Personal"
-    #     openai.api_key = os.getenv("OPENAI_API_KEY")
+    #     openai.api_key = config("OPENAI_API_KEY")
     #     print(f"openai.Model.list(): {openai.Model.list()}")
     #     self.assertTrue(openai.Model.list())
