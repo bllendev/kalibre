@@ -46,34 +46,29 @@ def bulk_save(queryset):
         item.save()
 
 
-def send_emails(template_message, file_path_list=list):
+def send_emails(template_message, file_buffer, file_name):
     status = None
     try:
         # send book as email to recipient
         with mail.get_connection() as connection:
             email_message = mail.EmailMessage(*tuple(template_message), connection=connection)
 
-            for file_path in file_path_list:
-                # bypass - claimed file_path must exists !
-                if not file_path:
-                    raise OSError("file_path does not exist | {file_path}")
+            if not file_buffer:
+                raise ValueError("file_buffer is None")
 
-                # attach file
-                email_message.attach_file(file_path)
-                email_message.send(fail_silently=False)
+            # attach file from memory
+            email_message.attach(file_name, file_buffer.read(), 'application/octet-stream')
+            file_buffer.seek(0)  # Reset file pointer if needed again
 
-        status = True
+            email_message.send(fail_silently=False)
+            status = True
 
     except Exception as e:
         status = False
         logger.error(f"ERROR: books.utils.send_emails | {e}")
         raise e
 
-    finally:
-        for file_path in file_path_list:
-            os_silent_remove(file_path)
-
-        return status
+    return status
 
 
 def os_silent_remove(filename):
