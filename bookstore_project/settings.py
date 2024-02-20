@@ -17,10 +17,11 @@ from bookstore_project.logging import *
 # admins
 ADMINS = [('allen', 'bllendev@gmail.com')]
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = os.environ.get("SECRET_KEY", default="fake_test_key")
-ENVIRONMENT = os.environ.get("ENVIRONMENT", default="development")
+SECRET_KEY = config("SECRET_KEY", default="fake_test_key")
+ENVIRONMENT = config("ENVIRONMENT", default="development")
 ALLOWED_HOSTS = [
     "blendev.herokuapp.com",
     "localhost",
@@ -28,11 +29,11 @@ ALLOWED_HOSTS = [
     "kalibre-bllen.herokuapp.com",
     "kalibre-bllendev.herokuapp.com",
 ]
-DEBUG = bool(os.environ.get("DEBUG", default=False))
+DEBUG = bool(config("DEBUG", default=False))
 
 # stripe
-STRIPE_LIVE_PUBLISHABLE_KEY = os.environ.get("STRIPE_LIVE_PUBLISHABLE_KEY")
-STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY")
+# STRIPE_LIVE_PUBLISHABLE_KEY = config("STRIPE_LIVE_PUBLISHABLE_KEY")
+# STRIPE_LIVE_SECRET_KEY = config("STRIPE_LIVE_SECRET_KEY")
 
 # production
 if ENVIRONMENT == "production":
@@ -106,11 +107,11 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST = config("EMAIL_HOST")
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASS")
+EMAIL_HOST_USER = config("EMAIL_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_PASS")
 DEFAULT_FROM_EMAIL = "noreply@gmail.com"
 
 ACCOUNT_SESSION_REMEMBER = True
@@ -157,9 +158,9 @@ CACHE_MIDDLEWARE_KEY_PREFIX = ""
 # Static files (CSS, JavaScript, Images)
 # Cloudinary stuff
 CLOUDINARY_STORAGE = {                  # TODO: add these to env vars
-    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": config("CLOUDINARY_API_KEY"),
+    "API_SECRET": config("CLOUDINARY_API_SECRET"),
 }
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 TEMPLATES = [
@@ -187,8 +188,8 @@ DATABASES = {
         "NAME": "postgres",
         "USER": "postgres",
         "PASSWORD": "postgres",
-        "HOST": os.environ.get("DB_HOST", "db"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
+        "HOST": config("DB_HOST", "db"),
+        "PORT": config("DB_PORT", "5432"),
     }
 }
 import dj_database_url
