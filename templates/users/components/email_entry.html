@@ -2,7 +2,7 @@
     <div class="card-body">
         <h5 class="card-title">{{ email.address }}</h5>
         <p class="card-text">
-            <select class="form-control" 
+            {% comment %} <select class="form-control" 
                     id="email_{{ email.pk }}_language" 
                     name="email_{{ email.pk }}_language"
                     hx-post="{% url 'toggle_translate_email' email.pk %}" 
@@ -15,7 +15,7 @@
                         {{ lang_name }}
                     </option>
                 {% endfor %}
-            </select>
+            </select> {% endcomment %}
         </p>
         <button type="button"
                 hx-delete="{% url 'delete_email' email.pk %}" 
