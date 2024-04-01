@@ -1,9 +1,10 @@
 from django.shortcuts import render
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError, HttpResponse
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
 )
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, View
 from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
@@ -24,7 +25,7 @@ class BookViewSet(viewsets.ModelViewSet):
     serializer_class = BookSerializer
 
 
-class BookListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class BookListView(LoginRequiredMixin, ListView):
     model = Book
     context_object_name = 'book_list'
     template_name = 'books/book_list.html'
@@ -33,12 +34,25 @@ class BookListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 
 @method_decorator(never_cache, name='dispatch')
-class BookDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class BookDetailView(LoginRequiredMixin, DetailView):
     model = Book
     context_object_name = 'book'
     template_name = 'books/book_detail.html'
     login_url = 'account_login'
     permission_required = 'books.special_status'
+
+
+@method_decorator(never_cache, name='dispatch')
+class GetCover(LoginRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        book_id = kwargs.get('pk')
+        try:
+            book = Book.objects.get(pk=book_id)
+            new_cover_html = f'<img src="{book.get_cover_url(set_cover=True)}" alt="{book.title} Cover" class="img-fluid rounded shadow" id="book-cover">'
+            return HttpResponse(new_cover_html)
+        except Book.DoesNotExist:
+            return HttpResponse('Book not found', status=404)
 
 
 @never_cache
