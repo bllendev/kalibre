@@ -115,6 +115,7 @@ class Book(models.Model):
 
             if self.cover:
                 cover_url = self.cover.url
+
             else:
                 raise Exception("unable to get final image of saved cover.url !")
             logger.info(f"get_cover_url - {cover_url}")
