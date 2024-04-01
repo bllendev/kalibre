@@ -1,35 +1,82 @@
 {% extends '_base.html' %}
 {% load static %}
 
+{% block extra_style %}
+<style>
+.card-img-top {
+  height: auto;
+  max-height: 33%; /* Ensures consistent size */
+  object-fit: cover; /* Ensures the cover fits the area nicely */
+  border-bottom: 1px solid #eee; /* Separates image from card body */
+}
+
+.card-title {
+  color: maroon;
+}
+
+.card-text {
+  color: #333;
+}
+
+.refresh-btn {
+  transition: all 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.card-img-top:hover + .card-body .refresh-btn {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Ensure the button is hidden until the image is hovered */
+.card-body:hover .refresh-btn {
+  opacity: 1;
+  visibility: visible;
+}
+</style>
+{% endblock extra_style %}
+
 {% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row">
-        <!-- Book Cover Image -->
-        <div class="col-md-4 mb-4">
-            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="img-fluid rounded shadow">
-        </div>
-        <!-- Book Details -->
-        <div class="col-md-8">
-            <h2 class="mb-3 font-weight-bold">{{ book.title }}</h2>
-            <p class="lead font-weight-normal">Author: <span class="font-weight-bold">{{ book.author }}</span></p>
-            <p class="font-weight-light">ISBN: {{ book.isbn }}</p>
-            {% if book.filetype %}
-                <p class="font-weight-light">Filetype: {{ book.filetype }}</p>
-            {% endif %}
-            {% comment %} <p class="font-weight-light">Price: <span class="font-weight-bold">${{ book.price }}</span></p> {% endcomment %}
-            
-            {# Display JSON links more cleanly #}
-            {% if book.json_links %}
-                <h4 class="mt-5">Additional Details:</h4>
-                <pre>{{ book.json_links }}</pre>
-            {% endif %}
+        <div class="col-lg-6 offset-lg-3">
+            <div class="card mb-4 shadow-sm">
+                <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="card-img-top img-fluid bookcover">
+                
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text">Author: {{ book.author }}</p>
+                    <p class="card-text">ISBN: {{ book.isbn }}</p>
+                    {% if book.filetype %}
+                        <p class="card-text">Filetype: {{ book.filetype }}</p>
+                    {% endif %}
+                    <!-- The Refresh Button with HTMX -->
+                    <div class="text-center">
+                        <button hx-get="{% url 'get-cover' book.id %}" hx-trigger="mouseenter" hx-target="#book-cover" hx-swap="outerHTML" class="btn btn-sm btn-info refresh-btn">Refresh Image</button>
+                    </div>
+                </div>
 
-
-            {# Link to return to book list or other related actions #}
-            {% comment %} <a href="{% url 'your_book_list_url_name' %}" class="btn btn-primary mt-4">Back to Book List</a> {% endcomment %}
+                <ul class="list-group list-group-flush">
+                    <!-- Display JSON links more cleanly -->
+                    {% if book.json_links %}
+                        <li class="list-group-item">Additional Details:</li>
+                        {% for link in book.get_json_links %}
+                            <li class="list-group-item">
+                                <a href="{{ link }}" target="_blank">Download Book</a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+<!-- 
+                <div class="card-footer">
+                    <small class="text-muted">Last updated 3 mins ago</small>
+                </div> -->
+            </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
