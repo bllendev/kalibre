@@ -76,14 +76,14 @@ class Book(models.Model):
         # get data
         openlibrary_book = openlibrary_api.get_book(self.isbn)
         cover_id = openlibrary_book["covers"][0]
-        cover_url = openlibary_api.get_cover_url(cover_id)
+        cover_url = openlibrary_api.get_cover_url(cover_id)
         if not cover_url:
             raise TypeError("no cover_url was returned !")
 
         # save to db
         self.cover_url = cover_url
         self.save()
-        return
+        return cover_url
 
     def _set_cover(self, cover_url=None):
         cover_url = cover_url if cover_url else self.cover_url
@@ -97,16 +97,22 @@ class Book(models.Model):
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
+
+    def get_json_links(self):
+        return json.loads(self.json_links)
     
-    def get_cover_url(self):
+    def get_cover_url(self, set_cover=False):
         cover = None
         cover_url = os.path.join("/static", "books", "generic_book_cover.jpg")
         try:
-            if not self.cover_url and not self.cover:
+            if not self.cover_url or set_cover:
                 self._set_cover_url()
+                self.refresh_from_db()
+
+            if (self.cover_url and not self.cover) or set_cover:
                 self._set_cover()
-            elif self.cover_url and not self.cover:
-                self._set_cover()
+                self.refresh_from_db()
+
             if self.cover:
                 cover_url = self.cover.url
             else:
@@ -134,7 +140,7 @@ class Book(models.Model):
         """
         book_download_link = None
         try:
-            json_links = json.loads(self.json_links)
+            json_links = self.get_json_links()
             book_download_link = self._get_book_file_download_link(json_links[0], inner_link_int)
         except Exception as e:
             book_download_link = self._get_book_file_download_link(json_links[1], 1)
