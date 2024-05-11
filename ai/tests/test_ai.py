@@ -106,7 +106,7 @@ class AI_UtilsTest(TestCase):
         pass
 
     def test_fx_query_openai(self):
-        with patch('openai.ChatCompletion.create') as mock_create:
+        with patch('openai.resources.chat.Completions.create') as mock_create:
             mock_create.return_value = {
                 'choices': [
                     {

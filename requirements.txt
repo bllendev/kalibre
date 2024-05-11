@@ -44,14 +44,14 @@ Faker==19.6.2
 flake8==6.1.0
 fonttools==4.43.0
 frozenlist==1.4.0
-googletrans @ git+https://github.com/bllendev/py-googletrans.git@f2ab03ec750e60e119ee8777f60f4d417a17cfd4
+googletrans @ git+https://github.com/bllendev/py-googletrans.git
 gunicorn==21.2.0
-h11==0.9.0
+h11==0.14.0 
 h2==3.2.0
 hpack==3.0.0
 hstspreload==2023.1.1
-httpcore==0.9.1
-httpx==0.13.3
+httpcore==1
+httpx==0.27.0
 hyperframe==5.2.0
 idna==2.10
 iniconfig==2.0.0
@@ -69,7 +69,7 @@ nltk==3.8.1
 nose==1.3.7
 numpy==1.26.0
 oauthlib==3.2.2
-openai==0.28.1
+openai==1.28.1
 packaging==23.2
 pandas==2.1.1
 Pillow==10.0.1
