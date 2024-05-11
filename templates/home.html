@@ -24,7 +24,7 @@
           <div id="message-container">
             <!-- add text boxes dynamically using jQuery -->
           </div>
-          <textarea class='form-control mb-3' placeholder={% if request.user.is_authenticated %}"hi, i'm Kalibre! what type of book are you looking for?"{% else %}"hi, i'm Kalibre! it seems like you're not logged in! please feel free to make an account to get started!"{% endif %}></textarea>
+          <textarea class='form-control mb-3' {% if not request.user.is_authenticated %}readonly {% endif %}placeholder={% if request.user.is_authenticated %}"hi, i'm Kalibre! what type of book are you looking for?"{% else %}"hi, i'm Kalibre! it seems like you're not logged in! please feel free to make an account to get started!"{% endif %}></textarea>
         </div>
       </div>
     </div>
