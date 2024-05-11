@@ -19,7 +19,6 @@ import io
 
 # local
 from books.constants import EMAIL_TEMPLATE_LIST
-from books.managers import BookManager
 from books.utils import os_silent_remove, send_emails
 from books.api._api_openlibrary import OpenLibraryAPI
 from translate._translate import EbookTranslate
@@ -61,8 +60,6 @@ class Book(models.Model):
     filetype = models.CharField(max_length=60, default="")  # choices=BOOK_FILETYPE_CHOICES
     isbn = models.CharField(max_length=200, default="")
     json_links = models.JSONField(null=True)
-
-    objects = BookManager()
 
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"

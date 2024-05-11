@@ -1,4 +1,6 @@
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 from ai.models import Message
 
 import tiktoken
@@ -34,13 +36,11 @@ def fx_query_openai(**kwargs):
     conversation_list.append(Message.get_message(query, role="user"))
 
     # query openai with the conversation
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=conversation_list,
-        max_tokens=2000,
-        temperature=temperature,
-    )
-    return response['choices'][0]['message']['content'].strip()
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=conversation_list,
+    max_tokens=2000,
+    temperature=temperature)
+    return response.choices[0].message.content.strip()
 
 
 def get_openai_embeddings(texts, embedding_model="text-embedding-ada-002", max_tokens=8000):

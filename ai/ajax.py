@@ -9,13 +9,16 @@ CustomUser = get_user_model()
 # tools
 import os
 import json
-import openai
+from openai import OpenAI
 from decouple import config
 
 # local
 from ai.models import TokenUsage, Conversation, Message
 from ai.constants import TOKEN_USAGE_DAILY_LIMIT, AI_PROMPT
 import tiktoken
+
+
+client = OpenAI(api_key=config("OPENAI_API_KEY"))
 
 
 # update your `update_token_usage` function to use `tiktoken`
@@ -39,7 +42,6 @@ def query_ai(request, user_message, summary=False):
     returns:
        the AI's response (str)
     """
-    openai.api_key = config("OPENAI_API_KEY")
 
     # extract user info
     username = request.user.username
@@ -59,13 +61,11 @@ def query_ai(request, user_message, summary=False):
     update_token_usage(request, user_message)
 
     # get ai response using current conversation
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=conversation.get_messages(),
-        max_tokens=1000,
-        temperature=0.7,
-    )
-    ai_message = response['choices'][0]['message']['content'].strip()
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=conversation.get_messages(),
+    max_tokens=1000,
+    temperature=0.7)
+    ai_message = response.choices[0].message.content.strip()
 
     # create a message from AI
     Message.objects.create(
