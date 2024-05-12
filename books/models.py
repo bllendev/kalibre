@@ -237,9 +237,8 @@ class Book(models.Model):
         return status
 
     @classmethod
-    def search(cls, query):
+    def search(cls, query, books=None):
         """checks db first to see if we may already have a record (bypass api query)"""
-        books = None
         if query:
             query = query.strip()
             search_terms_list = query.split()
@@ -257,30 +256,36 @@ class Book(models.Model):
                 ])
 
             # combine the search terms with OR operator
-            search_query = reduce(lambda x, y: x | y, search_terms)
-            exact_match_query = reduce(lambda x, y: x | y, exact_match)
+            try:
+                search_query = reduce(lambda x, y: x | y, search_terms)
+                exact_match_query = reduce(lambda x, y: x | y, exact_match)
 
-            # add a field that denotes an exact match
-            books = cls.objects.annotate(
-                is_exact_match=Case(
-                    When(exact_match_query, then=1),
-                    default=0,
-                    output_field=models.IntegerField()
-                ),
-                title_match=Case(
-                    When(Q(title__icontains=query), then=1),
-                    default=0,
-                    output_field=models.IntegerField(),
-                ),
-                author_match=Case(
-                    When(Q(author__icontains=query), then=1),
-                    default=0,
-                    output_field=models.IntegerField(),
-                )
-            ).filter(search_query)
+                if books is None:
+                    books = cls.objects.all()
+            
+                books = books.annotate(
+                    is_exact_match=Case(
+                        When(exact_match_query, then=1),
+                        default=0,
+                        output_field=models.IntegerField()
+                    ),
+                    title_match=Case(
+                        When(Q(title__icontains=query), then=1),
+                        default=0,
+                        output_field=models.IntegerField(),
+                    ),
+                    author_match=Case(
+                        When(Q(author__icontains=query), then=1),
+                        default=0,
+                        output_field=models.IntegerField(),
+                    )
+                ).filter(search_query)
 
-            # order by the new field, so exact matches and then title matches and then author matches come first
-            books = books.order_by('-is_exact_match', '-title_match', '-author_match')
+                # order by the new field, so exact matches and then title matches and then author matches come first
+                books = books.order_by('-is_exact_match', '-title_match', '-author_match')
+
+            except Exception as e:
+                books = cls.objects.none()
 
         # return query the database to get matching books
         return books

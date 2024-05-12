@@ -13,6 +13,7 @@ from rest_framework import viewsets
 
 
 # local
+from books.api.book_api import BookAPI
 from books.models import Book
 from books.serializers import BookSerializer
 
@@ -44,7 +45,6 @@ class BookDetailView(LoginRequiredMixin, DetailView):
 
 @method_decorator(never_cache, name='dispatch')
 class GetCover(LoginRequiredMixin, View):
-
     def get(self, request, *args, **kwargs):
         book_id = kwargs.get('pk')
         try:
@@ -53,23 +53,42 @@ class GetCover(LoginRequiredMixin, View):
             return HttpResponse(new_cover_html)
         except Book.DoesNotExist:
             return HttpResponse('Book not found', status=404)
+        
+
+class BookSearch(View):
+    def get(self, request, original_query):
+        query = request.GET.get('q', '')
+        if not query:
+            query = original_query
+
+        # start with og books
+        books = Book.search(original_query)
+
+        return render(
+            request,
+            'books/components/book_entry_list.html',
+            {
+                'book_list': Book.search(query, books=books)
+            }
+        )
 
 
 @never_cache
 def search_results(request):
-    from books.api.book_api import BookAPI
-
     book_api = None
+    original_query = None
 
     # case 1: user is searching for a book in the database
     db_query = request.GET.get('db_q')
     if db_query:
         book_api = BookAPI(str(db_query), force_api=False)
+        original_query = db_query
 
     # case 2: user is searching for a book in the api
     api_query = request.GET.get('api_q')
     if api_query:
         book_api = BookAPI(str(api_query), force_api=True)
+        original_query = api_query
 
     # get final book list
     book_list = []
@@ -91,6 +110,7 @@ def search_results(request):
         request,
         'books/search_results.html',
         {
+            'original_query': original_query,
             'book_list': book_list,
             'translate_book_bln': translate_book_bln,
             'valid_user': request.user.is_authenticated,
