@@ -15,6 +15,7 @@ urlpatterns = [
     # path('', include(router.urls)),
     path('<uuid:pk>', views.BookDetailView.as_view(), name='book_detail'),
     path('search-results/', views.search_results, name='search_results'),
+    path('book-search/<str:original_query>/', views.BookSearch.as_view(), name='book-search'),
 
     # book
     path('get-cover/<uuid:pk>/', views.GetCover.as_view(), name='get-cover'),
