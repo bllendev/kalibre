@@ -16,15 +16,30 @@
 </style>
 
 <div id='dim_wrapper' style='width:100%; height:100%;'>
-        {% comment %}TODO: make this a hard search button <input name="api_q" style="width:100%" class="form-control mr-sm-2" type="button"> {% endcomment %}
-    <input name="q" class="form-control mr-sm-2" type="text" placeholder="try filtering here if you like!" aria-label="try filtering here if you like!"
-        class="form-control mb-4"
-        hx-get="{% url 'book-search' original_query %}"  
-        hx-trigger="keyup changed delay:25ms"
-        hx-target="#book_entry_list"
-        hx-swap="innerHTML" 
-    >
-        
+    <div class="row justify-content-center">
+
+        <!-- Search Bar -->
+        <div class="col-10">
+            <input name="q" class="form-control mr-sm-2" type="text" placeholder="try filtering here if you like!" aria-label="try filtering here if you like!"
+                class="form-control mb-4"
+                hx-get="{% url 'book-search' original_query %}"  
+                hx-trigger="keyup changed delay:25ms"
+                hx-target="#book_entry_list"
+                hx-swap="innerHTML" 
+            >
+        </div>
+
+        <div class="col-2">
+            <!--refresh books btn via api-->
+            <button class="btn btn-outline-primary my-2 my-sm-0" 
+                hx-post="{% url 'book-search-refresh' original_query %}"  
+                hx-trigger="click"
+                hx-target="#book_entry_list"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                hx-swap="innerHTML">Refresh Search</button>
+        </div>
+    </div>
+            
     {% comment %} <div class="row mb-2">
         <div class="toggle-container col-12">
             <button class="filetype-toggle" data-filetype="pdf">PDF</button>

@@ -71,6 +71,27 @@ class BookSearch(View):
                 'book_list': Book.search(query, books=books)
             }
         )
+    
+
+class BookSearchRefresh(View):
+    def post(self, request, original_query):
+        book_api = BookAPI(str(original_query), force_api=True)
+
+        # get final book list
+        book_list = []
+        if book_api:
+            book_list = book_api.get_unique_book_list()
+
+        else:
+            raise Exception("BookAPI failed to initialize")
+
+        return render(
+            request,
+            'books/components/book_entry_list.html',
+            {
+                'book_list': book_list
+            }
+        )
 
 
 @never_cache
