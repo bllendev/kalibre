@@ -31,9 +31,9 @@ logger = logging.getLogger(__name__)
 
 class Book(models.Model):
     """
-    - All APIBooks become a Book model object
-    - we lemmatize the title of our books to improve searching,
-    and to prevent duplicates as much as we can
+    Represents a single book, containing information such as title, author, and file type.
+
+    This model is related to the :model:`auth.User` through the :model:`Review` model.
     """
     BOOK_FILETYPE_EPUB = "epub"
     BOOK_FILETYPE_MOBI = "mobi"
@@ -83,6 +83,7 @@ class Book(models.Model):
         return cover_url
 
     def _set_cover(self, cover_url=None):
+        """downloads and sets the cover image for the book from the specified URL."""
         cover_url = cover_url if cover_url else self.cover_url
         r = requests.get(cover_url)
         if r.status_code == 200:
@@ -93,12 +94,21 @@ class Book(models.Model):
         return self.cover
 
     def get_absolute_url(self):
+        """
+        returns the URL to access the detail page of this book.
+        """
         return reverse('book_detail', args=[str(self.id)])
 
     def get_json_links(self):
+        """
+        parses and returns the JSON links associated with the book.
+        """
         return json.loads(self.json_links)
     
     def get_cover_url(self, set_cover=False):
+        """
+        retrieves the URL of the book's cover image. Sets and saves the cover if needed.
+        """
         cover = None
         cover_url = os.path.join("/static", "books", "generic_book_cover.jpg")
         try:
@@ -121,6 +131,7 @@ class Book(models.Model):
         return cover_url
 
     def _get_book_file_download_link(self, link, inner_link_int):
+        """scrapes the book file download link from the provided URL."""
         import collections
         collections.Callable = collections.abc.Callable
         from bs4 import BeautifulSoup
@@ -181,8 +192,16 @@ class Book(models.Model):
         return file_buffer
 
     def _convert_book_file(self, book_file_path, convert_output_format):
-        """ Function to convert book file format using kalibre-ebook-convert microservice. """
+        """
+        converts the book file format using an external microservice.
 
+        params:
+            - book_file_path: Path to the book file to be converted.
+            - convert_output_format: The desired output format (e.g., epub, pdf).
+        
+        returns:
+            Path to the converted book file.
+        """
         base_url = config('KALIBRE_EBOOK_CONVERT_URL')
         api_endpoint = "api/convert/"
         url = f"{base_url}{api_endpoint}?output_format={convert_output_format}"
@@ -190,16 +209,16 @@ class Book(models.Model):
             'X-API-Key': config("KALIBRE_PRIVADO")
         }
 
-        # Ensure the file exists
+        # ensure the file exists
         if not os.path.isfile(book_file_path):
             raise RuntimeError(f"File not found: {book_file_path}")
 
-        # Prepare the file to be uploaded
+        # prepare the file to be uploaded
         with open(book_file_path, 'rb') as f:
             files = {'input_file': (os.path.basename(book_file_path), f)}
             response = requests.post(url, headers=headers, files=files)
 
-        # Handle the response
+        # handle the response
         output_path = f"output.{convert_output_format}"
         if response.status_code == 200:
             # Optionally, handle the file response, e.g., save it to disk
@@ -213,6 +232,16 @@ class Book(models.Model):
         return output_path
 
     def get_book_file_path(self, language, convert_output_format=""):
+        """
+        handles the process of creating and optionally converting a book file.
+
+        params:
+            - language: Language for translation.
+            - convert_output_format: Format to convert the book file to (optional).
+        
+        returns:
+            path to the processed book file.
+        """
         try:
             book_file_buffer = self._create_book_file(language)
             if convert_output_format:
@@ -225,6 +254,16 @@ class Book(models.Model):
 
     @log
     def send(self, emails, language="en"):
+        """
+        wends the book file to the specified emails.
+
+        params:
+            - emails: List of email addresses to send the book file to.
+            - language: Language for translation (default is 'en').
+        
+        returns:
+            Status of the email sending process.
+        """
         book_file_buffer = self.get_book_file_path(language)
 
         if book_file_buffer:
@@ -238,7 +277,16 @@ class Book(models.Model):
 
     @classmethod
     def search(cls, query, books=None):
-        """checks db first to see if we may already have a record (bypass api query)"""
+        """
+        searches for books in the database based on the provided query.
+
+        params:
+            - query: The search term(s) to filter books.
+            - books: Optional queryset of books to search within.
+        
+        returns:
+            queryset of books matching the search criteria.
+        """
         if query:
             query = query.strip()
             search_terms_list = query.split()
