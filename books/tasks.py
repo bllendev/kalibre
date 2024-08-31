@@ -15,7 +15,8 @@ CustomUser = get_user_model()
 
 @shared_task
 def send_book_email_task(username, book):
-    """celery task to send books to associated emails
+    """
+    celery task to send books to associated emails
     """
     try:
         user = CustomUser.objects.get(username=username)
