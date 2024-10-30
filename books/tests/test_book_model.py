@@ -1,8 +1,6 @@
 # django
 from django.conf import settings
 from django.test import TestCase
-from django.urls import reverse
-from unittest.mock import patch, MagicMock
 
 # tools
 import os
@@ -11,12 +9,7 @@ import pickle
 # local
 from users.tests.factories import CustomUserFactory
 from books.tests.factories import BookFactory
-from books.models import Book
-from books.tests.test_api_libgen import (
-    TEST_QUERY,
-    TEST_ISBN,
-    TEST_BOOK_FILETYPE,
-)
+from books.constants import TEST_QUERY
 
 
 TEST_BOOK_PKL_PATH = os.path.join(settings.BASE_DIR, 'books', 'tests', '_test_book.pkl')
