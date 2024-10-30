@@ -29,26 +29,28 @@ class BookAPI:
 
     def fetch_books_from_api(self, api):
         try:
+
             return [APIBook(**book) for book in api.get_book_search_results(self.search_query)]
         except TypeError as e:
             logger.error(f"Error fetching books from {api.__class__.__name__}: {e}")
             return list()
 
     def get_search_query_results(self):
-        openlibrary_book_set = self.fetch_books_from_api(self.openlibrary_api)
-        libgen_book_set = self.fetch_books_from_api(self.libgen_api)
+        openlibrary_book_set = self.openlibrary_api.fetch_books(self.search_query)
+        openlibrary_books = [APIBook(**book) for book in openlibrary_book_set]
+        libgen_book_set = self.libgen_api.fetch_books(self.search_query)  # TODO: make this a private mode
+        libgen_books = [APIBook(**book) for book in libgen_book_set]
 
         # get final output
         output_list = list()
-        for book in openlibrary_book_set:
-            epub_match = find_matching_books(book, libgen_book_set, "epub")
+        for book in openlibrary_books:
+            epub_match = find_matching_books(book, libgen_books, "epub")
             if epub_match:
                 book.json_links = epub_match.json_links
                 book.filetype = epub_match.filetype
             output_list.append(book)
 
-        if not output_list:
-            raise TypeError(f"openlibrary_book_set: {openlibrary_book_set} | libgen_book_set: {libgen_book_set}")
+        logger.info(f"openlibrary_books: {openlibrary_books} | libgen_books: {libgen_books}")
 
         return set(output_list)
 

@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "books.apps.BooksConfig",
     "translate.apps.TranslateConfig",
     "ai.apps.AiConfig",
+    "authors.apps.AuthorsConfig",
 
     # Media Cloudinary
     "cloudinary",

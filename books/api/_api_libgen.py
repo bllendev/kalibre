@@ -6,8 +6,8 @@ collections.Callable = collections.abc.Callable
 
 from bs4 import BeautifulSoup
 from itertools import chain
+from django.core.exceptions import ValidationError
 
-from bookstore_project.logging import log
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,22 +48,15 @@ class LibgenAPI:
     def __init__(self):
         self.libgen = LibgenSearch()
 
-    def _get_book_search_results(self, query):
-        # get libgen book list
-        titles = self.libgen.search_title(query)
-        authors = self.libgen.search_author(query)
-        return [api_book for api_book in chain(titles, authors)]
-
-    @log
-    def get_book_search_results(self, query):
-        book_search_results = None
+    def fetch_books(self, query):
+        book_search_results = list()
         try:
-            book_search_results = self._get_book_search_results(query)
+            titles = self.libgen.search_title(query)
+            authors = self.libgen.search_author(query)
+            book_search_results = [api_book for api_book in chain(titles, authors)]  # chains iterables' elements into single iterable
         except Exception as e:
-            logger.error("_api_libgen | {e}")
-            book_search_results = list()
-        finally:
-            return book_search_results
+            logger.error(f"_api_libgen | {e}")
+        return book_search_results
 
 
 class LibgenSearch:
@@ -119,42 +112,36 @@ class SearchRequest:
     ]
 
     def __init__(self, query, search_type="title"):
+        if len(self.query) < 3:
+            raise ValidationError("Error when searching for your request, the Query was too short")
+
         self.query = query
         self.search_type = search_type.lower()
+  
 
-        if len(self.query) < 3:
-            raise Exception("Query is too short")
-
-    def strip_i_tag_from_soup(self, soup):
-        subheadings = soup.find_all("i")
-        for subheading in subheadings:
-            subheading.decompose()
-
-    def get_search_url(self, libgen_mirror, query_parsed):
-        SEARCH_TYPE_URL_DICT = {
-            "title": f"{libgen_mirror}/search.php?req={query_parsed}&column=title",
-            "author": f"{libgen_mirror}/search.php?req={query_parsed}&column=author",
-        }
-        return SEARCH_TYPE_URL_DICT[self.search_type]
-
-    def get_search_page(self):
+    def aggregate_request_data(self):
         query_parsed = "%20".join(self.query.split(" "))
         search_page = None
 
-        i = 0       # parse until real mirror is found or until we run out of mirrors !
+        i = 0  # parse until real mirror is found or until we run out of mirrors !
         while (search_page is None or search_page.status_code != 200) and i < len(self.LIBGEN_MIRRORS):
             libgen_mirror = self.LIBGEN_MIRRORS[i]
+            search_type_url = f"{libgen_mirror}/search.php?req={query_parsed}&column={self.search_type}"
             search_url = self.get_search_url(libgen_mirror, query_parsed)
             search_page = requests.get(search_url)
-
             i += 1
+        
+        # validate search_page
+        if not search_page:
+            raise RuntimeError("No search page found for libgen link")
 
-        return search_page
-
-    def aggregate_request_data(self):
-        search_page = self.get_search_page()
+        # bs4 !
         soup = BeautifulSoup(search_page.text, "lxml")
-        self.strip_i_tag_from_soup(soup)
+
+        # strip i tags from soup
+        subheadings = soup.find_all("i")
+        for subheading in subheadings:
+            subheading.decompose()
 
         # Libgen results contain 3 tables
         # Table2: Table of data to scrape.
@@ -162,8 +149,8 @@ class SearchRequest:
         try:
             information_table = soup.find_all("table")[2]
         except Exception as e:
-            print(F"SearchRequest.aggregate_request_data: {e}")
-            print(soup)
+            logger.debug(f"SearchRequest.aggregate_request_data: {e}")
+            logger.debug(soup)
 
         # Determines whether the link url (for the mirror)
         # or link text (for the title) should be preserved.

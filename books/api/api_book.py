@@ -45,6 +45,7 @@ def find_matching_books(book, other_books, filetype):
     for other_book in other_books:
         if other_book["filetype"] == filetype:
             if book_match_bln(book, other_book):
+                other_books.remove(other_book)  # remove it from the set
                 return other_book
     return None
 

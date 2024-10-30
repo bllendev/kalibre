@@ -1,15 +1,15 @@
 from django.contrib import admin
-from books.models import Book, Review
+from books.models import Book
 
 
-class ReviewInline(admin.TabularInline):
-    model = Review
+# class ReviewInline(admin.TabularInline):
+#     model = Review
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    inlines = [
-        ReviewInline,
-    ]
+    # inlines = [
+    #     ReviewInline,
+    # ]
     list_display = ("pk", "title", "author", "price", "isbn", "cover_url")
     search_fields = ("title", "author", "isbn", "pk")

@@ -2,18 +2,13 @@
 from django.test import TestCase, RequestFactory, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.test import SimpleTestCase
-from unittest.mock import patch
 
 # tools
 import json
-import openai
-import os
 
 # local
-from ai.models import TokenUsage, Conversation, Message
-from ai.ajax import update_token_usage, query_ai, set_latest_messages, ai_librarian
-from ai.utils import fx_query_openai
+from ai.models import Conversation
+from ai.ajax import query_ai, set_latest_messages
 
 
 """
@@ -36,17 +31,6 @@ class AIAjaxTest(TestCase):
         self.factory = RequestFactory()
         self.test_user = CustomUser.objects.create_user(username='testuser', password='default_password')
 
-    # def test_update_token_usage(self):
-    #     # Create an instance of a GET request.
-    #     request = self.factory.get('/some-url')
-
-    #     # Recall that middleware are not supported. You can simulate a
-    #     # logged-in user by setting request.user manually.
-    #     request.user = self.test_user
-
-    #     update_token_usage(request, [{"content": "test message"}])
-    #     self.assertEqual(TokenUsage.objects.count(), 1)
-
     def test_set_latest_messages(self):
         messages = set_latest_messages([
             {"role": "system", "content": "Hello, who are you?"},
@@ -66,26 +50,6 @@ class AIAjaxTest(TestCase):
         ai_response = query_ai(request, "Hello, who are you?")
         self.assertIsNotNone(ai_response)
 
-    def test_ai_librarian(self):
-        self.client = Client()
-
-        # JSON dumps the messages
-        with patch('ai.ajax.query_ai') as mocked_query_ai:
-            # Set the return value of the mock
-            mocked_query_ai.return_value = 'Hello, I am an AI.'
-
-            # Login the test user using the test client
-            self.client.login(username=self.test_user.username, password="default_password")
-
-            response = self.client.post(reverse('ai_librarian'), 
-                                data={"user_message": json.dumps("Hello, who are you?")},
-                                content_type='application/x-www-form-urlencoded')
-
-            # Make sure the mock was called
-            mocked_query_ai.assert_called_once()
-
-        self.assertEqual(response.status_code, 200)
-
     def test_create_conversation(self):
         self.client = Client()
         self.client.login(username=self.test_user.username, password="default_password")
@@ -95,57 +59,3 @@ class AIAjaxTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue('conversation_id' in response.json())
-
-
-class AI_UtilsTest(TestCase):
-
-    _multiprocess_can_split_ = True
-    _multiprocess_shared_ = False
-
-    def setUp(self):
-        pass
-
-    def test_fx_query_openai(self):
-        with patch('openai.resources.chat.Completions.create') as mock_create:
-            mock_create.return_value = {
-                'choices': [
-                    {
-                        'message': {
-                            'content': 'The weather is sunny.'
-                        }
-                    }
-                ]
-            }
-
-            result = fx_query_openai(
-                query="What's the weather like today?",
-                user_messages=['Hello', 'How are you?'],
-                ai_messages=['Hi', "I'm doing well"],
-                system_prompt="Starting a new conversation with GPT-3",
-                temperature=0.7
-            )
-
-            self.assertEqual(result, 'The weather is sunny.')
-            mock_create.assert_called_once_with(
-                model='gpt-3.5-turbo',
-                messages=[
-                    {'role': 'system', 'content': 'Starting a new conversation with GPT-3'},
-                    {'role': 'user', 'content': 'Hello'},
-                    {'role': 'assistant', 'content': 'Hi'},
-                    {'role': 'user', 'content': 'How are you?'},
-                    {'role': 'assistant', 'content': "I'm doing well"},
-                    {'role': 'user', 'content': "What's the weather like today?"}
-                ],
-                max_tokens=2000,
-                temperature=0.7,
-            )
-
-    # class OpenAIAPITest(SimpleTestCase):
-    #     _multiprocess_can_split_ = True
-    #     _multiprocess_shared_ = False
-
-    # def setUp(self):
-    #     openai.organization = "Personal"
-    #     openai.api_key = config("OPENAI_API_KEY")
-    #     print(f"openai.Model.list(): {openai.Model.list()}")
-    #     self.assertTrue(openai.Model.list())

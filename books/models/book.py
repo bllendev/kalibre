@@ -4,14 +4,14 @@ from django.db import models
 from django.db.models import Case, When, Q
 from django.urls import reverse
 from django.core.files.base import ContentFile
-from django.conf import settings
+import requests
 
 # tools
-from decouple import config
 from functools import reduce
+from bs4 import BeautifulSoup
+from decouple import config
 import urllib
 import uuid
-import requests
 import os
 import json
 import copy
@@ -19,12 +19,10 @@ import io
 
 # local
 from books.constants import EMAIL_TEMPLATE_LIST
-from books.utils import os_silent_remove, send_emails
+from books.utils import send_emails
 from books.api._api_openlibrary import OpenLibraryAPI
-from translate._translate import EbookTranslate
 
 # logs
-from bookstore_project.logging import log
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,13 +51,15 @@ class Book(models.Model):
 
     title = models.CharField(max_length=500)
     _title_lemmatized = models.CharField(max_length=500, default="")        # see LibgenBook.init()
-    author = models.CharField(max_length=500)
     price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
     cover_url = models.CharField(max_length=144, blank=True, default="")
     cover = models.ImageField(upload_to='covers/', blank=True)
     filetype = models.CharField(max_length=60, default="")  # choices=BOOK_FILETYPE_CHOICES
     isbn = models.CharField(max_length=200, default="")
     json_links = models.JSONField(null=True)
+
+    # fks
+    author = models.CharField(max_length=500)
 
     def __str__(self):
         return f"{self.title} - {self.filetype} - {self.isbn}"
@@ -98,12 +98,6 @@ class Book(models.Model):
         returns the URL to access the detail page of this book.
         """
         return reverse('book_detail', args=[str(self.id)])
-
-    def get_json_links(self):
-        """
-        parses and returns the JSON links associated with the book.
-        """
-        return json.loads(self.json_links)
     
     def get_cover_url(self, set_cover=False):
         """
@@ -130,32 +124,6 @@ class Book(models.Model):
             logger.error(f"get_cover_url | {self} | {e} | {cover_url}")
         return cover_url
 
-    def _get_book_file_download_link(self, link, inner_link_int):
-        """scrapes the book file download link from the provided URL."""
-        import collections
-        collections.Callable = collections.abc.Callable
-        from bs4 import BeautifulSoup
-
-        book_download_link = None
-        with urllib.request.urlopen(link) as response:
-            soup = BeautifulSoup(response.read(), "html.parser")
-            book_download_link = soup.find_all('a')[inner_link_int].get('href')
-        return book_download_link
-
-    def _get_book_download_content(self, inner_link_int=1):
-        """
-            - this takes scraps self.link, finding the
-            specific download link to the book file.
-        """
-        book_download_link = None
-        try:
-            json_links = self.get_json_links()
-            book_download_link = self._get_book_file_download_link(json_links[0], inner_link_int)
-        except Exception as e:
-            book_download_link = self._get_book_file_download_link(json_links[1], 1)
-            logging.error(f"_get_book_download_content - BAD LINK: {e}")
-        return book_download_link
-
     def _create_book_file(self, language):
         """
         creates book file from links, will translate if needed
@@ -166,23 +134,30 @@ class Book(models.Model):
             - path to saved book file (translated if needed)
         """
         # get book file content
-        temp_book_file_link = self._get_book_download_content()
+        book_link = None
+        while not book_link:
+            json_links = self.json_links
+
+            for link in json_links:
+                with urllib.request.urlopen(link) as response:
+                    soup = BeautifulSoup(response.read(), "html.parser")
+                    book_link = soup.find_all('a')[1].get('href')
 
         # check book file
         book_file_bln = any([
-            self.BOOK_FILETYPE_EPUB in temp_book_file_link,
-            self.BOOK_FILETYPE_MOBI in temp_book_file_link,
-            self.BOOK_FILETYPE_PDF in temp_book_file_link,
+            self.BOOK_FILETYPE_EPUB in book_link,
+            self.BOOK_FILETYPE_MOBI in book_link,
+            self.BOOK_FILETYPE_PDF in book_link,
         ])
         if not book_file_bln:
-            raise TypeError(f"Book File Boolean must be pdf, epub, or mobi... {temp_book_file_link}")
+            raise TypeError(f"Book File Boolean must be pdf, epub, or mobi... {book_link}")
 
         # save og file in memory buffer (used as reference for translation as well)
-        response = requests.get(temp_book_file_link)
-        if response.status_code == 200:
-            file_buffer = io.BytesIO(response.content)  # keep the file in an in-memory buffer
-        else:
+        response = requests.get(book_link)
+        if response.status_code != 200:
             raise RuntimeError("Failed to download book file")
+
+        file_buffer = io.BytesIO(response.content)  # keep the file in an in-memory buffer
 
         # # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
         # if language and language != "en":
@@ -231,7 +206,7 @@ class Book(models.Model):
 
         return output_path
 
-    def get_book_file_path(self, language, convert_output_format=""):
+    def get_book_file_path(self, language=None, convert_output_format=""):
         """
         handles the process of creating and optionally converting a book file.
 
@@ -252,7 +227,6 @@ class Book(models.Model):
 
         return book_file_buffer
 
-    @log
     def send(self, emails, language="en"):
         """
         wends the book file to the specified emails.
@@ -266,12 +240,11 @@ class Book(models.Model):
         """
         book_file_buffer = self.get_book_file_path(language)
 
+        status = False
         if book_file_buffer:
             template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
             template_message[3] = emails
             status = send_emails(template_message, book_file_buffer, self.title)
-        else:
-            status = False
 
         return status
 

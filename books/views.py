@@ -1,37 +1,16 @@
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError, HttpResponse
+from django.http import HttpResponse
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
-    PermissionRequiredMixin,
 )
-from django.views.generic import ListView, DetailView, View
-from django.contrib.auth import get_user_model
+from django.views.generic import DetailView, View
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
-
-from rest_framework import viewsets
 
 
 # local
 from books.api.book_api import BookAPI
 from books.models import Book
-from books.serializers import BookSerializer
-
-
-CustomUser = get_user_model()
-
-
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-
-
-class BookListView(LoginRequiredMixin, ListView):
-    model = Book
-    context_object_name = 'book_list'
-    template_name = 'books/book_list.html'
-    login_url = 'account_login'
-    permission_required = 'books.special_status'
 
 
 @method_decorator(never_cache, name='dispatch')
@@ -77,13 +56,12 @@ class BookSearchRefresh(View):
     def post(self, request, original_query):
         book_api = BookAPI(str(original_query), force_api=True)
 
-        # get final book list
         book_list = []
-        if book_api:
-            book_list = book_api.get_unique_book_list()
-
-        else:
+        if not book_api:
             raise Exception("BookAPI failed to initialize")
+
+        # get final book list
+        book_list = book_api.get_unique_book_list()
 
         return render(
             request,
@@ -102,13 +80,13 @@ def search_results(request):
     # case 1: user is searching for a book in the database
     db_query = request.GET.get('db_q')
     if db_query:
-        book_api = BookAPI(str(db_query), force_api=False)
+        book_api = BookAPI(search_query=str(db_query), force_api=False)
         original_query = db_query
 
     # case 2: user is searching for a book in the api
     api_query = request.GET.get('api_q')
     if api_query:
-        book_api = BookAPI(str(api_query), force_api=True)
+        book_api = BookAPI(search_query=str(api_query), force_api=True)
         original_query = api_query
 
     # get final book list
