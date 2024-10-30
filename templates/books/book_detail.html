@@ -55,7 +55,11 @@
                     {% endif %}
                     <!-- The Refresh Button with HTMX -->
                     <div class="text-center">
-                        <button hx-get="{% url 'get-cover' book.id %}" hx-trigger="mouseenter" hx-target="#book-cover" hx-swap="outerHTML" class="btn btn-sm btn-info refresh-btn">Refresh Image</button>
+                        <button class="btn btn-sm btn-info refresh-btn"
+                          hx-get="{% url 'get-cover' book.id %}"
+                          hx-trigger="mouseenter"
+                          hx-target="#book-cover"
+                          hx-swap="outerHTML">Refresh Image</button>
                     </div>
                 </div>
 
@@ -63,7 +67,7 @@
                     <!-- Display JSON links more cleanly -->
                     {% if book.json_links %}
                         <li class="list-group-item">Additional Details:</li>
-                        {% for link in book.get_json_links %}
+                        {% for link in book.json_links %}
                             <li class="list-group-item">
                                 <a href="{{ link }}" target="_blank">Download Book</a>
                             </li>

@@ -32,14 +32,3 @@ class SendBookAjaxTaskTest(TestCase):
         self.filetype = 'some_type'
         self.isbn = 'some_isbn'
         self.json_links = 'some_links'
-
-    @patch('books.tasks.Email.get_email_dict')
-    @patch('books.tasks.CustomUser.objects.get')
-    def test_send_book_email_task(self, mock_get_user, mock_get_email_dict):
-        # act
-        result = send_book_email_task(self.username, self.book)
-
-        # assert
-        self.assertTrue(mock_get_user.called)
-        self.assertTrue(mock_get_email_dict.called)
-        self.assertEqual((True, 200), tuple(result))

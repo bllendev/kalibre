@@ -1,5 +1,4 @@
 import requests
-from bookstore_project.logging import log
 import logging
 
 
@@ -21,25 +20,19 @@ class OpenLibraryAPI:
     def __init__(self):
         pass
 
-    def _get_book_search_results(self, query):
-        params = {"q": query}
-        response = requests.get(self.SEARCH_URL, params=params)
-        
-        if response.status_code == 200:
-            return response.json()
-        else:
-            response.raise_for_status()
-
-    @log
-    def get_book_search_results(self, query):
-        book_search_results = None
+    def fetch_books(self, query):
         try:
-            _book_search_results = self._get_book_search_results(query)
-            book_search_results = [book for book in _book_search_results["docs"]]
+            book_search_results = None
+            params = {"q": query}
+            response = requests.get(self.SEARCH_URL, params=params)
+            response.raise_for_status()
+            book_search_results = response.json()  # example here: 
+            book_search_results = [book for book in book_search_results["docs"]]
+            return book_search_results
         except Exception as e:
-            logger.error(f"get_book_search_results - {e}")
-            raise e
-        return book_search_results
+            logger.error(f"Error fetching books from OpenLibraryAPI: {e}")
+            logger.exception(e)
+            return list()
 
     def get_book(self, book_id):
         # key implies we are using works/oid
@@ -50,7 +43,6 @@ class OpenLibraryAPI:
             else:
                 response.raise_for_status()
 
-    @log
     def get_author(self, author_id):
         author = ""
         try:

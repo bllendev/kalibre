@@ -1,6 +1,5 @@
 import os
 from django.test import TestCase
-from unittest.mock import Mock
 
 # local
 from books.api.api_book import APIBook

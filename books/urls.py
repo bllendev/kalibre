@@ -5,11 +5,6 @@ from books import views
 from books import ajax
 
 
-# leave disabled until react is fully implemented -@AG
-# router = DefaultRouter()
-# router.register('', views.BookViewSet)
-
-
 urlpatterns = [
     # core views
     # path('', include(router.urls)),

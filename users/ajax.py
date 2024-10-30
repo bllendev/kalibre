@@ -3,7 +3,6 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from bookstore_project.logging import log
 
 from users.models import Email
 from books.utils import request_is_ajax_bln
