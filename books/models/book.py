@@ -135,21 +135,26 @@ class Book(models.Model):
         """
         # get book file content
         book_link = None
-        while not book_link:
-            json_links = self.json_links
+        for link in self.json_links:
+            with urllib.request.urlopen(link) as response:
+                soup = BeautifulSoup(response.read(), "html.parser")
+                book_link = soup.find_all('a')[1].get('href')
 
-            for link in json_links:
-                with urllib.request.urlopen(link) as response:
-                    soup = BeautifulSoup(response.read(), "html.parser")
-                    book_link = soup.find_all('a')[1].get('href')
+            # break out of loop early if book_link exists
+            if book_link:
+                break
+            
+        # validate book_link
+        if not book_link:
+            raise RuntimeError("No Book Link Found to Download the book")
 
-        # check book file
-        book_file_bln = any([
+        # validate book file type
+        valid_book_file_type = any([
             self.BOOK_FILETYPE_EPUB in book_link,
             self.BOOK_FILETYPE_MOBI in book_link,
             self.BOOK_FILETYPE_PDF in book_link,
         ])
-        if not book_file_bln:
+        if not valid_book_file_type:
             raise TypeError(f"Book File Boolean must be pdf, epub, or mobi... {book_link}")
 
         # save og file in memory buffer (used as reference for translation as well)
