@@ -9,7 +9,7 @@ import pickle
 # local
 from users.tests.factories import CustomUserFactory
 from books.tests.factories import BookFactory
-from books.constants import TEST_QUERY
+from books.tests.constants import TEST_QUERY
 
 
 TEST_BOOK_PKL_PATH = os.path.join(settings.BASE_DIR, 'books', 'tests', '_test_book.pkl')
