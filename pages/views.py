@@ -22,14 +22,26 @@ from books.utils import send_emails
 @method_decorator(never_cache, name='dispatch')
 class HomePageView(TemplateView):
     template_name = "home.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['AI_PROMPT'] = AI_PROMPT
         return context
 
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('HX-Request') == 'true':
+            return render(request, f"partials/{self.template_name}", self.get_context_data())
+        return super().get(request, *args, **kwargs)
 
+
+@method_decorator(never_cache, name='dispatch')
 class AboutPageView(TemplateView):
     template_name = "about.html"
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('HX-Request') == 'true':
+            return render(request, f"partials/{self.template_name}", self.get_context_data())
+        return super().get(request, *args, **kwargs)
 
 
 # ----------------- #

@@ -78,13 +78,13 @@ def search_results(request):
     original_query = None
 
     # case 1: user is searching for a book in the database
-    db_query = request.GET.get('db_q')
+    db_query = request.POST.get('db_q')
     if db_query:
         book_api = BookAPI(search_query=str(db_query), force_api=False)
         original_query = db_query
 
     # case 2: user is searching for a book in the api
-    api_query = request.GET.get('api_q')
+    api_query = request.POST.get('api_q')
     if api_query:
         book_api = BookAPI(search_query=str(api_query), force_api=True)
         original_query = api_query
