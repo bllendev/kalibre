@@ -5,32 +5,42 @@
 
 {% block content %}
 
-
-<div class="mt-5">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-12">
-            <div class="card p-4 bg-light">
-                <h2 class="mb-4">My Profile</h2>
+        <div class="col-md-8">
+            <div class="card p-5 bg-light shadow-sm">
+                <h2 class="mb-4 text-center">My Profile</h2>
+                <p class="text-center">Welcome, <strong>{{ username }}</strong>!</p>
                 <hr>
-                <p>Welcome {{username}}!</p>
-                <div class="d-flex justify-content-around mx-auto mb-4 col-12">
-                    <button id="btnBooks" class="btn btn-outline-primary m-1">My Books</button>
-                    <button id="btnEmails" class="btn btn-outline-primary m-1">My Emails</button>
-                    <button id="btnAI" class="btn btn-outline-primary m-1">My Kalibre AI</button>
-                    <button id="btnSearches" class="btn btn-outline-primary m-1">My Previous Searches</button>
+
+                <!-- Button Group -->
+                <div class="btn-group btn-group-lg d-flex justify-content-around mb-4" role="group" aria-label="Profile options">
+                    <button id="btnBooks" class="btn btn-outline-primary">
+                        <i class="bi bi-book"></i> My Books
+                    </button>
+                    <button id="btnEmails" class="btn btn-outline-primary">
+                        <i class="bi bi-envelope"></i> My Emails
+                    </button>
+                    <button id="btnAI" class="btn btn-outline-primary">
+                        <i class="bi bi-robot"></i> My Kalibre AI
+                    </button>
+                    <button id="btnSearches" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> My Searches
+                    </button>
                 </div>
-                <div class="card p-4 bg-white">
-                    <h6 id="defaultText">choose an option above!<h6>
-                    <div id="dynamicBooks" style="display: none;">
+
+                <!-- Dynamic Content Section -->
+                <div class="card p-4 bg-white shadow-sm">
+                    <div id="dynamicBooks" class="dynamic-content" style="display: none;">
                         {% include "users/my_books.html" %}
                     </div>
-                    <div id="dynamicEmails" style="display: none;">
+                    <div id="dynamicEmails" class="dynamic-content" style="display: none;">
                         {% include "users/my_emails.html" %}
                     </div>
-                    <div id="dynamicAI" style="display: none;">
+                    <div id="dynamicAI" class="dynamic-content" style="display: none;">
                         {% include "users/my_ai_conversations.html" %}
                     </div>
-                    <div id="dynamicSearches" style="display: none;">
+                    <div id="dynamicSearches" class="dynamic-content" style="display: none;">
                         {% include "users/my_search_history.html" %}
                     </div>
                 </div>
@@ -39,41 +49,38 @@
     </div>
 </div>
 
-
+<!-- JavaScript for Button Functionality -->
 <script>
     $(document).ready(function () {
-        var defaultText = $("#defaultText")
-        var dynamicBooks = $("#dynamicBooks") 
-        var dynamicEmails = $("#dynamicEmails") 
-        var dynamicAI = $("#dynamicAI") 
-        var dynamicSearches = $("#dynamicSearches") 
+        var defaultText = $("#defaultText");
+        var dynamicBooks = $("#dynamicBooks");
+        var dynamicEmails = $("#dynamicEmails");
+        var dynamicAI = $("#dynamicAI");
+        var dynamicSearches = $("#dynamicSearches");
 
-        function close_dynamic_divs() {
-            defaultText.hide("slow");
-            dynamicBooks.hide("slow");
-            dynamicEmails.hide("slow");
-            dynamicAI.hide("slow");
-            dynamicSearches.hide("slow");
+        function closeDynamicDivs() {
+            defaultText.hide("fast");
+            $(".dynamic-content").hide("fast");
         }
 
-        $("#btnBooks").click(function() {
-            close_dynamic_divs();
-            dynamicBooks.show("slow");
+        $("#btnBooks").click(function () {
+            closeDynamicDivs();
+            dynamicBooks.fadeIn("slow");
         });
 
-        $("#btnEmails").click(function() {
-            close_dynamic_divs();
-            dynamicEmails.show("slow");
+        $("#btnEmails").click(function () {
+            closeDynamicDivs();
+            dynamicEmails.fadeIn("slow");
         });
 
-        $("#btnAI").click(function() {
-            close_dynamic_divs();
-            dynamicAI.show("slow");
+        $("#btnAI").click(function () {
+            closeDynamicDivs();
+            dynamicAI.fadeIn("slow");
         });
 
-        $("#btnSearches").click(function() {
-            close_dynamic_divs();
-            dynamicSearches.show("slow");
+        $("#btnSearches").click(function () {
+            closeDynamicDivs();
+            dynamicSearches.fadeIn("slow");
         });
     });
 </script>

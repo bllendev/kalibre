@@ -1,200 +1,195 @@
-.nav-item:not(:last-child)::after {
-  content: "-";
-  margin-left: 10px;
-  margin-right: 10px;
+/* Navbar Styling */
+.navbar {
+  background-color: #707080;
+  border-bottom: 1px solid #E1E6DD;
+  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 
+.navbar-brand {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #4c4b4e;
+  font-weight: bold;
+  transition: color 0.4s ease;
+}
+
+.navbar-brand:hover {
+  color: #4b9a96;
+}
+
+.navbar-nav .nav-link {
+  color: #5D5C61;
+  font-size: 1.125rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #26816f; /* Soft pastel hover */
+  cursor: pointer;
+}
+
+.navbar-toggler {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%2851,51,51,0.5%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+
+/* Body Styling */
+body {
+  background-color: #E1E6DD; /* Soft pastel background */
+  min-height: 100vh;
+  padding-top: 4.5rem;
+  font-family: 'Open Sans', sans-serif;
+  color: #333;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* Mobile View Adjustments */
 @media (max-width: 767.98px) {
-  .nav-item:not(:last-child)::after {
-    display: none;
+  .navbar-nav {
+    margin-top: 2rem;
+  }
+  .navbar-nav .nav-link {
+    margin-right: 0;
+    margin-bottom: 1rem;
   }
 }
 
-
-#searchHistoryContainer {
-  margin-top: 20px;
+/* Button Styling */
+.btn-success {
+  background-color: #379683;
+  border-color: #379683;
+  transition: background-color 0.3s ease;
 }
 
+.btn-success:hover {
+  background-color: #317773;
+}
+
+/* Links */
+a {
+  color: #379683;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #317773;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: #5D5C61;
+}
+
+h1 {
+  font-size: 3rem;
+  color: maroon;
+}
+
+/* Cards */
+.card {
+  background-color: #F6EED8;
+  border-radius: 0.75rem;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+  transform: translateY(-0.3rem);
+}
+
+/* Filetype Toggle */
+.filetype-toggle {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  background-color: #e0e0e0;
+  color: #757575;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.filetype-toggle.active {
+  background-color: #A7E0AB;
+  color: white;
+}
+
+/* Page Content Animation */
+.page-content {
+  opacity: 0;
+  transform: translateY(-2rem);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+/* Search Input Container */
+#search-input-container {
+  display: flex;
+  justify-content: center;
+  width: 80%;
+  max-width: 600px;
+  margin: auto;
+}
+
+/* Search History Item */
 .search-history-item {
-  padding: 5px;
-  cursor: pointer;
+  padding: 0.5rem;
   border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .search-history-item:hover {
   background-color: #f5f5f5;
 }
 
-
 .search-history-item a {
   text-decoration: none;
   color: inherit;
-  display: block;  // To make the whole list item clickable
-  padding: 5px;
+  display: block;
 }
 
-.search-history-item a:hover {
-  background-color: #f5f5f5;
-}
-
-
-tr.htmx-swapping td {
-  opacity: 0;
-  transition: opacity 1s ease-out;
-}
-
-
-
-#dim_wrapper {
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-}
-
-#search_result_div {
-  opacity: 0;
-  transition: opacity 1s ease;
-}
-
-.book-row {
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-}
-
-.book-row:hover {
-  transform: scale(1.02);
-}
-
-.filetype-toggle {
-  display: inline-block;
-  font-size: 14px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 100px;
-  background-color: #e0e0e0;
-  color: #757575;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.filetype-toggle.active {
-  background-color: #A7E0AB; /* Soft pastel color */
-  color: #fff;
-}
-
-.table-sortable {
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 1s ease;
-}
-
-th {
-  cursor: pointer;
-}
-
-th:hover {
-  background-color: #f5f5f5;
-}
-
-
-.card {
-  transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
-  background-color: #F6EED8;
-}
-
-.card:hover {
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-  transform: translateY(-5px);
-}
-
-
-.kalibre-title {
-  font-size: 100px;
-  color: maroon;
-}
-
-
-.search-results-title {
-  color: maroon;
-}
-
-
-#loading_notification {
-  display: none;
-  position: fixed;
-  right: 10px;
-  top: 15px;
-  z-index: 1050; /* Ensure it's above other fixed elements */
-  max-width: 50px;
-  max-height: 50px;
-}
-
-
-h1 {
-  color: maroon;
-}
-
-
-body {
-  background-color: #E1E6DD
-}
-
-
+/* Book Cover Image */
 img.bookcover {
-  height: 300px;
+  max-height: 37.5vh;
   width: auto;
 }
 
-.highlight {
-  background-color: yellow;
-}
-
-.message.ai {
-  background-color: #e6f7ff;
-  border-radius: 5px;
-  padding: 5px;
-}
-
-.message.user {
-  background-color: #ffeded;
-  border-radius: 5px;
-  padding: 5px;
-}
-
-body {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  min-height: 75rem;
-  padding-top: 4.5rem;
-}
-
-.page-content {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: opacity 1s ease, transform 1s ease;
-}
-
-h1, #search-input-container {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-#toggle-ai-librarian:hover {
-  border-color: #6495ed;
-}
-
-#search-input-container {
-  display: flex;
-  justify-content: center;
-  width: 80%;
-  max-width: 600px;
-}
-
+/* AI Chatbox */
 #ai-chatbox {
   display: none;
-  width: 100%;
-  height: 300px;
   background-color: #f8f9fa;
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
+}
+
+/* Smooth Transition Effects */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+::view-transition-old(body-transition) {
+  animation: fade-out 0.2s ease-out forwards;
+}
+
+::view-transition-new(body-transition) {
+  animation: fade-in 0.2s ease-in forwards;
 }

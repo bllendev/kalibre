@@ -22,7 +22,12 @@
             </div> {% endcomment %}
             <!-- Book Title -->
             <h5 class="card-title mb-1">
-                <a href="{{ book.get_absolute_url }}" class="text-dark text-decoration-none">
+                <a hx-get="{{ book.get_absolute_url }}" 
+                   hx-swap="innerHTML transition:true"
+                   hx-target="#body"
+                   hx-push-url="true"
+                   style="cursor:pointer;"
+                    class="text-dark text-decoration-none">
                     {{ book.title }}
                 </a>
             </h5>
