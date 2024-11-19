@@ -72,47 +72,49 @@ class BookSearchRefresh(View):
         )
 
 
-@never_cache
-def search_results(request):
-    book_api = None
-    original_query = None
+@method_decorator(never_cache, name='dispatch')
+class SearchResultsView(View):
 
-    # case 1: user is searching for a book in the database
-    db_query = request.POST.get('db_q')
-    if db_query:
-        book_api = BookAPI(search_query=str(db_query), force_api=False)
-        original_query = db_query
+    def post(self, request, *args, **kwargs):
+        book_api = None
+        original_query = None
 
-    # case 2: user is searching for a book in the api
-    api_query = request.POST.get('api_q')
-    if api_query:
-        book_api = BookAPI(search_query=str(api_query), force_api=True)
-        original_query = api_query
+        # case 1: user is searching for a book in the database
+        db_query = request.POST.get('db_q')
+        if db_query:
+            book_api = BookAPI(search_query=str(db_query), force_api=False)
+            original_query = db_query
 
-    # get final book list
-    book_list = []
-    if book_api:
-        book_list = book_api.get_unique_book_list()
+        # case 2: user is searching for a book in the api
+        api_query = request.POST.get('api_q')
+        if api_query:
+            book_api = BookAPI(search_query=str(api_query), force_api=True)
+            original_query = api_query
 
-    # prepare translate_book_bln alert for when user sends
-    translate_book_bln = False
-    if request.user.is_authenticated:
-        translate_book_bln = request.user.translate_book_bln
+        # get final book list
+        book_list = []
+        if book_api:
+            book_list = book_api.get_unique_book_list()
 
-    # hx_confirm_str
-    hx_confirm_str = "Be sure to login to send books to you emails!"
-    if request.user.is_authenticated:
-        hx_confirm_str = "do you want to send this book to the following emails?...\n"
-        hx_confirm_str += request.user.email_addresses_str
+        # prepare translate_book_bln alert for when user sends
+        translate_book_bln = False
+        if request.user.is_authenticated:
+            translate_book_bln = request.user.translate_book_bln
 
-    return render(
-        request,
-        'books/search_results.html',
-        {
-            'original_query': original_query,
-            'book_list': book_list,
-            'translate_book_bln': translate_book_bln,
-            'valid_user': request.user.is_authenticated,
-            'hx_confirm_str': hx_confirm_str
-        }
-    )
+        # hx_confirm_str
+        hx_confirm_str = "Be sure to login to send books to you emails!"
+        if request.user.is_authenticated:
+            hx_confirm_str = "do you want to send this book to the following emails?...\n"
+            hx_confirm_str += request.user.email_addresses_str
+
+        return render(
+            request,
+            'books/search_results.html',
+            {
+                'original_query': original_query,
+                'book_list': book_list,
+                'translate_book_bln': translate_book_bln,
+                'valid_user': request.user.is_authenticated,
+                'hx_confirm_str': hx_confirm_str
+            }
+        )

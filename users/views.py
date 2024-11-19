@@ -3,6 +3,7 @@ from django.views import generic
 from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
+from django.shortcuts import render
 
 from users.forms import CustomUserCreationForm
 from translate.constants import LANGUAGES
@@ -18,11 +19,11 @@ class SignupPageView(generic.CreateView):
 
 
 @method_decorator(never_cache, name='dispatch')
-class MyProfile(generic.TemplateView):
+class MyProfile(generic.View):
     template_name = "users/my_profile.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, *args, **kwargs):
+        context = dict()
         username = self.request.user.username  # view is inaccessible without user login
         user = CustomUser.objects.get(username=username)
         context["username"] = username
@@ -44,4 +45,9 @@ class MyProfile(generic.TemplateView):
         # ------------------------- #
         context["user_conversations"] = user.conversations.all()
 
-        return context
+        return render(
+            request,
+            self.template_name,
+            context
+        )
+
