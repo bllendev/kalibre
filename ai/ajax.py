@@ -4,12 +4,10 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 
-CustomUser = get_user_model()
 
 # tools
-import os
 import json
-from openai import OpenAI
+from openai import OpenAI 
 from decouple import config
 
 # local
@@ -20,11 +18,13 @@ import tiktoken
 
 client = OpenAI(api_key=config("OPENAI_API_KEY"))
 
+CustomUser = get_user_model()
+
 
 # update your `update_token_usage` function to use `tiktoken`
 def update_token_usage(request, message):
     date_today = timezone.now().date()
-    token_usage, created = TokenUsage.objects.get_or_create(user=request.user, date=date_today)
+    token_usage, _ = TokenUsage.objects.get_or_create(user=request.user, date=date_today)
 
     # use tiktoken to count the tokens in the new messages only
     tokenizer = tiktoken.get_encoding("cl100k_base")  # moved outside of the loop

@@ -91,7 +91,7 @@ textarea {
     40% {
     transform: translateY(-15px);
     }
-}
+
 </style>
 
 
@@ -111,11 +111,13 @@ textarea {
         <form 
           id="search-form"
           class="form-inline mt-2 mt-md-0 d-flex justify-content-center"
-          hx-post="{% url 'search_results' %}"
+          hx-post="{% url 'search-results' %}"
           hx-target="body"
           hx-swap="outerHTML transition:true"
           hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+          hx-indicator="#loading-indicator"
         >
+
           <div id="search-input-container" class="d-inline-flex">
             <input
               name="db_q"
@@ -141,6 +143,8 @@ textarea {
                 height="50"
               />
             </button>
+            
+             <box-icon class="htmx-indicator" id="loading-indicator" name='loader-circle' animation='spin' ></box-icon>
           </div>
         </form>
 

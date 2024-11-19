@@ -11,5 +11,5 @@ class BookAdmin(admin.ModelAdmin):
     # inlines = [
     #     ReviewInline,
     # ]
-    list_display = ("pk", "title", "author", "price", "isbn", "cover_url")
-    search_fields = ("title", "author", "isbn", "pk")
+    list_display = ("pk", "title", "price", "isbn", "cover_url")
+    search_fields = ("title", "isbn", "pk")
