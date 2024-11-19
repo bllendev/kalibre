@@ -1,9 +1,21 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
+from pgvector.django import VectorField
 
 CustomUser = get_user_model()
+
+
+class VectorSearch(models.Model):
+    DIMENSION = 1536
+
+    vector = VectorField(dimensions=DIMENSION)
+    metadata = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"VectorSearch: {self.id} - Metadata: {self.metadata}"
 
 
 class TokenUsage(models.Model):
@@ -13,29 +25,37 @@ class TokenUsage(models.Model):
 
 
 class Conversation(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="conversations")
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name="conversations"
+    )
     started_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     def get_messages(self):
-        unorganized_messages = self.messages.all().order_by('sent_at')
+        unorganized_messages = self.messages.all().order_by("sent_at")
         organized_messages = []
         for idx, msg in enumerate(unorganized_messages):
             if idx == 0:  # system prompt
-                organized_messages.append(msg.get_message(message_str=msg.text, role="system"))
-            organized_messages.append(msg.get_message(message_str=msg.text, role=msg.sender))
+                organized_messages.append(
+                    msg.get_message(message_str=msg.text, role="system")
+                )
+            organized_messages.append(
+                msg.get_message(message_str=msg.text, role=msg.sender)
+            )
         return organized_messages
 
 
 class Message(models.Model):
-    SENDER_USER = 'user'
-    SENDER_AI = 'ai'
+    SENDER_USER = "user"
+    SENDER_AI = "ai"
     SENDER_CHOICES = [
-        (SENDER_USER, 'User'),
-        (SENDER_AI, 'AI'),
+        (SENDER_USER, "User"),
+        (SENDER_AI, "AI"),
     ]
 
-    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
+    conversation = models.ForeignKey(
+        Conversation, related_name="messages", on_delete=models.CASCADE
+    )
     sender = models.CharField(max_length=10, choices=SENDER_CHOICES)
     text = models.CharField(default="", max_length=5000)
     sent_at = models.DateTimeField(auto_now_add=True)
