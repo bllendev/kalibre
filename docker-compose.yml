@@ -47,7 +47,7 @@ services:
       - backend
 
   db:
-    image: 'postgres:12-alpine'
+    image: 'pgvector/pgvector:pg15'
     environment:
       POSTGRES_PASSWORD: postgres
     volumes:
