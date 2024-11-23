@@ -1,4 +1,7 @@
 # django
+from books.utils import send_emails
+from pages.constants import ERROR_EMAIL_TEMPLATE_LIST
+from ai.constants import AI_PROMPT
 import sys
 import traceback
 import copy
@@ -6,41 +9,47 @@ from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
-from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
+from django.http import (
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseServerError,
+)
 from django.conf import settings
 
 # logger
 import logging
+
 logger = logging.getLogger(__name__)
 
 # local
-from ai.constants import AI_PROMPT
-from pages.constants import ERROR_EMAIL_TEMPLATE_LIST
-from books.utils import send_emails
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class HomePageView(TemplateView):
     template_name = "home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['AI_PROMPT'] = AI_PROMPT
+        context["AI_PROMPT"] = AI_PROMPT
         return context
 
     def get(self, request, *args, **kwargs):
-        if request.headers.get('HX-Request') == 'true':
-            return render(request, f"partials/{self.template_name}", self.get_context_data())
+        if request.headers.get("HX-Request") == "true":
+            return render(
+                request, f"partials/{self.template_name}", self.get_context_data()
+            )
         return super().get(request, *args, **kwargs)
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class AboutPageView(TemplateView):
     template_name = "about.html"
 
     def get(self, request, *args, **kwargs):
-        if request.headers.get('HX-Request') == 'true':
-            return render(request, f"partials/{self.template_name}", self.get_context_data())
+        if request.headers.get("HX-Request") == "true":
+            return render(
+                request, f"partials/{self.template_name}", self.get_context_data()
+            )
         return super().get(request, *args, **kwargs)
 
 
@@ -49,18 +58,20 @@ class AboutPageView(TemplateView):
 # ----------------- #
 def handler500(request):
     context = {
-        'title': '500 - Internal Server Error',
-        'error_description': 'There was an unexpected error processing your request.',
-        'todo_description': 'Please try again later or contact our support team.',
+        "title": "500 - Internal Server Error",
+        "error_description": "There was an unexpected error processing your request.",
+        "todo_description": "Please try again later or contact our support team.",
     }
 
     # get exception info
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    exception_traceback = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    error_str = f'Internal Server Error: {request.path}\n{exception_traceback}'
+    exception_traceback = "".join(
+        traceback.format_exception(exc_type, exc_value, exc_traceback)
+    )
+    error_str = f"Internal Server Error: {request.path}\n{exception_traceback}"
 
     # log the complete traceback
-    logger.error(error_str, extra={'status_code': 500, 'request': request})
+    logger.error(error_str, extra={"status_code": 500, "request": request})
 
     # TODO: implement send_emails
     if settings.ENVIRONMENT == "production":
@@ -68,33 +79,34 @@ def handler500(request):
         template_message[1] = error_str
         status = send_emails(template_message)
 
-    response = HttpResponseServerError(render(request, 'error_page.html', context))
+    response = HttpResponseServerError(
+        render(request, "error_page.html", context))
     response.status_code = 500
     return response
 
 
 def handler404(request, exception):
     context = {
-        'title': '404 - Not Found',
-        'error_description': 'Hmm, seems like this page does not exist!',
-        'todo_description': 'Please check the URL or navigate back to the homepage.',
+        "title": "404 - Not Found",
+        "error_description": "Hmm, seems like this page does not exist!",
+        "todo_description": "Please check the URL or navigate back to the homepage.",
     }
-    return render(request, 'error_page.html', context)
+    return render(request, "error_page.html", context)
 
 
 def handler400(request, exception):
     context = {
-        'title': '400 - Bad Request',
-        'error_description': 'Hmm, this seems like a bad request!',
-        'todo_description': 'Please ensure the request is correct or contact our support team.',
+        "title": "400 - Bad Request",
+        "error_description": "Hmm, this seems like a bad request!",
+        "todo_description": "Please ensure the request is correct or contact our support team.",
     }
-    return HttpResponseBadRequest(render(request, 'error_page.html', context))
+    return HttpResponseBadRequest(render(request, "error_page.html", context))
 
 
 def handler403(request, exception):
     context = {
-        'title': '403 - Forbidden',
-        'error_description': 'Sorry, you do not have permission to access this page.',
-        'todo_description': 'If you think this is an error, please contact our support team.',
+        "title": "403 - Forbidden",
+        "error_description": "Sorry, you do not have permission to access this page.",
+        "todo_description": "If you think this is an error, please contact our support team.",
     }
-    return HttpResponseForbidden(render(request, 'error_page.html', context))
+    return HttpResponseForbidden(render(request, "error_page.html", context))
