@@ -26,9 +26,7 @@ docker compose exec web python manage.py test books.tests.test_tasks --parallel 
 class SendBookAjaxTaskTest(TestCase):
     def setUp(self):
         # mocks
-        self.username = 'testuser'
+        self.username = "testuser"
         self.book = BookFactory.create()
-        self.book_title = 'some_book'
-        self.filetype = 'some_type'
-        self.isbn = 'some_isbn'
-        self.json_links = 'some_links'
+        self.book_title = "some_book"
+        self.json_links = "some_links"
