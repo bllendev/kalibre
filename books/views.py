@@ -14,6 +14,7 @@ from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.contrib.auth import get_user_model
 import json
+from django.utils.http import url_has_allowed_host_and_scheme
 
 # localviews
 from books.models import Book
@@ -171,9 +172,10 @@ class SendBookView(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         # check authenticated user, send to login w/ next if not authenticated
         if not request.user.is_authenticated:
-            login_with_next_url = (
-                f"{reverse('account_login')}?next={request.get_full_path()}"
-            )
+            next_url = request.get_full_path()
+            if not url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+                next_url = '/'
+            login_with_next_url = f"{reverse('account_login')}?next={next_url}"
             return redirect(login_with_next_url)
 
         try:
