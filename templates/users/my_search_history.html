@@ -7,7 +7,7 @@
 
 <script>
     displayUserSearchHistory();
-
+    // TODO: remove local storage dependency
     function displayUserSearchHistory() {
         let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || "[]");
         let list = $("#searchHistoryList");
@@ -15,7 +15,7 @@
     
         searchHistory.forEach(term => {
             // Create an anchor tag
-            let anchor = $('<a>').attr('href', '/books/search-results/?db_q=' + encodeURIComponent(term)).text(term);
+            let anchor = $('<a>').attr('href', '/books/search-results/?query=' + encodeURIComponent(term)).text(term);
             
             // Append the anchor tag inside a list item
             let listItem = $('<li>').addClass('search-history-item').append(anchor);

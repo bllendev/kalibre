@@ -8,102 +8,74 @@
         transition: opacity 0.3s ease-out;
     }
 
-    #search_result_div {
-        max-height: 80vh;
-        overflow-y: auto; /* Enables vertical scrolling */
-        transition: opacity 1s ease;
-    }
+    {% comment %}
+        #div-search-result {
+            max-height: 80vh;
+            overflow-y: auto; /* Enables vertical scrolling */
+            transition: opacity 1s ease;
+        }
+    {% endcomment %}
 </style>
 
-<div id='dim_wrapper' style='width:100%; height:100%;'>
-    <div class="row justify-content-center">
 
-        <!-- Search Bar -->
-        <div class="col-10">
-            <input name="q" class="form-control mr-sm-2" type="text" placeholder="try filtering here if you like!" aria-label="try filtering here if you like!"
-                class="form-control mb-4"
-                hx-get="{% url 'book-search' original_query %}"  
-                hx-trigger="keyup changed delay:25ms"
-                hx-target="#book_entry_list"
-                hx-swap="innerHTML" 
-            >
-        </div>
-
-        <div class="col-2">
-            <!--refresh books btn via api-->
-            <button class="btn btn-outline-primary my-2 my-sm-0" 
-                hx-post="{% url 'book-search-refresh' original_query %}"  
-                hx-trigger="click"
-                hx-target="#book_entry_list"
-                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                hx-swap="innerHTML">Refresh Search</button>
-                
-                <!--chair rocker loading gif-->
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAdFJREFUSEvdlklKBEEQRV/jvNMbeAFBXDggOIvzcASP4A3UG3gELyBOOC2cRXAneAFvoDvHhfUlCtKyqjKrFUtMaGi6I+JnREb8HxVKOpWScKkWuBVYsEuvRd/viiZQLfAAcGJgg8DpvwDuB5qBrZRsQjKeA+6B87RqZJVagfeAGkABDhLOPuBxYAd4BUaAqyR4FvCQATeY8wxw6DjnAQt0G6gDnoFJ4DgUWHZjdmsFeAKmnADt0TOsWrBF4Ma+68K7QKOByueoSKlj22lg00r+CHQBtxkd3AZcA01WJT3Rfla3h4zTLLBupZ4H3jKC1dolVSk9TbIvPrmFAMuh17LJAo2DCrwzrZmKvHFRTihk72YsGtQneR6c5gkNruYTBySPqPWDXl3gZWApxfgsokSNT5EjChUBJc9K9INw/gZwaaUuUspv24aOU5+NSMg49QAXvpuFAMeEL67OIxBR64ZR7bcJRAQvyowJvztntDqsKrGwiPEy2SsvY1ckpDIu4WeJxLCJhMAlLOL6QiLhqsxLRJcTCWnLk0X5ShzqDXw00uTLUMr8yUVAz/VlJ8srtTq55bdXH980+FYfn3/Ve3VpwKUt9N5S+gxCmMsXo6r/3wGjG3AfQCmt5QAAAABJRU5ErkJggg=="/>
-        </div>
+<div class="row justify-content-center">
+    <!-- Search Bar -->
+    <div class="col-10">
+        <input name="q" class="form-control mr-sm-2" type="text" placeholder="try filtering here if you like!" aria-label="try filtering here if you like!"
+            class="form-control mb-4"
+            hx-get="{% url 'book-search' %}"  
+            hx-vals="{'trigger': '', 'query': '{{query}}'}"
+            hx-trigger="keyup changed delay:250ms"
+            hx-target="#book_entry_list"
+            hx-swap="innerHTML" 
+        >
     </div>
-            
-    {% comment %} <div class="row mb-2">
-        <div class="toggle-container col-12">
-            <button class="filetype-toggle" data-filetype="pdf">PDF</button>
-            <button class="filetype-toggle" data-filetype="mobi">MOBI</button>
-            <button class="filetype-toggle" data-filetype="epub">EPUB</button>
-        </div>
-    </div> {% endcomment %}
+
+    <!--hard query refresh open library api -->
+    <div class="col-2">
+        <!--refresh books btn via api-->
+        <button class="btn btn-outline-primary my-2 my-sm-0" 
+            id="div-fetch-books"
+            hx-post="{% url 'book-search-openlibrary' %}"
+            hx-trigger="click"
+            hx-target="#book_entry_list"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-vals='{"query": "{{ query }}"}'
+            hx-indicator="#loading_notification"
+            hx-swap="beforeend"
+            hx-swap="innerHTML">Refresh Search
+        </button>
+   </div>
 
 
-    <div id="search_result_div" class="row mt-5" style="transition: opacity 1s ease;">
-        <!-- Loading Notification -->
-        <div id="loading_notification" class="col-12">
-            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading..." class="img-fluid" style="display:none;">
-        </div>
-        
-        <div id="book_entry_list" class="col-12 row">
-            {% include "books/components/book_entry_list.html" with book_list=book_list %}
-        </div>
+<div id="div-search-result" class="row mt-5" style="transition: opacity 1s ease;">
+
+    <!-- Loading Notification -->
+    <div class="htmx-indicator" id="loading_notification">
+        <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading..." class="img-fluid">
     </div>
+
+    <!-- fetch books via vector search -->
+    <div id="div-fetch-books"
+        hx-get="{% url 'book-search' %}"
+        hx-trigger="load"
+        hx-target="#book_entry_list"
+        hx-vals='{"query": "{{ query }}", "trigger": "refresh-forms-openlibrary-api"}'
+        hx-indicator="#loading_notification"
+        hx-swap="beforeend">
+    </div>
+
+    <!-- NOTE: gets targeted by all div-fetch-books* -->
+    <div id="book_entry_list" class="col-12 row"
+            hx-post="{% url 'book-search-openlibrary' %}"
+            hx-trigger="refresh-forms-openlibrary-api from:body"
+            hx-target="#div-fetch-books-openlibrary"
+            hx-vals='{"query": "{{ query }}"}'
+            hx-indicator="#loading_notification"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-swap="innerHTML">
+    </div>
+
 </div>
 
-
-<script>
-    $(document).ready(function () {
-        // Fade in the search results and animate the cards
-        $("#search_result_div").css("opacity", "1");
-    
-        // HTMX
-        $(document).on('htmx:beforeRequest', function () {
-            $('#loading_notification').show();
-        });
-        $(document).on('htmx:afterRequest', function () {
-            $('#loading_notification').hide();
-        });
-        $(document).on('htmx:responseError', function (event) {
-            var message =  "Ooops! Looks like an error occurred during the request!"
-            alert(message);
-        });
-
-        // Handle the toggle button clicks
-        $('.filetype-toggle').on('click', function() {
-            // Existing toggle logic
-            filterResults();
-        });
-
-        // Filter function adjusted for cards
-        function filterResults() {
-            const activeFileTypes = [];
-            $('.filetype-toggle.active').each(function() {
-                activeFileTypes.push($(this).data('filetype'));
-            });
-
-            $('#search_result_div .book-row').each(function() {
-                const fileType = $(this).find('.card-text').last().text().trim();
-                if (activeFileTypes.length === 0 || activeFileTypes.includes(fileType)) {
-                    $(this).fadeIn(300);
-                } else {
-                    $(this).fadeOut(300);
-                }
-            });
-        }
-    });
-</script>
 {% endblock %}

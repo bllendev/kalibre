@@ -1,77 +1,212 @@
 # django
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Case, When, Q
+from django.db.models import F
 from django.urls import reverse
 from django.core.files.base import ContentFile
+from pgvector.django import L2Distance
 import requests
 
 # tools
-from functools import reduce
-from bs4 import BeautifulSoup
-from decouple import config
-import urllib
 import uuid
 import os
-import json
 import copy
-import io
 
 # local
+from ai.utils import get_openai_embeddings
 from books.constants import EMAIL_TEMPLATE_LIST
-from books.utils import send_emails
+from books.utils import send_emails, get_book_file_path
 from books.api._api_openlibrary import OpenLibraryAPI
+from ai.models import VectorSearch
 
 # logs
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class Book(models.Model):
     """
-    Represents a single book, containing information such as title, author, and file type.
-
-    This model is related to the :model:`auth.User` through the :model:`Review` model.
+    Represents a single book, capturing key data as
+    returned from OpenLibrary API results.
     """
-    BOOK_FILETYPE_EPUB = "epub"
-    BOOK_FILETYPE_MOBI = "mobi"
-    BOOK_FILETYPE_PDF = "pdf"
-    # BOOK_FILETYPE_CHOICES = (
-    #     (BOOK_FILETYPE_EPUB, BOOK_FILETYPE_EPUB),
-    #     (BOOK_FILETYPE_MOBI, BOOK_FILETYPE_MOBI),
-    #     (BOOK_FILETYPE_PDF, BOOK_FILETYPE_PDF),
-    # )
 
     id = models.UUIDField(
         primary_key=True,
         db_index=True,
         default=uuid.uuid4,
         editable=False,
+        help_text="Unique identifier for the book instance.",
+    )
+    json = models.JSONField(
+        default=dict, blank=True, help_text="The original captured data."
+    )
+    title = models.TextField(
+        default="", blank=True, null=False, help_text="The title of the book."
+    )
+    isbns = models.JSONField(
+        blank=True,
+        default=list,
+        help_text="List of ISBNs",
+    )
+    key = models.CharField(
+        max_length=50,
+        blank=True,  # ex: "/works/OL123456W"
+        help_text="Key reference to the OpenLibrary work instance.",
+    )
+    cover_url = models.URLField(
+        blank=True, help_text="URL to the book's cover image.")
+    description = models.TextField(
+        blank=True, null=True, help_text="A description of the book if provided."
+    )
+    authors = models.ManyToManyField(
+        "authors.Author",
+        related_name="books",
+        help_text="Authors associated with the book.",
+    )
+    publish_date = models.CharField(
+        max_length=30,
+        blank=True,
+        help_text="Publication date(s) in a string, formatted as needed.",
+    )
+    # publishers = models.CharField(
+    #     max_length=500, blank=True, help_text="Comma-separated publisher names."
+    # )  # TODO: add publishers subapp and model...
+    subjects = models.JSONField(
+        default=list, blank=True, help_text="List of subjects covered by the book."
+    )
+    price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    cover = models.ImageField(upload_to="covers/", blank=True)
+    json_links = models.JSONField(default=True)
+    vector_search = models.ForeignKey(
+        "ai.VectorSearch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
-    title = models.CharField(max_length=500)
-    _title_lemmatized = models.CharField(max_length=500, default="")        # see LibgenBook.init()
-    price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
-    cover_url = models.CharField(max_length=144, blank=True, default="")
-    cover = models.ImageField(upload_to='covers/', blank=True)
-    filetype = models.CharField(max_length=60, default="")  # choices=BOOK_FILETYPE_CHOICES
-    isbn = models.CharField(max_length=200, default="")
-    json_links = models.JSONField(null=True)
+    def save_vector(self):
+        """
+        generate and save a vector embedding for the book using OpenAI's API.
 
-    # fks
-    author = models.CharField(max_length=500)
+        returns:
+            VectorSearch: The associated VectorSearch instance.
+        """
+        from ai.models import VectorSearch
 
-    def __str__(self):
-        return f"{self.title} - {self.filetype} - {self.isbn}"
-    
+        authors = [a.name for a in self.authors.all()]
+        # publishers = self.publishers.split(", ")  # TODO: build publishers
+        input_text = " ".join(
+            filter(
+                None,
+                [
+                    f"Title: {self.title}.",
+                    f"Description: {self.description}.",
+                    f"Authors: {', '.join(authors)}",
+                    # f"Publishers: {' and '.join(publishers)}.",
+                    # Just keys if subjects is a dict
+                    f"Subjects: {', '.join(self.subjects)}.",
+                ],
+            )
+        )
+
+        if not input_text.strip():
+            logger.error("Book input text empty, cannot generate embedding.")
+            return None
+
+        # generate OpenAI embedding
+        try:
+            vector = get_openai_embeddings([input_text])
+        except Exception as e:
+            logger.error(f"Error generating embedding: {e}")
+            raise e
+
+        # validate vector
+        if not vector:
+            logger.error(f"""
+                            {self}
+                            "Title: {self.title}.",
+                            "Description: {self.description}.",
+                            "Authors: {', '.join(authors)}",
+                            "Subjects: {', '.join(self.subjects)}.",
+                         """)
+            raise RuntimeError("No vector embeddings were extracted")
+
+        # prepare metadata
+        metadata = {
+            "title": self.title,
+            "authors": authors,
+            # "publishers": publishers,
+            # "publish_date": str(self.publish_date),  # TODO: this field is not wired up
+            "subjects": self.subjects,
+        }
+
+        # update or create the VectorSearch instance
+        if not self.vector_search:
+            self.vector_search = VectorSearch.objects.create(
+                vector=vector,
+                metadata=metadata,
+            )
+        else:
+            self.vector_search.vector = vector
+            self.vector_search.metadata = metadata
+            self.vector_search.save()
+
+        return self.vector_search
+
+    def save(self, save_vector=False, *args, **kwargs):
+        # generate and save vector embeddings
+        if save_vector:
+            _ = self.save_vector()
+
+        # super save!
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def search(
+        cls,
+        query,
+        books=None,
+        top_n=20,
+        embeddings=None,
+    ):
+        """
+        search for books based on vector similarity to the query text.
+
+        returns:
+            QuerySet: Books matching the similarity criteria.
+        """
+        if not query:
+            raise RuntimeError("no query was entered")
+
+        # generate vector embedding for the query
+        # ... (if embeddings not already passed)
+        query_vector = embeddings
+        if not query_vector:
+            query_vector = get_openai_embeddings([query])
+
+        # perform vector similarity search
+        similar_vectors = (
+            VectorSearch.objects.annotate(
+                similarity=L2Distance(F("vector"), query_vector)
+            )
+            .filter(similarity__lte=5)
+            .order_by("similarity")[:top_n]
+        )
+
+        logger.debug(f"{len(similar_vectors)} vector")
+
+        # fetch books linked to these vectors
+        books = cls.objects.filter(vector_search__in=similar_vectors)
+        return books
+
     def _set_cover_url(self):
-        """sets the cover_url link in db which is used to set the cover images"""
+        """sets the cover_url link in db, used to set the cover images"""
         # setup
-        status = None
         openlibrary_api = OpenLibraryAPI()
 
         # get data
-        openlibrary_book = openlibrary_api.get_book(self.isbn)
+        openlibrary_book = openlibrary_api.get_book(self.isbns[0])
         cover_id = openlibrary_book["covers"][0]
         cover_url = openlibrary_api.get_cover_url(cover_id)
         if not cover_url:
@@ -83,12 +218,12 @@ class Book(models.Model):
         return cover_url
 
     def _set_cover(self, cover_url=None):
-        """downloads and sets the cover image for the book from the specified URL."""
+        """downloads and sets cover image for book from specified URL."""
         cover_url = cover_url if cover_url else self.cover_url
         r = requests.get(cover_url)
         if r.status_code == 200:
             data = r.content
-            filename = cover_url.split('/')[-1]
+            filename = cover_url.split("/")[-1]
             self.cover.save(filename, ContentFile(data))
             self.save()
         return self.cover
@@ -97,13 +232,12 @@ class Book(models.Model):
         """
         returns the URL to access the detail page of this book.
         """
-        return reverse('book_detail', args=[str(self.id)])
-    
+        return reverse("book-detail", args=[str(self.id)])
+
     def get_cover_url(self, set_cover=False):
         """
-        retrieves the URL of the book's cover image. Sets and saves the cover if needed.
+        retrieves URL of book's cover image. Sets and saves cover if needed.
         """
-        cover = None
         cover_url = os.path.join("/static", "books", "generic_book_cover.jpg")
         try:
             if not self.cover_url or set_cover:
@@ -118,217 +252,38 @@ class Book(models.Model):
                 cover_url = self.cover.url
 
             else:
-                raise Exception("unable to get final image of saved cover.url !")
+                raise Exception(
+                    "unable to get final image of saved cover.url !")
             logger.info(f"get_cover_url - {cover_url}")
         except Exception as e:
             logger.error(f"get_cover_url | {self} | {e} | {cover_url}")
         return cover_url
 
-    def _create_book_file(self, language):
-        """
-        creates book file from links, will translate if needed
-
-        params:
-            - language: language to translate to (if needed)
-        returns:
-            - path to saved book file (translated if needed)
-        """
-        # get book file content
-        book_link = None
-        for link in self.json_links:
-            with urllib.request.urlopen(link) as response:
-                soup = BeautifulSoup(response.read(), "html.parser")
-                book_link = soup.find_all('a')[1].get('href')
-
-            # break out of loop early if book_link exists
-            if book_link:
-                break
-            
-        # validate book_link
-        if not book_link:
-            raise RuntimeError("No Book Link Found to Download the book")
-
-        # validate book file type
-        valid_book_file_type = any([
-            self.BOOK_FILETYPE_EPUB in book_link,
-            self.BOOK_FILETYPE_MOBI in book_link,
-            self.BOOK_FILETYPE_PDF in book_link,
-        ])
-        if not valid_book_file_type:
-            raise TypeError(f"Book File Boolean must be pdf, epub, or mobi... {book_link}")
-
-        # save og file in memory buffer (used as reference for translation as well)
-        response = requests.get(book_link)
-        if response.status_code != 200:
-            raise RuntimeError("Failed to download book file")
-
-        file_buffer = io.BytesIO(response.content)  # keep the file in an in-memory buffer
-
-        # # TRANSLATE FEATURE UNDER CONSTRUCTION FOR NOW @AG++
-        # if language and language != "en":
-        #     ebook_translate = EbookTranslate(new_file_path, language, google_api=True)
-        #     new_file_path = ebook_translate.get_translated_book_path()
-
-        return file_buffer
-
-    def _convert_book_file(self, book_file_path, convert_output_format):
-        """
-        converts the book file format using an external microservice.
-
-        params:
-            - book_file_path: Path to the book file to be converted.
-            - convert_output_format: The desired output format (e.g., epub, pdf).
-        
-        returns:
-            Path to the converted book file.
-        """
-        base_url = config('KALIBRE_EBOOK_CONVERT_URL')
-        api_endpoint = "api/convert/"
-        url = f"{base_url}{api_endpoint}?output_format={convert_output_format}"
-        headers = {
-            'X-API-Key': config("KALIBRE_PRIVADO")
-        }
-
-        # ensure the file exists
-        if not os.path.isfile(book_file_path):
-            raise RuntimeError(f"File not found: {book_file_path}")
-
-        # prepare the file to be uploaded
-        with open(book_file_path, 'rb') as f:
-            files = {'input_file': (os.path.basename(book_file_path), f)}
-            response = requests.post(url, headers=headers, files=files)
-
-        # handle the response
-        output_path = f"output.{convert_output_format}"
-        if response.status_code == 200:
-            # Optionally, handle the file response, e.g., save it to disk
-            with open(output_path, 'wb') as out:
-                out.write(response.content)
-            logging.info("Success: File converted and saved.")
-        else:
-            logging.error("Error:", response.status_code, response.text)
-            raise RuntimeError(f"could not convert book_file ! {book_file_path} | {convert_output_format}")
-
-        return output_path
-
-    def get_book_file_path(self, language=None, convert_output_format=""):
-        """
-        handles the process of creating and optionally converting a book file.
-
-        params:
-            - language: Language for translation.
-            - convert_output_format: Format to convert the book file to (optional).
-        
-        returns:
-            path to the processed book file.
-        """
-        try:
-            book_file_buffer = self._create_book_file(language)
-            if convert_output_format:
-                book_file_buffer = self._convert_book_file(book_file_buffer, convert_output_format)
-        except Exception as e:
-            logging.error(f"Error processing book file: {e}")
-            raise e
-
-        return book_file_buffer
-
     def send(self, emails, language="en"):
         """
-        wends the book file to the specified emails.
+        sends the book file to the specified emails.
 
         params:
             - emails: List of email addresses to send the book file to.
             - language: Language for translation (default is 'en').
-        
+
         returns:
             Status of the email sending process.
         """
-        book_file_buffer = self.get_book_file_path(language)
+        book_file_buffer = get_book_file_path(self, language)
 
         status = False
         if book_file_buffer:
-            template_message = copy.deepcopy(EMAIL_TEMPLATE_LIST)
-            template_message[3] = emails
-            status = send_emails(template_message, book_file_buffer, self.title)
+            msg = copy.deepcopy(EMAIL_TEMPLATE_LIST)
+            msg[3] = emails
+            status = send_emails(msg, book_file_buffer, self.title)
 
         return status
 
-    @classmethod
-    def search(cls, query, books=None):
-        """
-        searches for books in the database based on the provided query.
-
-        params:
-            - query: The search term(s) to filter books.
-            - books: Optional queryset of books to search within.
-        
-        returns:
-            queryset of books matching the search criteria.
-        """
-        if query:
-            query = query.strip()
-            search_terms_list = query.split()
-
-            search_terms = []
-            exact_match = []
-            for term in search_terms_list:
-                exact_match.append(Q(title__iexact=term) | Q(author__iexact=term))
-                search_terms.extend([
-                    Q(title__icontains=term),
-                    Q(author__icontains=term),
-                    Q(filetype__icontains=term),
-                    Q(isbn__icontains=term),
-                    Q(_title_lemmatized__icontains=term.replace(" ", "")),
-                ])
-
-            # combine the search terms with OR operator
-            try:
-                search_query = reduce(lambda x, y: x | y, search_terms)
-                exact_match_query = reduce(lambda x, y: x | y, exact_match)
-
-                if books is None:
-                    books = cls.objects.all()
-            
-                books = books.annotate(
-                    is_exact_match=Case(
-                        When(exact_match_query, then=1),
-                        default=0,
-                        output_field=models.IntegerField()
-                    ),
-                    title_match=Case(
-                        When(Q(title__icontains=query), then=1),
-                        default=0,
-                        output_field=models.IntegerField(),
-                    ),
-                    author_match=Case(
-                        When(Q(author__icontains=query), then=1),
-                        default=0,
-                        output_field=models.IntegerField(),
-                    )
-                ).filter(search_query)
-
-                # order by the new field, so exact matches and then title matches and then author matches come first
-                books = books.order_by('-is_exact_match', '-title_match', '-author_match')
-
-            except Exception as e:
-                books = cls.objects.none()
-
-        # return query the database to get matching books
-        return books
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['id'], name='id_index'),
-        ]
-        permissions = [
-            ('special_status', 'Can read all books'),
-        ]
-        ordering = ["-filetype", "-cover_url"]
-
 
 class Review(models.Model):
-
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')
+    book = models.ForeignKey(
+        Book, on_delete=models.CASCADE, related_name="reviews")
     review = models.CharField(max_length=255)
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 
