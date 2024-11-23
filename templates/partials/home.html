@@ -108,46 +108,45 @@ textarea {
     </div>
     <div class="row justify-content-center">
       <div class="col-md-10">
-        <form 
-          id="search-form"
-          class="form-inline mt-2 mt-md-0 d-flex justify-content-center"
-          hx-post="{% url 'search-results' %}"
-          hx-target="body"
-          hx-swap="outerHTML transition:true"
-          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-          hx-indicator="#loading-indicator"
+        
+        <div 
+          id="search-input-container" 
+          class="d-inline-flex justify-content-center mt-3"
         >
+          <input
+            id="search-query"
+            name="query"
+            class="form-control w-75 mr-2"
+            type="text"
+            placeholder="What do you wanna read?"
+            required
+            hx-get="{% url 'search-results' %}"
+            hx-params="*"
+            hx-target="body"
+            hx-push-url="true"
+            hx-swap="innerHTML"
+          />
+          <button 
+            id="toggle-ai-librarian" 
+            onclick='$("#ai-chatbox").fadeToggle();' 
+            class="btn btn-sm btn-outline-secondary" 
+            title="Toggle AI Librarian" 
+            type="button"
+            data-toggle="tooltip"
+            data-placement="bottom"
+          >
+            <img 
+              id="toggle-ai-image" 
+              src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png" 
+              width="50" 
+              height="50"
+            />
+          </button>
+          
 
-          <div id="search-input-container" class="d-inline-flex">
-            <input
-              name="db_q"
-              class="form-control w-75 mr-2 mt-3"
-              type="text"
-              placeholder="what do you wanna read?"
-              required
-            >
-            <button 
-              id="toggle-ai-librarian" 
-              onclick='$("#ai-chatbox").fadeToggle();' 
-              class="btn btn-sm btn-outline-secondary" 
-              title="AI Librarian" 
-              type="button" 
-              data-toggle="tooltip" 
-              data-placement="bottom" 
-              title="Toggle AI Librarian"
-            >
-              <img 
-                id="toggle-ai-image" 
-                src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png" 
-                width="50" 
-                height="50"
-              />
-            </button>
-            
-             <box-icon class="htmx-indicator" id="loading-indicator" name='loader-circle' animation='spin' ></box-icon>
-          </div>
-        </form>
-
+         <box-icon class="htmx-indicator" id="loading-indicator" name='loader-circle' animation='spin' ></box-icon>
+        </div>
+ 
         <div class="mt-4" id="ai-chatbox" style="display: none; background-color: #F1F8E9; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid #ccc; padding: 20px; overflow-y: scroll;">
         <div id="message-container">
             <!-- add text boxes dynamically using jQuery -->
@@ -265,7 +264,7 @@ $(document).ready(function() {
     }
 
     $("#search-form").on("submit", function(event) {
-    let searchTerm = $(this).find("input[name='db_q']").val();
+    let searchTerm = $(this).find("input[name='query']").val();
     if (searchTerm) {
         addSearchToHistory(searchTerm);
     }

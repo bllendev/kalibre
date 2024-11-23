@@ -33,12 +33,10 @@
             </h5>
             <!-- Book Author -->
             <p class="card-text small text-muted mb-1">{{ book.author }}</p>
-            <!-- Book File Type -->
-            <p class="card-text small text-muted">{{ book.filetype }}</p>
             <!-- Send Button -->
-            {% if book.filetype %}
+            {% comment %}  <!--NOTE: will need to setup special permissions for libgen send-->
                 <button type="button"
-                        hx-post="{% url 'send_book_ajax' book.pk %}"
+                        hx-post="{% url 'send-book' book.pk %}"
                         hx-trigger="click"
                         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                         hx-target="#book_{{ book.pk }}"
@@ -48,7 +46,7 @@
                         class="btn btn-sm btn-primary mt-auto">
                     Send
                 </button>
-            {% endif %}
+            {% endcomment %}
         </div>
     </div>
 </div>

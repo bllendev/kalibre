@@ -3,7 +3,11 @@ from django.conf import settings
 
 TEST_QUERY = "my sweet orange tree"
 
-TEST_ISBN = "2670677"       # my sweet orange tree
+TEST_QUERY_AUTHOR = "Jose Mauro De Vasconcelos"
+
+TEST_AUTHOR_KEY = "OL2643489A"
+
+TEST_ISBN = "2670677"  # my sweet orange tree
 
 TEST_BOOK_FILETYPE = "epub"
 
@@ -35,10 +39,11 @@ TEST_LIBGEN_MIRRORS = [
 ]
 
 TEST_EMAIL_TEMPLATE_LIST = [
-    '',                                         # empty subject line
-    '',                                         # empty message line
-    str(settings.DEFAULT_FROM_EMAIL),           # from email
-    list(),                                     # recipient_list
+    "",  # empty subject line
+    "",  # empty message line
+    str(settings.DEFAULT_FROM_EMAIL),  # from email
+    list(),  # recipient_list
 ]
 
 TEST_STABLE_FILE_TYPES = {"epub", "mobi"}
+

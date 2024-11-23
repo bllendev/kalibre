@@ -4,10 +4,9 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 
-
 # tools
 import json
-from openai import OpenAI 
+from openai import OpenAI
 from decouple import config
 
 # local
@@ -24,10 +23,13 @@ CustomUser = get_user_model()
 # update your `update_token_usage` function to use `tiktoken`
 def update_token_usage(request, message):
     date_today = timezone.now().date()
-    token_usage, _ = TokenUsage.objects.get_or_create(user=request.user, date=date_today)
+    token_usage, _ = TokenUsage.objects.get_or_create(
+        user=request.user, date=date_today
+    )
 
     # use tiktoken to count the tokens in the new messages only
-    tokenizer = tiktoken.get_encoding("cl100k_base")  # moved outside of the loop
+    tokenizer = tiktoken.get_encoding(
+        "cl100k_base")  # moved outside of the loop
     token_ids = list(tokenizer.encode(message))
 
     # update the user's total tokens used
@@ -48,7 +50,7 @@ def query_ai(request, user_message, summary=False):
     user = CustomUser.objects.get(username=username)
 
     # create a conversation if not exists
-    conversation_id = request.POST.get('conversation_id')
+    conversation_id = request.POST.get("conversation_id")
     conversation = Conversation.objects.get(id=conversation_id, user=user)
 
     # create a message from user
@@ -56,15 +58,17 @@ def query_ai(request, user_message, summary=False):
         conversation=conversation,
         sender=Message.SENDER_USER,
         text=user_message,
-        sent_at=timezone.now()
+        sent_at=timezone.now(),
     )
     update_token_usage(request, user_message)
 
     # get ai response using current conversation
-    response = client.chat.completions.create(model="gpt-3.5-turbo",
-    messages=conversation.get_messages(),
-    max_tokens=1000,
-    temperature=0.7)
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=conversation.get_messages(),
+        max_tokens=1000,
+        temperature=0.7,
+    )
     ai_message = response.choices[0].message.content.strip()
 
     # create a message from AI
@@ -72,7 +76,7 @@ def query_ai(request, user_message, summary=False):
         conversation=conversation,
         sender=Message.SENDER_AI,
         text=ai_message,
-        sent_at=timezone.now()
+        sent_at=timezone.now(),
     )
 
     # summarize if the user has exceeded their daily token limit
@@ -80,7 +84,8 @@ def query_ai(request, user_message, summary=False):
         ai_message = set_latest_messages(ai_message)
 
     # update the token usage after a successful request
-    update_token_usage(request, ai_message)  # updating with the correct argument
+    # updating with the correct argument
+    update_token_usage(request, ai_message)
     return ai_message
 
 
@@ -100,12 +105,12 @@ def ai_librarian(request):
     """
     - ajax view that sends a message to the AI Librarian (GPT-3.5 Turbo)
     """
-    if request.method == 'POST':
+    if request.method == "POST":
         # extract messages from request
         user_message = ""
         ai_message = None
         try:
-            user_message_json = request.POST.get('user_message', "")
+            user_message_json = request.POST.get("user_message", "")
             user_message = json.loads(user_message_json)
         except Exception as e:
             print(f"ERROR: {e}")
@@ -115,20 +120,29 @@ def ai_librarian(request):
         user = CustomUser.objects.get(username=username)
 
         date_today = timezone.now().date()
-        token_usage, created = TokenUsage.objects.get_or_create(user=user, date=date_today)
+        token_usage, created = TokenUsage.objects.get_or_create(
+            user=user, date=date_today
+        )
         try:
             # check if the user has exceeded their daily token limit
             if token_usage.tokens_used > TOKEN_USAGE_DAILY_LIMIT:
-                return JsonResponse({'error': 'You have exceeded your daily token limit.'}, status=400)  # 400 -> bad request
+                return JsonResponse(
+                    {"error": "You have exceeded your daily token limit."}, status=400
+                )  # 400 -> bad request
             else:
                 ai_message = query_ai(request, user_message)
         except Exception as e:
             print(f"ai.ajax.ai_librarian ERROR: {e}")
-            return JsonResponse({'error': f'An error occurred while processing your request...'}, status=500)  # 500 -> internal server error
+            return JsonResponse(
+                {"error": f"An error occurred while processing your request..."},
+                status=500,
+            )  # 500 -> internal server error
 
-        return JsonResponse({'message': ai_message})
+        return JsonResponse({"message": ai_message})
 
-    return JsonResponse({'error': 'Invalid request method'}, status=400)  # 400 -> bad request
+    return JsonResponse(
+        {"error": "Invalid request method"}, status=400
+    )  # 400 -> bad request
 
 
 @csrf_exempt
@@ -150,8 +164,8 @@ def create_conversation(request):
         )
 
         # return the conversation_id in the response
-        return JsonResponse({'conversation_id': conversation.id})
+        return JsonResponse({"conversation_id": conversation.id})
 
     except Exception as e:
         print(f"create_conversation - ERROR: {e}")
-        return JsonResponse({'error': 'Internal Server Error'}, status=500)
+        return JsonResponse({"error": "Internal Server Error"}, status=500)

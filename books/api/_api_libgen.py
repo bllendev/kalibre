@@ -1,14 +1,13 @@
 # tools
+import logging
+from django.core.exceptions import ValidationError
+from itertools import chain
+from bs4 import BeautifulSoup
 import requests
-
 import collections
+
 collections.Callable = collections.abc.Callable
 
-from bs4 import BeautifulSoup
-from itertools import chain
-from django.core.exceptions import ValidationError
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,6 @@ MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Infura"]
 
 
 class LibgenAPI:
-
     LIBGEN_COLS = [
         "ID",
         "Author",
@@ -36,13 +34,6 @@ class LibgenAPI:
         "Edit",
     ]
 
-    KEY_DICT = {
-        "ID": "isbn",
-        "Author": "author",
-        "Title": "title",
-        "Extension": "filetype",
-    }
-
     STABLE_FILE_TYPES = {"epub", "mobi"}
 
     def __init__(self):
@@ -53,7 +44,9 @@ class LibgenAPI:
         try:
             titles = self.libgen.search_title(query)
             authors = self.libgen.search_author(query)
-            book_search_results = [api_book for api_book in chain(titles, authors)]  # chains iterables' elements into single iterable
+            book_search_results = [
+                api_book for api_book in chain(titles, authors)
+            ]  # chains iterables' elements into single iterable
         except Exception as e:
             logger.error(f"_api_libgen | {e}")
         return book_search_results
@@ -76,12 +69,13 @@ class LibgenSearch:
         download_links = {link.string: link["href"] for link in links}
         return download_links
 
+
 # ----------------------------------------------------- #
 
 
 class SearchRequest:
     """
-        - USAGE: req = search_request.SearchRequest("[QUERY]", search_type="[title]")
+    - USAGE: req = search_request.SearchRequest("[QUERY]", search_type="[title]")
     """
 
     COLUMNS = [
@@ -112,25 +106,28 @@ class SearchRequest:
     ]
 
     def __init__(self, query, search_type="title"):
-        if len(self.query) < 3:
-            raise ValidationError("Error when searching for your request, the Query was too short")
+        if len(query) < 3:
+            raise ValidationError(
+                "Error when searching for your request, the Query was too short"
+            )
 
         self.query = query
         self.search_type = search_type.lower()
-  
 
     def aggregate_request_data(self):
         query_parsed = "%20".join(self.query.split(" "))
         search_page = None
 
         i = 0  # parse until real mirror is found or until we run out of mirrors !
-        while (search_page is None or search_page.status_code != 200) and i < len(self.LIBGEN_MIRRORS):
+        while (search_page is None or search_page.status_code != 200) and i < len(
+            self.LIBGEN_MIRRORS
+        ):
             libgen_mirror = self.LIBGEN_MIRRORS[i]
-            search_type_url = f"{libgen_mirror}/search.php?req={query_parsed}&column={self.search_type}"
-            search_url = self.get_search_url(libgen_mirror, query_parsed)
+            search_url = f"{
+                libgen_mirror}/search.php?req={query_parsed}&column={self.search_type}"
             search_page = requests.get(search_url)
             i += 1
-        
+
         # validate search_page
         if not search_page:
             raise RuntimeError("No search page found for libgen link")
@@ -172,4 +169,3 @@ class SearchRequest:
 
         output_data = [dict(zip(self.COLUMNS, row)) for row in raw_data]
         return output_data
-

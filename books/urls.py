@@ -1,21 +1,33 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-
+from django.urls import path
 from books import views
-from books import ajax
 
 
 urlpatterns = [
     # core views
     # path('', include(router.urls)),
-    path('<uuid:pk>', views.BookDetailView.as_view(), name='book_detail'),
-    path('search-results/', views.SearchResultsView.as_view(), name='search-results'),
-    path('book-search/<str:original_query>/', views.BookSearch.as_view(), name='book-search'),
-    path('book-search-refresh/<str:original_query>/', views.BookSearchRefresh.as_view(), name='book-search-refresh'),
-
+    path("<uuid:pk>", views.BookDetailView.as_view(), name="book-detail"),
+    path(
+        "search-results/",
+        views.SearchResultsView.as_view(),
+        name="search-results",
+    ),
+    path(
+        "search-results/<str:query>/",
+        views.SearchResultsView.as_view(),
+        name="search-results",
+    ),
+    path(
+        "book-search/",
+        views.BookSearchView.as_view(),
+        name="book-search",
+    ),
+    path(
+        "book-search-openlibrary/",
+        views.BookSearchOpenlibraryView.as_view(),
+        name="book-search-openlibrary",
+    ),
     # book
-    path('get-cover/<uuid:pk>/', views.GetCover.as_view(), name='get-cover'),
-
+    path("get-cover/<uuid:pk>/", views.GetCoverView.as_view(), name="get-cover"),
     # ajax
-    path("send-book-ajax/<uuid:pk>/", ajax.send_book_ajax, name="send_book_ajax"),
+    path("send-book/<uuid:pk>/", views.SendBookView.as_view(), name="send-book"),
 ]

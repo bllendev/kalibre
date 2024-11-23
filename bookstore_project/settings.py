@@ -1,3 +1,5 @@
+import dj_database_url
+import socket
 import os
 import cloudinary
 import cloudinary_storage
@@ -15,7 +17,7 @@ from decouple import config
 from bookstore_project.logging import *
 
 # admins
-ADMINS = [('allen', 'bllendev@gmail.com')]
+ADMINS = [("allen", "bllendev@gmail.com")]
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -30,6 +32,12 @@ ALLOWED_HOSTS = [
     "kalibre-bllendev.herokuapp.com",
 ]
 DEBUG = bool(config("DEBUG", default=False))
+
+
+TESTING = False
+if "test" in argv or "test_coverage" in argv:
+    TESTING = True
+
 
 # stripe
 # STRIPE_LIVE_PUBLISHABLE_KEY = config("STRIPE_LIVE_PUBLISHABLE_KEY")
@@ -50,12 +58,29 @@ if ENVIRONMENT == "production":
 
 # Application definition
 EXCLUDED_APP_DIRECTORIES = [
-    "static", ".vscode", "cover", "media", "staticfiles", "templates",
-    "fixtures", ".git", ".idea", ".local", "venv"
+    "static",
+    ".vscode",
+    "cover",
+    "media",
+    "staticfiles",
+    "templates",
+    "fixtures",
+    ".git",
+    ".idea",
+    ".local",
+    "venv",
 ]
-APP_DIRECTORIES_ABSOLUTE = [dir_ref for dir_ref in listdir(BASE_DIR) if Path(dir_ref).is_dir()]
-APP_DIRECTORIES_NAMES = [basename(normpath(dir_ref)) for dir_ref in APP_DIRECTORIES_ABSOLUTE]
-APP_DIRECTORIES = [dir_ref for dir_ref in APP_DIRECTORIES_NAMES if dir_ref not in EXCLUDED_APP_DIRECTORIES]
+APP_DIRECTORIES_ABSOLUTE = [
+    dir_ref for dir_ref in listdir(BASE_DIR) if Path(dir_ref).is_dir()
+]
+APP_DIRECTORIES_NAMES = [
+    basename(normpath(dir_ref)) for dir_ref in APP_DIRECTORIES_ABSOLUTE
+]
+APP_DIRECTORIES = [
+    dir_ref
+    for dir_ref in APP_DIRECTORIES_NAMES
+    if dir_ref not in EXCLUDED_APP_DIRECTORIES
+]
 APP_DIRECTORIES_COMMA_LIST = ",".join(APP_DIRECTORIES)
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -67,18 +92,15 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-
     # Third-Party
     "crispy_forms",
     "crispy_bootstrap4",
     "rest_framework",
-
     # "crispy_bootstrap5",
     "allauth",
     "allauth.account",
     "debug_toolbar",
     "allauth.socialaccount",
-
     # Local
     "users.apps.UsersConfig",
     "pages.apps.PagesConfig",
@@ -86,16 +108,13 @@ INSTALLED_APPS = [
     "translate.apps.TranslateConfig",
     "ai.apps.AiConfig",
     "authors.apps.AuthorsConfig",
-
     # Media Cloudinary
     "cloudinary",
     "cloudinary_storage",
-
     # Celery
     "django_celery_results",
     # "django_celery_beat",  task scheduler
-
-] # + APP_DIRECTORIES
+]  # + APP_DIRECTORIES
 
 
 SITE_ID = 1
@@ -126,8 +145,8 @@ ACCOUNT_AUTHENTICATION_METHOD = "username"
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_UNIQUE_EMAIL = True
 
-MEDIA_URL = "/media/" # new
-MEDIA_ROOT = os.path.join(BASE_DIR, "media") # new
+MEDIA_URL = "/media/"  # new
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # new
 
 MIDDLEWARE = [
     "django.middleware.cache.UpdateCacheMiddleware",
@@ -147,10 +166,12 @@ MIDDLEWARE = [
 
 
 # django debug toolbar
-import socket
+
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 # INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
-INTERNAL_IPS = ['127.0.0.1',]
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -160,7 +181,7 @@ CACHE_MIDDLEWARE_KEY_PREFIX = ""
 
 # Static files (CSS, JavaScript, Images)
 # Cloudinary stuff
-CLOUDINARY_STORAGE = {                  # TODO: add these to env vars
+CLOUDINARY_STORAGE = {  # TODO: add these to env vars
     "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": config("CLOUDINARY_API_KEY"),
     "API_SECRET": config("CLOUDINARY_API_SECRET"),
@@ -169,7 +190,7 @@ CLOUDINARY_STORAGE = {                  # TODO: add these to env vars
 if ENVIRONMENT == "development":
     MEDIA_URL = "/media/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
     # Cloudinary settings for production
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
@@ -203,7 +224,7 @@ DATABASES = {
         "PORT": config("DB_PORT", "5432"),
     }
 }
-import dj_database_url
+
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES["default"].update(db_from_env)
 
@@ -234,10 +255,10 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 
@@ -248,7 +269,9 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
-
+CELERY_ALWAYS_EAGER = True
+if ENVIRONMENT == "production":
+    CELERY_ALWAYS_EAGER = False
 
 # error views
 DEBUG_PROPAGATE_EXCEPTIONS = False

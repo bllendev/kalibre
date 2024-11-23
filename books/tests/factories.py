@@ -1,15 +1,16 @@
+import os
+from django.conf import settings
 import factory
-import uuid
-
-from books.tests.constants import TEST_ISBN, TEST_BOOK_FILETYPE
+import json
 
 
 # test book constants
-TEST_TITLE = "My Sweet Little Orange Tree"
-TEST_AUTHOR = "De Vasconcelos, José Mauro;Entrekin, Alison"
-TEST_FILETYPE = TEST_BOOK_FILETYPE
-ISBN = TEST_ISBN
-JSON_LINKS ='[\"http://library.lol/main/CDD0C7BB84700F371E6F4675947D7456\", \"http://libgen.lc/ads.php?md5=CDD0C7BB84700F371E6F4675947D7456\", \"https://library.bz/main/edit/CDD0C7BB84700F371E6F4675947D7456\"]'
+TEST_EMBEDDINGS_PATH = os.path.join(
+    settings.BASE_DIR, "books", "tests", "_test_query_embeddings.json"
+)
+
+with open(TEST_EMBEDDINGS_PATH, "rb") as f:
+    test_embeddings = json.load(f)
 
 
 class BookFactory(factory.django.DjangoModelFactory):
@@ -18,19 +19,63 @@ class BookFactory(factory.django.DjangoModelFactory):
 
     class Params:
         test_book = factory.Trait(
-            title=TEST_TITLE,
-            author=TEST_AUTHOR,
-            filetype=TEST_FILETYPE,
-            isbn=TEST_ISBN,
-            json_links=JSON_LINKS
+            title="My Sweet-orange Tree",
+            isbns=[
+                "964913980X",
+                "9789649139807",
+                "1782692452",
+                "1536203289",
+                "9781782692454",
+                "9781536203288",
+            ],
+            json_links=[],
         )
 
-    id = uuid.uuid4()
-    title = factory.Faker('sentence', nb_words=4)
-    author = factory.Faker('name')
-    price = factory.Faker('pydecimal', left_digits=4, right_digits=2, positive=True)
-    cover_url = factory.Faker('url')
-    cover = factory.django.ImageField(filename='test_cover.jpg')
-    filetype = factory.Faker('file_extension')
-    isbn = factory.Faker('isbn13')
-    json_links = {"link1": "http://example.com", "link2": "http://example2.com"}
+    id = factory.Faker("uuid4")
+    title = factory.Faker("sentence", nb_words=3)
+    isbns = []
+    key = factory.Faker("bothify", text="/works/OL#####W")
+    cover_url = factory.Faker("url")
+    description = factory.Faker("paragraph")
+
+    # Authors handled by post-generation
+    publish_date = factory.LazyFunction(lambda: ["2019", "Mar 16, 2011"])
+    subjects = factory.LazyFunction(
+        lambda: ["Brazil, fiction", "Children's fiction"])
+    price = factory.Faker("pydecimal", left_digits=3,
+                          right_digits=2, positive=True)
+    cover = None  # Typically a path to a local or test file
+
+    # Assuming JSON links should be empty list by default like in your params
+    json_links = factory.LazyFunction(list)
+    vector_search = None  # Needs manual association if persisting
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        from ai.factory import VectorSearchFactory
+
+        # If vector_search is None, create one with test embeddings
+        if not kwargs.get("vector_search"):
+            kwargs["vector_search"] = VectorSearchFactory.create(
+                vector=test_embeddings,
+                metadata={"source": "test"},
+                # NOTE: we set saved embeddings to prevent
+                # redundant api queries during testing...
+            )
+
+        return super()._create(model_class, *args, **kwargs)
+
+    @factory.post_generation
+    def authors(self, create, extracted, **kwargs):
+        from authors.factory.author import AuthorFactory
+
+        if not create:
+            # skip adding authors if not persisting to the database
+            return
+        if extracted:
+            # add the specified authors
+            for author in extracted:
+                self.authors.add(author)
+        else:
+            # add a random author by default
+            author = AuthorFactory()
