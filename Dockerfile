@@ -4,6 +4,7 @@ FROM python:3.11.5 AS backend
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV OPENAI_API_KEY $OPENAI_API_KEY_KALIBRE
 
 # Install system dependencies
 RUN apt-get update \
