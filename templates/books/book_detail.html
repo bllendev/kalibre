@@ -49,10 +49,7 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ book.title }}</h5>
                     <p class="card-text">Author: {{ book.author }}</p>
-                    <p class="card-text">ISBN: {{ book.isbn }}</p>
-                    {% if book.filetype %}
-                        <p class="card-text">Filetype: {{ book.filetype }}</p>
-                    {% endif %}
+                    <p class="card-text">ISBN: {{ book.isbns }}</p>
                     <!-- The Refresh Button with HTMX -->
                     <div class="text-center">
                         <button class="btn btn-sm btn-info refresh-btn"
