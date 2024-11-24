@@ -1,10 +1,9 @@
 <style>
-    /* Styling for the Kalibre interface */
     #kalibre-frame {
         border: 2px solid var(--secondary);
         border-radius: 15px;
         padding: 2rem;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3); /* Increased the blur and opacity */
         margin: 2rem auto;
         max-width: 80vh;
         background-color: var(--background);
@@ -13,7 +12,7 @@
 
     #kalibre-frame:hover {
         transform: scale(1.01);
-        box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35); /* Further increased for hover effect */
     }
 
     #blue_reading_img {
@@ -338,13 +337,6 @@
             }
             return cookieValue;
         }
-
-        // Initialize conversation on page load
-        getOrCreateConversationID().then((id) => {
-            console.log("Conversation ID ready: ", id);
-        }).catch(error => {
-            console.error("Initialization error: ", error);
-        });
 
     });
 </script>
