@@ -78,7 +78,9 @@
 <article class="container mt-5">
     <div class="card grid">
         <!-- Book Cover Image -->
-        <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
+        <figure>
+            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
+        </figure>
 
         <!-- Card Body -->
         <div class="card-body">

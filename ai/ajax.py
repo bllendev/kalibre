@@ -51,6 +51,9 @@ def query_ai(request, user_message, summary=False):
 
     # create a conversation if not exists
     conversation_id = request.POST.get("conversation_id")
+    if not conversation_id:
+        raise RuntimeError("missing conversation id!")
+
     conversation = Conversation.objects.get(id=conversation_id, user=user)
 
     # create a message from user
@@ -64,7 +67,7 @@ def query_ai(request, user_message, summary=False):
 
     # get ai response using current conversation
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
         messages=conversation.get_messages(),
         max_tokens=1000,
         temperature=0.7,
@@ -133,10 +136,11 @@ def ai_librarian(request):
                 ai_message = query_ai(request, user_message)
         except Exception as e:
             print(f"ai.ajax.ai_librarian ERROR: {e}")
-            return JsonResponse(
-                {"error": f"An error occurred while processing your request..."},
-                status=500,
-            )  # 500 -> internal server error
+            raise e
+            # return JsonResponse(
+            #     {"error": f"An error occurred while processing your request..."},
+            #     status=500,
+            # )  # 500 -> internal server error
 
         return JsonResponse({"message": ai_message})
 
@@ -150,6 +154,8 @@ def create_conversation(request):
     try:
         # extract user info
         username = request.user.username
+        if not username:
+            return JsonResponse({})
         user = CustomUser.objects.get(username=username)
 
         # check if conversation_id exists in the session

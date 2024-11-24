@@ -8,12 +8,12 @@
         margin: 2rem auto;
         max-width: 80vh;
         background-color: var(--background);
-        transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transition for smoothness */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     #kalibre-frame:hover {
-        transform: scale(1.01); /* Slightly enlarge the frame */
-        box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25); /* Enhanced shadow for hover */
+        transform: scale(1.01);
+        box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25);
     }
 
     #blue_reading_img {
@@ -31,6 +31,10 @@
 
     #toggle-ai-librarian {
         padding: 5px;
+        justify-self: end;
+        align-self: center;
+        margin-right: 0.5rem;
+        background-color: var(--primary);
         border: 1px solid var(--secondary);
         border-radius: 50%;
         height: 50px;
@@ -38,7 +42,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--primary);
     }
 
     #ai-chatbox {
@@ -82,7 +85,6 @@
         resize: none;
     }
 
-    /* Loading animation */
     .loading-animation {
         display: flex;
         justify-content: center;
@@ -90,21 +92,23 @@
         margin-top: 5px;
     }
 
-    .dot {
-        width: 8px;
-        height: 8px;
-        background-color: var(--primary);
-        border-radius: 50%;
-        display: inline-block;
-        animation: bounce 1.5s infinite ease-in-out;
+    #main-card-content {
+        transition: transform 0.5s ease, opacity 0.5s ease;
     }
 
-    .dot:nth-child(2) {
-        animation-delay: -0.4s;
+    #search-view,
+    #chat-view {
+        transition: opacity 0.5s ease;
     }
 
-    .dot:nth-child(3) {
-        animation-delay: -0.8s;
+    .hidden {
+        display: none;
+        opacity: 0;
+    }
+
+    .visible {
+        display: block;
+        opacity: 1;
     }
 
     @keyframes bounce {
@@ -116,105 +120,216 @@
         }
     }
 </style>
-</head>
-<body>
 <div id="kalibre-frame">
     <div class="text-center">
-        <h1 class="kalibre-title" style="font-size: 3rem; color: var(--primary);">kalibre</h1>
-        <div id="blue_reading_div" class="text-center">
-            <!-- Dynamically loaded image -->
+        <div class="grid">
+            <div>
+            <h1 class="kalibre-title" style="font-size: 3rem; color: var(--primary);">kalibre</h1>
+
+            {% if request.user.is_authenticated %}
+                <button
+                    class="grid"
+                    id="toggle-ai-librarian"
+                    title="Toggle AI Librarian"
+                    type="button"
+                >
+                    <img
+                        id="toggle-ai-image"
+                        src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png"
+                        alt="AI Librarian Icon"
+                        width="40"
+                        height="40"
+                    />
+                </button>
+            {% endif %}
         </div>
-        <div id="search-input-container">
-            <input
-                id="search-query"
-                name="query"
-                type="text"
-                placeholder="What do you wanna read?"
-                required
-                hx-get="{% url 'search-results' %}"
-                hx-params="*"
-                hx-target="body"
-                hx-push-url="true"
-                hx-swap="innerHTML transition:true"
-                class="form-control"
-            />
-            <button
-                id="toggle-ai-librarian"
-                onclick='$("#ai-chatbox").fadeToggle();'
-                title="Toggle AI Librarian"
-                type="button"
-            >
-                <img
-                    id="toggle-ai-image"
-                    src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png"
-                    alt="AI Librarian Icon"
-                    width="40"
-                    height="40"
-                />
-            </button>
-        </div>
-        <div id="ai-chatbox" style="display: none;">
-            <div id="message-container">
-                <!-- Messages dynamically added -->
+
+        <div id="main-card-content">
+            <div id="search-view" class="visible">
+                <div id="blue_reading_div" class="text-center"></div>
+                <div id="search-input-container">
+                    <input
+                        id="search-query"
+                        name="query"
+                        type="text"
+                        placeholder="What do you wanna read?"
+                        required
+                        hx-get="{% url 'search-results' %}"
+                        hx-params="*"
+                        hx-target="body"
+                        hx-push-url="true"
+                        hx-swap="innerHTML transition:true"
+                        class="form-control"
+                    />
+                </div>
             </div>
-            <textarea
-                class="form-control"
-                {% if not request.user.is_authenticated %}readonly{% endif %}
-                placeholder="{% if request.user.is_authenticated %}Hi, I'm Kalibre! What type of book are you looking for?{% else %}Hi, I'm Kalibre! Please log in or create an account to get started!{% endif %}"
-            ></textarea>
+
+            <div id="chat-view" class="hidden">
+                <div id="ai-chatbox">
+                    <div id="message-container">
+                        <!-- Dynamically add messages here -->
+                    </div>
+                    <textarea
+                        id="chat-input"
+                        class="form-control"
+                        {% if not request.user.is_authenticated %}readonly{% endif %}
+                        placeholder="{% if request.user.is_authenticated %}Hi, I'm Kalibre! What type of book are you looking for?{% else %}Hi, I'm Kalibre! Please log in or create an account to get started!{% endif %}"
+                    ></textarea>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
-        // Dynamically load the reading GIF
-        var blueReadingImg = $('<img id="blue_reading_img">');
-        blueReadingImg.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
-        blueReadingImg.appendTo('#blue_reading_div');
+        let conversationId = null;
+        
+        // Initialize dynamics
+        loadImage('#blue_reading_div');
+        
+        function loadImage(containerSelector) {
+            const imageExists = $(containerSelector).find('#blue_reading_img').length > 0;
+            if (!imageExists) {
+                const blueReadingImg = $('<img id="blue_reading_img">');
+                blueReadingImg.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
+                blueReadingImg.appendTo(containerSelector);
+            }
+        }
 
-        // Kalibre face animation
-        const kalibreFaces = [
-            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png",
-            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_1_sel9zm.png",
-            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_2_p6cddp.png",
-            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_3_nbzijn.png",
-            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_4_dbjaoj.png",
-            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
-        ];
-        $('#toggle-ai-librarian').mouseover(function () {
-            const randomIndex = Math.floor(Math.random() * kalibreFaces.length);
-            $('#toggle-ai-image').attr('src', kalibreFaces[randomIndex]);
+        // Function to fetch or create a conversation ID
+        function getOrCreateConversationID() {
+            if (conversationId == null) {
+                return createConversation();
+            } else {
+                return Promise.resolve(conversationId);
+            }
+        }
+
+        // Function to create a new conversation
+        function createConversation() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "/ai/create-conversation/",
+                    type: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                    success: function (data) {
+                        if (data && data.conversation_id) {
+                            conversationId = data.conversation_id;
+                            resolve(conversationId);
+                        } else {
+                            reject("Failed to obtain conversation ID");
+                        }
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        reject("Error: " + errorThrown);
+                    },
+                });
+            });
+        }
+
+        // Logic for toggling views
+        $("#toggle-ai-librarian").click(function () {
+            const searchView = $("#search-view");
+            const chatView = $("#chat-view");
+
+            if (searchView.is(":visible")) {
+                searchView.addClass("hidden").removeClass("visible");
+                getOrCreateConversationID().then((id) => {
+                    chatView.addClass("visible").removeClass("hidden");
+                    console.log("Initialized conversation with ID: " + id);
+                }).catch(error => {
+                    console.error("Failed to create conversation: ", error);
+                });
+            } else {
+                chatView.addClass("hidden").removeClass("visible");
+                searchView.addClass("visible").removeClass("hidden");
+                loadImage('#blue_reading_div'); // Ensure the image loads when switching back
+            }
         });
 
-        // Handle Enter key for sending messages
-        $("textarea").on("keydown", function (event) {
-            if (event.key === "Enter") {
+        // Handle chat functionality
+        $("#chat-input").on("keydown", function (event) {
+            if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
                 const userMessage = $(this).val().trim();
                 if (userMessage) {
-                    // Add user message to the chat
-                    const messageDiv = $("<div>").text(userMessage).addClass("user-message");
+                    const messageDiv = $("<div>")
+                        .text(userMessage)
+                        .addClass("user-message");
                     $("#message-container").append(messageDiv);
-                    $(this).val(""); // Clear the textarea
+                    $(this).val("");
 
-                    // Show loading animation
-                    const loadingDiv = $("<div>").addClass("loading-animation").append(
-                        $("<div>").addClass("dot"),
-                        $("<div>").addClass("dot"),
-                        $("<div>").addClass("dot")
-                    );
+                    const loadingDiv = $("<div>")
+                        .addClass("loading-animation")
+                        .append("<div class='dot'></div><div class='dot'></div><div class='dot'></div>");
                     $("#message-container").append(loadingDiv);
 
-                    // Simulate AI response
-                    setTimeout(() => {
+                    getAiLibrarianResponse(userMessage).then((response) => {
                         loadingDiv.remove();
-                        const aiResponse = $("<div>").text("This is a simulated AI response.").addClass("ai-response");
-                        $("#message-container").append(aiResponse);
-                    }, 1500);
+                        const aiResponseDiv = $("<div>")
+                            .text(response)
+                            .addClass("ai-response");
+                        $("#message-container").append(aiResponseDiv);
+                    }).catch((error) => {
+                        loadingDiv.remove();
+                        console.error("Error fetching AI response: ", error);
+                    });
                 }
             }
         });
+
+        // Function to fetch AI response
+        function getAiLibrarianResponse(userMessage) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "/ai/ai-librarian/",
+                    type: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                    data: {
+                        user_message: JSON.stringify(userMessage),
+                        conversation_id: conversationId,
+                    },
+                    success: function (data) {
+                        if (data && data.message) {
+                            resolve(data.message);
+                        } else {
+                            reject("No message received from AI");
+                        }
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        reject("Error: " + errorThrown);
+                    },
+                });
+            });
+        }
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Initialize conversation on page load
+        getOrCreateConversationID().then((id) => {
+            console.log("Conversation ID ready: ", id);
+        }).catch(error => {
+            console.error("Initialization error: ", error);
+        });
+
     });
 </script>
