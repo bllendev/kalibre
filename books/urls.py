@@ -22,6 +22,11 @@ urlpatterns = [
         name="book-search",
     ),
     path(
+        "book-search/<str:query>/",
+        views.BookSearchView.as_view(),
+        name="book-search",
+    ),
+    path(
         "book-search-openlibrary/",
         views.BookSearchOpenlibraryView.as_view(),
         name="book-search-openlibrary",

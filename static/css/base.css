@@ -1,86 +1,47 @@
 /* Navbar Styling */
-.navbar {
-  background-color: #707080;
-  border-bottom: 1px solid #E1E6DD;
-  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
+:root {
+  --primary-color: #8fbcbb;
+  --secondary-color: #88c0d0;
+  --accent-color: #ebcb8b;
+  --background-dark: #2e3440;
+  --background-light: #eceff4;
 }
 
-.navbar-brand {
-  font-family: 'Roboto', sans-serif;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #4c4b4e;
-  font-weight: bold;
-  transition: color 0.4s ease;
+.nav {
+  background: linear-gradient(135deg, #2e3440, #3b4252);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.navbar-brand:hover {
-  color: #4b9a96;
+nav ul li a {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  color: #eceff4;
 }
 
-.navbar-nav .nav-link {
-  color: #5D5C61;
-  font-size: 1.125rem;
-  margin-right: 1rem;
-  cursor: pointer;
-  transition: color 0.3s ease;
+nav ul li a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: #a3be8c;
+  transition: width 0.3s;
 }
 
-.navbar-nav .nav-link:hover {
-  color: #26816f; /* Soft pastel hover */
-  cursor: pointer;
+nav ul li a:hover::after {
+  width: 100%;
 }
 
-.navbar-toggler {
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-.navbar-toggler-icon {
-  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%2851,51,51,0.5%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
-}
-
-/* Body Styling */
-body {
-  background-color: #E1E6DD; /* Soft pastel background */
-  min-height: 100vh;
-  padding-top: 4.5rem;
-  font-family: 'Open Sans', sans-serif;
-  color: #333;
+/* HTMX Indicator Styling */
+.htmx-indicator {
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transition: opacity 500ms ease-in;
 }
 
-/* Mobile View Adjustments */
-@media (max-width: 767.98px) {
-  .navbar-nav {
-    margin-top: 2rem;
-  }
-  .navbar-nav .nav-link {
-    margin-right: 0;
-    margin-bottom: 1rem;
-  }
-}
-
-.htmx-indicator{
-    opacity:0;
-    transition: opacity 500ms ease-in;
-}
-.htmx-request .htmx-indicator{
-    opacity:1;
-}
-.htmx-request.htmx-indicator{
-    opacity:1;
-}
-
-/* Button Styling */
-.btn-success {
-  background-color: #379683;
-  border-color: #379683;
-  transition: background-color 0.3s ease;
-}
-
-.btn-success:hover {
-  background-color: #317773;
+.htmx-request .htmx-indicator {
+  opacity: 1;
 }
 
 /* Links */
@@ -91,16 +52,6 @@ a {
 
 a:hover {
   color: #317773;
-}
-
-/* Headings */
-h1, h2, h3, h4, h5, h6 {
-  color: #5D5C61;
-}
-
-h1 {
-  font-size: 3rem;
-  color: maroon;
 }
 
 /* Cards */
@@ -115,54 +66,21 @@ h1 {
   transform: translateY(-0.3rem);
 }
 
-/* Filetype Toggle */
-.filetype-toggle {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  background-color: #e0e0e0;
-  color: #757575;
-  transition: background-color 0.2s, color 0.2s;
+input#search-query:focus {
+  border: 2px solid #a3be8c;
+  box-shadow: 0 0 10px rgba(163, 190, 140, 0.5);
 }
 
-.filetype-toggle.active {
-  background-color: #A7E0AB;
-  color: white;
+@keyframes typing {
+  0% { content: "What do you wanna read?"; }
+  33% { content: "Find your next favorite book..."; }
+  66% { content: "Explore the library!"; }
 }
 
-/* Page Content Animation */
-.page-content {
-  opacity: 0;
-  transform: translateY(-2rem);
-  transition: opacity 1s ease, transform 1s ease;
+input#search-query::placeholder {
+  animation: typing 5s infinite;
 }
 
-/* Search Input Container */
-#search-input-container {
-  display: flex;
-  justify-content: center;
-  width: 80%;
-  max-width: 600px;
-  margin: auto;
-}
-
-/* Search History Item */
-.search-history-item {
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.search-history-item:hover {
-  background-color: #f5f5f5;
-}
-
-.search-history-item a {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
 
 /* Book Cover Image */
 img.bookcover {
@@ -172,10 +90,17 @@ img.bookcover {
 
 /* AI Chatbox */
 #ai-chatbox {
-  display: none;
-  background-color: #f8f9fa;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
+  background: linear-gradient(135deg, #2e3440, #3b4252);
+  border: none;
+  color: #eceff4;
+}
+
+#ai-chatbox textarea {
+  border-radius: 10px;
+  margin-top: 10px;
+  background-color: #3b4252;
+  color: #eceff4;
+  border: 1px solid #4c566a;
 }
 
 /* Smooth Transition Effects */
@@ -204,3 +129,5 @@ img.bookcover {
 ::view-transition-new(body-transition) {
   animation: fade-in 0.2s ease-in forwards;
 }
+
+

@@ -1,331 +1,220 @@
-<!--partials/home.html-->
 <style>
-@keyframes rotate-animation {
-    0% {
-    transform: rotate(-45deg);
-    }
-    100% {
-    transform: rotate(45deg);
-    }
-}
-
-.rotate {
-    animation: rotate-animation 1s linear infinite alternate;
-}
-
-#toggle-ai-librarian {
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 50%;
-}
-
-#search-input-container * {
-    border-radius: 10px !important;
-}
-
-.user-message, .ai-response {
-    border-bottom: 1px solid #ccc;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-}
-
-.user-message {
-    background-color: #e6f2ff;
-    border-radius: 10px; /* Increase from 5px to 10px */
-    padding: 10px;
-}
-
-.ai-response {
-    background-color: #f0f8ff;
-    border-radius: 10px; /* Increase from 5px to 10px */
-    padding: 10px;
-}
-
-#ai-chatbox {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    height: 333px; /* adjust as necessary */
-}
-
-#message-container {
-    overflow-y: auto;
-    flex: 1;
-}
-
-textarea {
-    width: 100%;
-    resize: none; /* disable resize */
-}
-
-.loading-animation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 5px;
-}
-
-.dot {
-    width: 8px;
-    height: 8px;
-    background-color: #3498db;
-    border-radius: 50%;
-    display: inline-block;
-    animation: bounce 1.5s infinite ease-in-out;
-}
-
-.dot:nth-child(2) {
-    background-color: #e67e22;
-    animation-delay: -0.4s;
-}
-
-.dot:nth-child(3) {
-    background-color: #e74c3c;
-    animation-delay: -0.8s;
-}
-
-@keyframes bounce {
-    0%, 80%, 100% {
-    transform: translateY(0);
-    }
-    40% {
-    transform: translateY(-15px);
+    /* Styling for the Kalibre interface */
+    #kalibre-frame {
+        border: 2px solid var(--secondary);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+        margin: 2rem auto;
+        max-width: 800px;
+        background-color: var(--background);
+        transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transition for smoothness */
     }
 
+    #kalibre-frame:hover {
+        transform: scale(1.01); /* Slightly enlarge the frame */
+        box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25); /* Enhanced shadow for hover */
+    }
+
+    #blue_reading_img {
+        max-width: 65%;
+        margin: auto;
+        display: block;
+    }
+
+    #search-input-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    #toggle-ai-librarian {
+        padding: 5px;
+        border: 1px solid var(--secondary);
+        border-radius: 50%;
+        height: 50px;
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--primary);
+    }
+
+    #ai-chatbox {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        height: 333px;
+        border: 1px solid var(--secondary);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: var(--card-background);
+        margin-top: 1rem;
+    }
+
+    .user-message, .ai-response {
+        border-bottom: 1px solid var(--secondary);
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+    }
+
+    .user-message {
+        background-color: var(--primary-light);
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .ai-response {
+        background-color: var(--secondary-light);
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    #message-container {
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    textarea {
+        width: 100%;
+        resize: none;
+    }
+
+    /* Loading animation */
+    .loading-animation {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 5px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        display: inline-block;
+        animation: bounce 1.5s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: -0.4s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: -0.8s;
+    }
+
+    @keyframes bounce {
+        0%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-15px);
+        }
+    }
 </style>
-
-
-<div class="container mt-5"
-    hx-trigger="refresh-forms from:body"
-    hx-get="{% url 'home' %}"
-    hx-target="this"
-    hx-swap="outerHTML"
->
-  <div class="text-center">
-    <h1 class="kalibre-title" style="font-size:100px">kalibre</h1>
-    <div class="row justify-content-center">
-      <div id="blue_reading_div" class="col-md-6"></div>
-    </div>
-    <div class="row justify-content-center">
-      <div class="col-md-10">
-        
-        <div 
-          id="search-input-container" 
-          class="d-inline-flex justify-content-center mt-3"
-        >
-          <input
-            id="search-query"
-            name="query"
-            class="form-control w-75 mr-2"
-            type="text"
-            placeholder="What do you wanna read?"
-            required
-            hx-get="{% url 'search-results' %}"
-            hx-params="*"
-            hx-target="body"
-            hx-push-url="true"
-            hx-swap="innerHTML"
-          />
-          <button 
-            id="toggle-ai-librarian" 
-            onclick='$("#ai-chatbox").fadeToggle();' 
-            class="btn btn-sm btn-outline-secondary" 
-            title="Toggle AI Librarian" 
-            type="button"
-            data-toggle="tooltip"
-            data-placement="bottom"
-          >
-            <img 
-              id="toggle-ai-image" 
-              src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png" 
-              width="50" 
-              height="50"
+</head>
+<body>
+<div id="kalibre-frame">
+    <div class="text-center">
+        <h1 class="kalibre-title" style="font-size: 3rem; color: var(--primary);">kalibre</h1>
+        <div id="blue_reading_div" class="text-center">
+            <!-- Dynamically loaded image -->
+        </div>
+        <div id="search-input-container">
+            <input
+                id="search-query"
+                name="query"
+                type="text"
+                placeholder="What do you wanna read?"
+                required
+                hx-get="{% url 'search-results' %}"
+                hx-params="*"
+                hx-target="body"
+                hx-push-url="true"
+                hx-swap="innerHTML"
+                class="form-control"
             />
-          </button>
-          
-
-         <box-icon class="htmx-indicator" id="loading-indicator" name='loader-circle' animation='spin' ></box-icon>
+            <button
+                id="toggle-ai-librarian"
+                onclick='$("#ai-chatbox").fadeToggle();'
+                title="Toggle AI Librarian"
+                type="button"
+            >
+                <img
+                    id="toggle-ai-image"
+                    src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png"
+                    alt="AI Librarian Icon"
+                    width="40"
+                    height="40"
+                />
+            </button>
         </div>
- 
-        <div class="mt-4" id="ai-chatbox" style="display: none; background-color: #F1F8E9; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid #ccc; padding: 20px; overflow-y: scroll;">
-        <div id="message-container">
-            <!-- add text boxes dynamically using jQuery -->
+        <div id="ai-chatbox" style="display: none;">
+            <div id="message-container">
+                <!-- Messages dynamically added -->
+            </div>
+            <textarea
+                class="form-control"
+                {% if not request.user.is_authenticated %}readonly{% endif %}
+                placeholder="{% if request.user.is_authenticated %}Hi, I'm Kalibre! What type of book are you looking for?{% else %}Hi, I'm Kalibre! Please log in or create an account to get started!{% endif %}"
+            ></textarea>
         </div>
-        <textarea class='form-control mb-3' {% if not request.user.is_authenticated %}readonly {% endif %}placeholder={% if request.user.is_authenticated %}"hi, i'm Kalibre! what type of book are you looking for?"{% else %}"hi, i'm Kalibre! it seems like you're not logged in! please feel free to make an account to get started!"{% endif %}></textarea>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    $(document).ready(function () {
+        // Dynamically load the reading GIF
+        var blueReadingImg = $('<img id="blue_reading_img">');
+        blueReadingImg.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
+        blueReadingImg.appendTo('#blue_reading_div');
 
-$(document).ready(function() {
-    // blue reading
-    var blue_reading_img = $('<img id="blue_reading_img">'); //Equivalent: $(document.createElement('img'))
-    blue_reading_img.addClass("background-image");
-    // blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_qqnhmb.gif");
-    blue_reading_img.attr('src', "https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1526,w_2048,y_840/v1669424019/Animated-GIF-Export_qqnhmb.gif");
-    blue_reading_img.attr('style', 'max-width:100%;max-height:100%;background-color:transparent;');
-    blue_reading_img.appendTo('#blue_reading_div');
-    blue_reading_img.show();
-    
-    let conversationHistory = [];
-    let conversationId = null; // set by getOrCreateConversationID
-
-    //lLoad kalibre faces
-    let kalibre_faces = [
-    "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png",
-    "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_1_sel9zm.png",
-    "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_2_p6cddp.png",
-    "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_3_nbzijn.png",
-    "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_4_dbjaoj.png",
-    "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
-    ];
-
-    // kalibre face change on hover *ai librarian*
-    $('#toggle-ai-librarian').mouseover(function() {
-    let randomIndex = Math.floor(Math.random() * kalibre_faces.length);
-    $('#toggle-ai-image').attr('src', kalibre_faces[randomIndex]);
-    });
-
-    // Enable the tooltip
-    $('[data-toggle="tooltip"]').tooltip();
-
-    // Fade in the body
-    $("body").css("transition", "opacity 0.5s").css("opacity", "1");
-
-    // Set a timeout to delay the entrance animations for h1 and the search input container
-    setTimeout(function() {
-    $("h1, #search-input-container").css("transition", "all 0.5s").css({
-        "opacity": "1",
-        "transform": "translateY(0)"
-    });
-    }, 100);
-
-    // add an event listener for the 'Enter' key
-    var $textarea = $("textarea");
-    $textarea.on("keydown", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault(); // prevent the default behavior (new line)
-
-        // send the message to the AI librarian and get a response
-        getOrCreateConversationID().then(conversation => {
-        // get the typed text
-        var user_message = $textarea.val().trim();
-
-        // if there's any text, store it in the chatbox div and clear the textarea
-        if (user_message) {
-            // append the typed text to the chatbox div
-            var messageDiv = $("<div>").text(user_message).addClass("user-message");
-            $("#message-container").append(messageDiv);
-
-            // clear the textarea
-            $textarea.val("");
-
-            // Show the loading animation
-            var loadingDiv = $("<div>").addClass("loading-animation");
-            var dot1 = $("<div>").addClass("dot");
-            var dot2 = $("<div>").addClass("dot");
-            var dot3 = $("<div>").addClass("dot");
-            loadingDiv.append(dot1, dot2, dot3);
-            $("#message-container").append(loadingDiv);
-
-            // Update the conversation history with the user's message
-            //.push({"role": "user", "content": user_message});
-
-            // send the message to the AI librarian and get a response
-            getAiLibrarianResponse(user_message).then(response => {
-            // Remove the loading animation
-            loadingDiv.remove();
-
-            // add the AI response to the chatbox
-            var aiResponseDiv = $("<div>").text(response).addClass("ai-response");
-            $("#message-container").append(aiResponseDiv);
-
-            // animate the ai response
-            aiResponseDiv.animate({opacity: 1}, 500);
-
-            // update the conversation history with the AI's response
-            // conversationHistory.push({"role": "assistant", "content": response});
-            });
-        }
+        // Kalibre face animation
+        const kalibreFaces = [
+            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png",
+            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_1_sel9zm.png",
+            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_2_p6cddp.png",
+            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_3_nbzijn.png",
+            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_4_dbjaoj.png",
+            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
+        ];
+        $('#toggle-ai-librarian').mouseover(function () {
+            const randomIndex = Math.floor(Math.random() * kalibreFaces.length);
+            $('#toggle-ai-image').attr('src', kalibreFaces[randomIndex]);
         });
 
-    }
-    });
+        // Handle Enter key for sending messages
+        $("textarea").on("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const userMessage = $(this).val().trim();
+                if (userMessage) {
+                    // Add user message to the chat
+                    const messageDiv = $("<div>").text(userMessage).addClass("user-message");
+                    $("#message-container").append(messageDiv);
+                    $(this).val(""); // Clear the textarea
 
-    function addSearchToHistory(searchTerm) {
-    let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || "[]");
-    if (!searchHistory.includes(searchTerm)) { // Avoid duplicates
-        searchHistory.push(searchTerm);
-        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-    }
-    }
+                    // Show loading animation
+                    const loadingDiv = $("<div>").addClass("loading-animation").append(
+                        $("<div>").addClass("dot"),
+                        $("<div>").addClass("dot"),
+                        $("<div>").addClass("dot")
+                    );
+                    $("#message-container").append(loadingDiv);
 
-    $("#search-form").on("submit", function(event) {
-    let searchTerm = $(this).find("input[name='query']").val();
-    if (searchTerm) {
-        addSearchToHistory(searchTerm);
-    }
-    });    
-
-    async function getAiLibrarianResponse(user_message) {
-    return new Promise(function(resolve, reject) {
-        $('#toggle-ai-image').addClass('rotate');
-    
-        $.ajax({
-        url: "/ai/ai-librarian/",
-        type: "POST",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-        },
-        data: {
-            user_message: JSON.stringify(user_message),
-            conversation_id: conversationId,  // set by getOrCreateConversationID
-        },
-        success: function(data) {
-            resolve(data.message);
-        },
-        error: function(xhr, textStatus, errorThrown) {
-            reject(errorThrown);
-        }
-        }).always(function() {
-        $('#toggle-ai-image').removeClass('rotate');
-        $('#toggle-ai-image').css('transition', 'transform 0.5s'); // Smoothly return to initial position
-        $('#toggle-ai-image').css('transform', '');
-        });
-    });
-    }
-    
-    // get or create a conversation if it doesn't exist or retrieve the existing one
-    async function getOrCreateConversationID() {
-    if (conversationId == null) {
-        // createConversation returns a Promise
-        return createConversation();
-    } else {
-        // wrap the existing conversationId in a resolved Promise
-        return Promise.resolve(conversationId);
-    }
-    }
-
-    async function createConversation() {
-    return new Promise(function(resolve, reject) {
-        $.ajax({
-            url: "/ai/create-conversation/",
-            type: "POST",
-            headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            },
-            success: function(data) {
-            conversationId = data.conversation_id;
-            resolve(conversationId);
-            },
-            error: function(xhr, textStatus, errorThrown) {
-            reject(errorThrown);
+                    // Simulate AI response
+                    setTimeout(() => {
+                        loadingDiv.remove();
+                        const aiResponse = $("<div>").text("This is a simulated AI response.").addClass("ai-response");
+                        $("#message-container").append(aiResponse);
+                    }, 1500);
+                }
             }
         });
     });
-    }
-});
 </script>

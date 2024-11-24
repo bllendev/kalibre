@@ -71,7 +71,7 @@ class BookSearchView(View):
     def get(self, request, query=None, *args, **kwargs):
         # get book list
         query = request.GET.get("query", query)
-        q = request.GET.get("q", query)
+        q = request.GET.get("q", "")
         trigger = request.GET.get("trigger", "")
 
         book_list = list()
@@ -85,8 +85,6 @@ class BookSearchView(View):
         # trigger setup
         if len(book_list) > 5 or trigger:
             trigger = ""
-
-        print(f"query: {query}... book_search found {len(book_list)}")
 
         # render books html
         response = render(
