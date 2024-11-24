@@ -1,22 +1,59 @@
 /* Navbar Styling */
+/* Light Mode */
 :root {
-  --primary-color: #8fbcbb;
-  --secondary-color: #88c0d0;
-  --accent-color: #ebcb8b;
-  --background-dark: #2e3440;
-  --background-light: #eceff4;
+  --pico-color-primary: #8fbcbb; /* Light teal */
+  --pico-color-secondary: #88c0d0; /* Soft blue-teal */
+  --pico-color-accent: #d08770; /* Muted orange */
+  --pico-color-muted: #4c566a; /* Midnight purple */
+  --pico-color-foreground: #eceff4; /* Light text */
+  --pico-color-background: #2e3440; /* Dark background */
+  --pico-color-border: #5e81ac; /* Deep purple border */
+  --pico-color-backdrop: rgba(46, 52, 64, 0.5); /* Transparent dark */
 }
 
-.nav {
-  background: linear-gradient(135deg, #2e3440, #3b4252);
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+/* Dark Mode */
+[data-theme="dark"] {
+  --pico-color-primary: #88c0d0;
+  --pico-color-secondary: #8fbcbb;
+  --pico-color-accent: #bf616a; /* Soft pink */
+  --pico-color-muted: #3b4252;
+  --pico-color-foreground: #eceff4;
+  --pico-color-background: #2e3440;
+  --pico-color-border: #d08770;
+  --pico-color-backdrop: rgba(46, 52, 64, 0.8);
+}
+
+/* Navbar Styling */
+nav {
+  background-color: var(--pico-color-background);
+  color: var(--pico-color-foreground);
+  border-bottom: 1px solid var(--pico-color-border);
+}
+
+/* Button Styling */
+button {
+  background-color: var(--pico-color-primary);
+  color: var(--pico-color-foreground);
+  border-radius: var(--pico-border-radius);
+}
+
+button:hover {
+  background-color: var(--pico-color-secondary);
+  color: var(--pico-color-background);
+}
+
+/* Card Styling */
+.card {
+  background-color: var(--pico-color-muted);
+  color: var(--pico-color-foreground);
+  border: 1px solid var(--pico-color-border);
 }
 
 nav ul li a {
   position: relative;
   display: inline-block;
   text-decoration: none;
-  color: #eceff4;
+  color: var(--background-light);
 }
 
 nav ul li a::after {
@@ -26,7 +63,7 @@ nav ul li a::after {
   height: 2px;
   bottom: -5px;
   left: 0;
-  background-color: #a3be8c;
+  background-color: var(--smooth-gold);
   transition: width 0.3s;
 }
 
@@ -46,17 +83,17 @@ nav ul li a:hover::after {
 
 /* Links */
 a {
-  color: #379683;
+  color: var(--primary-color);
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: #317773;
+  color: var(--secondary-color);
 }
 
 /* Cards */
 .card {
-  background-color: #F6EED8;
+  background-color: var(--smooth-gold);
   border-radius: 0.75rem;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
@@ -66,21 +103,15 @@ a:hover {
   transform: translateY(-0.3rem);
 }
 
+/* Input Styling */
 input#search-query:focus {
-  border: 2px solid #a3be8c;
-  box-shadow: 0 0 10px rgba(163, 190, 140, 0.5);
-}
-
-@keyframes typing {
-  0% { content: "What do you wanna read?"; }
-  33% { content: "Find your next favorite book..."; }
-  66% { content: "Explore the library!"; }
+  border: 2px solid var(--deep-purple);
+  box-shadow: 0 0 10px rgba(94, 129, 172, 0.5);
 }
 
 input#search-query::placeholder {
   animation: typing 5s infinite;
 }
-
 
 /* Book Cover Image */
 img.bookcover {
@@ -90,17 +121,17 @@ img.bookcover {
 
 /* AI Chatbox */
 #ai-chatbox {
-  background: linear-gradient(135deg, #2e3440, #3b4252);
+  background: linear-gradient(135deg, var(--background-dark), var(--midnight-purple));
   border: none;
-  color: #eceff4;
+  color: var(--background-light);
 }
 
 #ai-chatbox textarea {
   border-radius: 10px;
   margin-top: 10px;
-  background-color: #3b4252;
-  color: #eceff4;
-  border: 1px solid #4c566a;
+  background-color: var(--midnight-purple);
+  color: var(--background-light);
+  border: 1px solid var(--deep-purple);
 }
 
 /* Smooth Transition Effects */
@@ -129,5 +160,3 @@ img.bookcover {
 ::view-transition-new(body-transition) {
   animation: fade-in 0.2s ease-in forwards;
 }
-
-
