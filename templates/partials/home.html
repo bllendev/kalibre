@@ -6,7 +6,7 @@
         padding: 2rem;
         box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
         margin: 2rem auto;
-        max-width: 800px;
+        max-width: 80vh;
         background-color: var(--background);
         transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transition for smoothness */
     }
@@ -135,7 +135,7 @@
                 hx-params="*"
                 hx-target="body"
                 hx-push-url="true"
-                hx-swap="innerHTML"
+                hx-swap="innerHTML transition:true"
                 class="form-control"
             />
             <button
