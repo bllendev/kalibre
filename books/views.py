@@ -1,7 +1,6 @@
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
 )
-from django.conf import settings
 from django.db import transaction
 from django.http import (
     HttpResponseServerError,
@@ -134,8 +133,6 @@ class BookDetailView(LoginRequiredMixin, DetailView):
     model = Book
     context_object_name = "book"
     template_name = "books/book_detail.html"
-    login_url = "account_login"
-    permission_required = "books.special_status"
 
 
 @method_decorator(never_cache, name="dispatch")

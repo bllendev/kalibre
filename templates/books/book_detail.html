@@ -3,81 +3,100 @@
 
 {% block extra_style %}
 <style>
-.card-img-top {
-  height: auto;
-  max-height: 33%; /* Ensures consistent size */
-  object-fit: cover; /* Ensures the cover fits the area nicely */
-  border-bottom: 1px solid #eee; /* Separates image from card body */
-}
+    /* Card Styling */
+    .card {
+        display: grid; /* Use grid for layout */
+        grid-template-columns: auto 1fr; /* Two columns: image (auto), text (flexible) */
+        gap: 1rem; /* Space between image and text */
+        align-items: start; /* Align items to the top */
+        padding: 1rem;
+        margin: 1rem auto;
+        border-radius: var(--pico-border-radius);
+        border: 1px solid var(--pico-color-border);
+        background-color: var(--pico-color-background);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 800px; /* Constrain width for readability */
+    }
 
-.card-title {
-  color: maroon;
-}
+    /* Book Cover Image */
+    .card img {
+        width: 100%; /* Ensure image fills its grid cell */
+        max-width: 300px; /* Constrain maximum width for image */
+        height: auto; /* Maintain aspect ratio */
+        border-radius: var(--pico-border-radius);
+    }
 
-.card-text {
-  color: #333;
-}
+    /* Card Body Styling */
+    .card-body {
+        display: flex;
+        flex-direction: column; /* Stack text and button */
+        gap: 0.5rem; /* Space between items */
+    }
 
-.refresh-btn {
-  transition: all 0.3s ease;
-  opacity: 0;
-  visibility: hidden;
-}
+    /* Title and Text */
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--pico-color-primary);
+        margin: 0.5rem 0;
+    }
 
-.card-img-top:hover + .card-body .refresh-btn {
-  opacity: 1;
-  visibility: visible;
-}
+    .card-text {
+        color: var(--pico-color-muted);
+        font-size: 1rem;
+    }
 
-/* Ensure the button is hidden until the image is hovered */
-.card-body:hover .refresh-btn {
-  opacity: 1;
-  visibility: visible;
-}
+    /* Refresh Button Styling */
+    .refresh-btn {
+        padding: 0.6rem 1.2rem;
+        border: 1px solid var(--pico-color-primary);
+        background-color: var(--pico-color-primary);
+        color: var(--pico-color-background);
+        border-radius: var(--pico-border-radius);
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        margin-top: 1rem; /* Add spacing from the text */
+    }
+
+    .refresh-btn:hover {
+        background-color: var(--pico-color-secondary);
+        color: var(--pico-color-background);
+        border-color: var(--pico-color-secondary);
+    }
+
+    /* Additional Details Styling */
+    .text-muted {
+        font-size: 0.9rem;
+        color: var(--pico-color-muted);
+    }
 </style>
 {% endblock extra_style %}
 
 {% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-6 offset-lg-3">
-            <div class="card mb-4 shadow-sm">
-                <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="card-img-top img-fluid bookcover">
-                
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <p class="card-text">Author: {{ book.author }}</p>
-                    <p class="card-text">ISBN: {{ book.isbns }}</p>
-                    <!-- The Refresh Button with HTMX -->
-                    <div class="text-center">
-                        <button class="btn btn-sm btn-info refresh-btn"
-                          hx-get="{% url 'get-cover' book.id %}"
-                          hx-trigger="mouseenter"
-                          hx-target="#book-cover"
-                          hx-swap="outerHTML">Refresh Image</button>
-                    </div>
-                </div>
+<article class="container mt-5">
+    <div class="card grid">
+        <!-- Book Cover Image -->
+        <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
 
-                <ul class="list-group list-group-flush">
-                    <!-- Display JSON links more cleanly -->
-                    {% if book.json_links %}
-                        <li class="list-group-item">Additional Details:</li>
-                        {% for link in book.json_links %}
-                            <li class="list-group-item">
-                                <a href="{{ link }}" target="_blank">Download Book</a>
-                            </li>
-                        {% endfor %}
-                    {% endif %}
-                </ul>
-<!-- 
-                <div class="card-footer">
-                    <small class="text-muted">Last updated 3 mins ago</small>
-                </div> -->
-            </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <!-- Book Title -->
+            <h5 class="card-title">{{ book.title }}</h5>
+
+            <!-- Book Author -->
+            <p class="card-text">Author: {{ book.author }}</p>
+
+            <!-- Refresh Button -->
+            <button
+              hx-get="{% url 'get-cover' book.id %}"
+              hx-trigger="click"
+              hx-target="#book-cover"
+              hx-swap="outerHTML">Refresh Image</button>
+
+            <!-- Additional Details -->
         </div>
     </div>
-</div>
-
+</article>
 {% endblock %}

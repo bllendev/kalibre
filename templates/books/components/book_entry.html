@@ -23,8 +23,8 @@
             <!-- Book Title -->
             <h5 class="card-title mb-1">
                 <a hx-get="{{ book.get_absolute_url }}" 
-                   hx-swap="innerHTML transition:true"
-                   hx-target="#body"
+                   hx-swap="outerHTML transition:true"
+                   hx-target="body"
                    hx-push-url="true"
                    style="cursor:pointer;"
                     class="text-dark text-decoration-none">
