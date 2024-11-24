@@ -184,7 +184,22 @@
 <script>
     $(document).ready(function () {
         let conversationId = null;
-        
+
+        let kalibre_faces = [
+           "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png",
+           "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_1_sel9zm.png",
+           "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492030/kalibre_head_2_p6cddp.png",
+           "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_3_nbzijn.png",
+           "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_4_dbjaoj.png",
+           "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
+        ];
+
+        // Image hover functionality
+        $('#toggle-ai-librarian').mouseover(function () {
+           let randomIndex = Math.floor(Math.random() * kalibre_faces.length);
+           $('#toggle-ai-image').attr('src', kalibre_faces[randomIndex]);
+        });
+
         // Initialize dynamics
         loadImage('#blue_reading_div');
         
