@@ -5,22 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}kalibre{% endblock title %}</title>
-    
+
     <!-- Pico CSS -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     >
-    
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
-    
+
     <!-- JS Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx.org@2.0.3"></script>
     <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
     <script src="{% static 'js/base.js' %}"></script>
-    
+ 
     <!-- Custom Styles -->
     <style>
       body {
@@ -111,8 +111,8 @@
               hx-push-url="true">log in</a></li>
             <li><a 
               hx-get="{% url 'account_signup' %}" 
-              hx-target="#body" 
-              hx-swap="innerHTML transition:true"
+              hx-target="body" 
+              hx-swap="outerHTML transition:true"
               hx-push-url="true">sign up</a></li>
           {% endif %}
           <li><a 

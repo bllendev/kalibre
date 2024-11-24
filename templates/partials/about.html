@@ -1,69 +1,47 @@
 <style>
-    .about-container {
-        max-width: 1100px;
-        margin: 2rem auto;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .header-section {
-        width: 100%;
-        text-align: center;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .header-section h2 {
-        flex: 1;
-        font-weight: bold;
-        margin: 0;
-        margin-right: 1rem;
-        color: #333;
-    }
-    
-    .coffee-img img {
-        max-width: 300px; /* Adjust according to your needs */
-    }
-    
-    .content-section {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-    }
-    
-    .instructions-section, .acknowledgment-section {
-        flex: 1;
-        margin-right: 1rem; 
-    }
-    
-    .instructions-section ul, .acknowledgment-section ul {
-        padding-left: 1.5rem;
-    }
-    
-    h5 {
-        font-weight: 500;
-        color: #555;
-    }
-    
+   .content-section {
+       display: flex;
+       flex-wrap: wrap;
+       align-items: flex-start;
+       justify-content: space-around;
+       padding: 1rem;
+   }
+
+   .instructions-section, .acknowledgment-section {
+       flex: 1 1 45%;
+       margin: 1rem;
+   }
+
+   .coffee-img {
+       flex: 0 0 auto;
+       max-width: 300px;
+       margin: 1rem;
+   }
+
+   .coffee-img img {
+       width: 100%;
+       height: auto;
+       max-width: 100%;
+       border-radius: 8px;
+   }
 </style>
 
-
-<div class="container mt-5"
+<div
     hx-trigger="refresh-forms-about from:body"
     hx-get="{% url 'about' %}"
     hx-swap="outerHTML transition:true"
 >
-    <div class="header-section">
-        <h2>About Kalibre!</h2>
-        <div id="coffee_sip_div" class="coffee-img"></div>
-    </div>
+    <header class="about-container">
+        <hgroup>
+            <h2>About Kalibre!</h2>
+        </hgroup>
+    </header>
     
-    <div class="content-section">
-        <div class="instructions-section">
-            <h5>How to Use Kalibre?</h5>
+    <main class="content-section">
+        <article class="instructions-section">
+            <header>
+                <h5>How to Use Kalibre?</h5>
+            </header>
             <ul>
                 <li>Create an account or log in if you already have one.</li>
                 <li>Add email addresses to which you'd like to send your ebooks in 'my emails'.</li>
@@ -71,31 +49,28 @@
                 <li>Find your book and send it with a simple click!</li>
             </ul>
 
-            <h5>Send Books Directly to Your Kindle:</h5>
+            <header>
+                <h5>Send Books Directly to Your Kindle:</h5>
+            </header>
             <ul>
                 <li>Login to your Amazon account.</li>
                 <li>Go to 'Manage Your Content and Devices'.</li>
                 <li>Under 'Preferences', find 'Personal Document Settings'.</li>
                 <li>Add <i>bllendev@gmail.com</i> to 'Approved Personal Document E-mail List'.</li>
             </ul>
-        </div>
+        </article>
 
-        <div class="acknowledgment-section">
-            <h5>Acknowledgments:</h5>
+        <article class="acknowledgment-section">
+            <header>
+                <h5>Acknowledgments:</h5>
+            </header>
             <ul>
                 <li>Special thanks to <i>pine</i> for the amazing artwork.</li>
                 <li>Gratitude to <i>harrison-broadbent</i> for <i>libgen-api</i>. We use a modified version of this package.</li>
             </ul>
-        </div>
-    </div>
-
+            <figure class="coffee-img">
+                <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1819/v1669002136/Animated-GIF-Export_1_cvc2cn.gif" alt="Coffee Sip Animation">
+            </figure>
+        </article>
+    </main>
 </div>
-
-<script>
-    $(document).ready(function () {
-        // coffee_sip animation
-        var coffee_sip_gif = $('<img id="coffee_sip">');
-        coffee_sip_gif.attr('src', 'https://res.cloudinary.com/dmh0kulu1/image/upload/c_crop,h_1819/v1669002136/Animated-GIF-Export_1_cvc2cn.gif');
-        coffee_sip_gif.appendTo('#coffee_sip_div');
-    });
-</script>
