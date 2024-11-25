@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
 )
+from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.http import (
     HttpResponseServerError,
@@ -20,7 +21,7 @@ from books.api._api_openlibrary import (
     OpenLibraryAPI,
     create_or_get_book_from_api,
 )
-from books.tasks import save_books, send_book_email_task
+from books.tasks import books_save_vector, send_book_email_task
 
 # logging
 import logging
@@ -28,6 +29,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 CustomUser = get_user_model()
+
+
+@method_decorator(never_cache, name="dispatch")
+class BookSaveVectorView(View):
+    def post(self, request, pk, *args, **kwargs):
+        book = get_object_or_404(Book, pk=pk)
+        book.save(save_vector=True)
+        return HttpResponse()
 
 
 @method_decorator(never_cache, name="dispatch")
@@ -44,21 +53,41 @@ class BookSearchOpenlibraryView(View):
         logger.info("BookSearchOpenlibraryView...")
         query = request.POST.get("query")
         open_library_api = OpenLibraryAPI()
-        book_list = open_library_api.fetch_books(query)
+        book_list = open_library_api.fetch_books(query)[:20]
         if not book_list:
             return HttpResponseServerError(405, "no books found!")
 
-        # _ = save_books.delay(book_list)`
-        print(f"BOOK SEARCH OPEN LIBRARY VIEW HIT {query}")
         # TODO: make this use celery
+        books = list()
+        books_to_vector_save = list()
         with transaction.atomic():
             for b in book_list:
-                book = create_or_get_book_from_api(b)
-                book.save(save_vector=True)
-        return render(
+                b, created = create_or_get_book_from_api(b)
+                books.append(b)
+
+                # add to vector save list
+                if created:
+                    books_to_vector_save.append(b)
+
+        # prepare list of ids of books we want to vector save
+        books_to_vector_save_ids = []
+        if books_to_vector_save:
+            books_to_vector_save_ids = [str(b.id)
+                                        for b in books_to_vector_save]
+
+        # render response
+        response = render(
             request, "books/components/book_entry_list.html", {
-                "book_list": book_list}
+                "book_list": books}
         )
+
+        # trigger vector save background process!
+        if books_to_vector_save_ids:
+            response["HX-Trigger-After-Settle"] = json.dumps(
+                {"book-save-vector": books_to_vector_save_ids}
+            )
+
+        return response
 
 
 @method_decorator(never_cache, name="dispatch")

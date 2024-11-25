@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from books.tests.constants import TEST_QUERY
 from books.models import Book
-
+from books.api._api_openlibrary import OpenLibraryAPI
 
 """
 docker compose exec web python manage.py test books.tests.test_book_search_openlibrary_view --failfast
@@ -13,16 +13,17 @@ docker compose exec web python manage.py test books.tests.test_book_search_openl
 class BookSearchOpenlibraryViewTests(TestCase):
     def setUp(self):
         self.client = Client()
+        self.url = reverse("book-search-openlibrary")
 
-    # NOTE: test was working, need to block api ping duringtest... TODO...
-    # def test_books_are_created(self):
-    #     # send a POST request to your view
-    #     breakpoint()
-    #     url = reverse("book-search-openlibrary")
-    #     response = self.client.post(url, {"query": TEST_QUERY})
-    #
-    #     # assuming it returns 200 on success
-    #     self.assertEqual(response.status_code, 200)
-    #
-    #     # verifying the books count in the database
-    #     self.assertTrue(Book.objects.all().exists())
+    def test_books_are_created_with_vector_embeddings(self):
+        # ensure no books exists!
+        Book.objects.all().delete()
+
+        # call the actual view via client
+        response = self.client.post(self.url, {"query": "sample query"})
+
+        # check for success responses
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Book.objects.all().exists())
+        created_book = Book.objects.all().first()
+        self.assertIsNotNone(created_book.vector_search)

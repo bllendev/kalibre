@@ -3,6 +3,38 @@
 
 {% block extra_style %}
 <style>
+
+    /* Icon Buttons */
+    .icon-buttons {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background-color: var(--pico-color-primary);
+        color: var(--pico-color-background);
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .icon-btn:hover {
+        background-color: var(--pico-color-secondary);
+        transform: scale(1.1);
+    }
+
+    .icon-btn i {
+        font-size: 1.2rem;
+    }
     /* Card Styling */
     .card {
         display: grid; /* Use grid for layout */
@@ -90,14 +122,28 @@
             <!-- Book Author -->
             <p class="card-text">Author: {{ book.author }}</p>
 
-            <!-- Refresh Button -->
-            <button
-              hx-get="{% url 'get-cover' book.id %}"
-              hx-trigger="click"
-              hx-target="#book-cover"
-              hx-swap="outerHTML">Refresh Image</button>
+            <!-- Replace the existing button with icons -->
+            <div class="icon-buttons">
+                <button 
+                  hx-get="{% url 'get-cover' book.id %}"
+                  hx-trigger="click"
+                  hx-target="#book-cover"
+                  hx-swap="outerHTML"
+                  title="Refresh"><i class="fas fa-sync"></i>
+                </button>
 
-            <!-- Additional Details -->
+                <button title="Download">
+                  <i class="fas fa-download"></i> <!-- Download Icon -->
+                </button>
+
+                <button title="Chat">
+                  <i class="fas fa-comments"></i> <!-- Chat Icon -->
+                </button>
+
+                <button title="Bookmark">
+                  <i class="fas fa-bookmark"></i> <!-- Bookmark Icon -->
+                </button>
+            </div>
         </div>
     </div>
 </article>

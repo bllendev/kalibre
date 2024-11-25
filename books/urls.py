@@ -31,6 +31,11 @@ urlpatterns = [
         views.BookSearchOpenlibraryView.as_view(),
         name="book-search-openlibrary",
     ),
+    path(
+        "book-save-vector/<uuid:pk>/",
+        views.BookSaveVectorView.as_view(),
+        name="book-save-vector",
+    ),
     # book
     path("get-cover/<uuid:pk>/", views.GetCoverView.as_view(), name="get-cover"),
     # ajax

@@ -5,6 +5,7 @@ from django.db import transaction
 
 from celery import shared_task
 from books.api._api_openlibrary import create_or_get_book_from_api
+from books.models import Book
 from users.models import Email
 
 import logging
@@ -37,11 +38,11 @@ def send_book_email_task(username, book):
 
 
 @shared_task
-def save_books(books):
+def books_save_vector(book_ids):
     """
     Task to handle saving books with vector embedding consideration.
     """
     with transaction.atomic():
-        for b in books[:5]:  # TODO: remove 5 limit cap ?
-            book = create_or_get_book_from_api(b)
-            book.save(save_vector=True)
+        books = Book.objects.filter(id__in=book_ids)
+        for b in books:  # TODO: remove 5 limit cap ?
+            b.save(save_vector=True)

@@ -36,33 +36,6 @@
         transform: translateY(-2px);
     }
 
-    /* Scrollable Table */
-    #book-entry-table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: #3b4252;
-        border-radius: 0.5rem;
-        overflow: hidden;
-        margin-top: 2rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    #book-entry-table thead {
-        background-color: #4c566a;
-        color: #eceff4;
-        font-weight: bold;
-    }
-
-    #book-entry-table th, #book-entry-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #4c566a;
-    }
-
-    #book-entry-table tbody tr:hover {
-        background-color: #434c5e;
-    }
-
     /* Scrollable section */
     .scrollable-table-container {
         max-height: 60vh;
@@ -83,18 +56,6 @@
         max-width: 40px;
         max-height: 40px;
         object-fit: contain;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .search-input-container {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        button#div-fetch-books {
-            width: 100%;
-        }
     }
 </style>
 
@@ -119,6 +80,7 @@
         <button
             id="div-fetch-books"
             hx-post="{% url 'book-search-openlibrary' %}"
+            hx-get="{% url 'book-search' %}"
             hx-trigger="click"
             hx-target="#book_entry_list"
             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
@@ -136,18 +98,33 @@
             <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
         </div>
 
-        <!-- fetch Books via Vector Search -->
-        <div 
-            hx-get="{% url 'book-search' %}"
+        <!--ping openlibrary-->
+        <div
+            id="div-fetch-books"
+            hx-post="{% url 'book-search-openlibrary' %}"
             hx-trigger="load"
             hx-target="#book_entry_list"
-            hx-vals='{"query": "{{ query }}", "trigger": "refresh-forms-openlibrary-api"}'
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-vals='{"query": "{{ query }}"}'
             hx-indicator="#loading_notification"
             hx-swap="innerHTML transition:true">
         </div>
-
         <!-- Book Entry List -->
         <div id="book_entry_list" class="mt-4 scrollable-table-container"> </div>
     </div>
 </div>
+<script>
+
+    // Listen for the custom event `book-save-vector`
+    $(document).on("book-save-vector", function(evt) {
+        const bookIds = evt.originalEvent.detail.value; // should be array of book IDs
+
+        $.each(bookIds, function(index, pk) {
+            console.log('Triggering view for book with PK:', pk);
+            const url = `/book-save-vector/${pk}/`;
+            htmx.ajax('POST', url, "#book_entry_list");
+        });
+    });
+
+</script>
 {% endblock %}
