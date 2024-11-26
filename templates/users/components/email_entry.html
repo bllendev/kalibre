@@ -1,29 +1,8 @@
-<div class="card mb-2" id="email_{{ email.pk }}">
-    <div class="card-body">
-        <h5 class="card-title">{{ email.address }}</h5>
-        <p class="card-text">
-            {% comment %} <select class="form-control" 
-                    id="email_{{ email.pk }}_language" 
-                    name="email_{{ email.pk }}_language"
-                    hx-post="{% url 'toggle_translate_email' email.pk %}" 
-                    hx-trigger="change"
-                    hx-target="#email_{{ email.pk }}"
-                    hx-boost="true"
-                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-                {% for lang_code, lang_name in LANGUAGES.items %}
-                    <option value="{{ lang_code }}" {% if email.translate_file == lang_code %}selected{% endif %}>
-                        {{ lang_name }}
-                    </option>
-                {% endfor %}
-            </select> {% endcomment %}
-        </p>
-        <button type="button"
-                hx-delete="{% url 'delete_email' email.pk %}" 
-                hx-trigger="click"
-                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                hx-target="#email_{{ email.pk }}"
-                hx-boost="true"
-                class="btn btn-sm btn-danger">Delete
-        </button>
-    </div>
+<div class="email-card" id="email_card_{{ email.id }}">
+    <p>{{ email.address }}</p>
+    <button hx-delete="{% url 'delete_email' email.pk %}"
+            hx-target="#email_card_{{ email.pk }}"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        Remove
+    </button>
 </div>

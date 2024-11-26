@@ -1,122 +1,42 @@
-<!--Conversation Search-->
-<div class="mb-4">
-    <input type="text" id="searchConversations" class="form-control" placeholder="Search conversations...">
-</div>
+<div class="container">
+    <!-- Conversation Search -->
+    <input type="text" id="searchConversations" class="form-control" placeholder="Search conversations..." />
 
-<!-- Conversations list -->
-<div class="container"  id="conversations-container">
-    {% for conversation in user_conversations %}
-    <div class="card mb-4" style="transform is ease">
-        <div class="card-header">
-            <strong>Started at:</strong> {{ conversation.started_at }} | 
-            <strong>Last updated:</strong> {{ conversation.last_updated }}
-        </div>
-        <!-- Short Summary of the conversation -->
-        <div class="card-body">
-            <a data-toggle="collapse" href="#conversation{{ conversation.id }}" role="button">
-                {{ conversation.get_messages.2.content|truncatechars:80 }}... <!-- show only the first message as summary -->
-            </a>
-        </div>
-        
-        <!-- Full Conversation hidden by default -->
-        <div class="collapse" id="conversation{{ conversation.id }}">
-            <div class="card-body">
+    <!-- Conversations list -->
+    <div id="conversations-container" class="conversations-wrapper">
+        {% for conversation in user_conversations %}
+        <article class="card">
+            <header>
+                <strong>Started at:</strong> {{ conversation.started_at }} |
+                <strong>Last updated:</strong> {{ conversation.last_updated }}
+            </header>
+            <!-- Short Summary of the conversation -->
+            <p>
+                <a href="#conversation{{ conversation.id }}" data-toggle="collapse">
+                    {{ conversation.get_messages.2.content|truncatechars:80 }}...
+                </a>
+            </p>
+
+            <!-- Full Conversation hidden by default -->
+            <div id="conversation{{ conversation.id }}" class="collapse">
                 {% for message in conversation.get_messages %}
                 <div class="mb-3 {{ message.role }}">
                     <strong>{{ message.role|title }}:</strong> {{ message.content }}
                 </div>
                 {% endfor %}
             </div>
-        </div>
+        </article>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 
-<script>
-
-$(document).ready(function() {
-    function escapeHtml(unsafe) {
-        return unsafe
-            .toString()
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+<style>
+    .conversations-wrapper {
+        max-width: 90vh;
+        margin: auto;
+        overflow-y: auto;
+        height: 50vh; /* Example height; adjust as needed */
+        padding: 1rem;
+        border: 1px solid #ccc;
     }
-    
-
-    $(".card .collapse").removeClass('show');
-
-    let originalConversations = [];
-
-    // listen for user typing in the search input
-    $("#searchConversations").on("keyup", function() {
-        handleSearch();
-    });
-
-    // highlight function to make the matching text pop
-    function highlightText(element, terms) {
-        var text = $(element).text();
-        terms.forEach(term => {
-            var safeTerm = escapeHtml(term);
-            var regex = new RegExp('(' + term + ')', 'gi');
-            text = text.replace(regex, '<span class="highlight">$1</span>');
-        });
-        $(element).html(text);
-    }
-
-    // handle the search and highlight logic
-    function handleSearch() {
-        // Get the search values, trim, split, and convert to lowercase.
-        var searchValue = $("#searchConversations").val().trim().toLowerCase().split(' ');
-    
-        // Reset the conversations to their original state.
-        $(".card-body .mb-3").each(function(index) {
-            if (!originalConversations[index]) {
-                originalConversations[index] = $(this).html();
-            } else {
-                $(this).html(originalConversations[index]);
-            }
-        });
-    
-        // Collapse all conversations initially.
-        $(".card .collapse").removeClass('show');
-    
-        if (searchValue[0] !== "") { // Check if the user typed something.
-            let matchedCards = [];  // Store the matched cards.
-    
-            $(".card-body .mb-3").each(function() {
-                // Convert content to lowercase for case-insensitive comparison.
-                let content = $(this).text().toLowerCase();
-    
-                // Check if any of the search values are present in the content.
-                if (searchValue.some(val => content.includes(val))) {
-                    highlightText(this, searchValue);
-                    let parentCard = $(this).closest(".card");
-                    matchedCards.push(parentCard);
-                    parentCard.find(".collapse").addClass('show');
-                }
-            });
-    
-            // Move matched conversations to the top.
-            for (let card of matchedCards.reverse()) {
-                card.prependTo("#conversations-container");
-            }
-        } else {
-            // If the search bar is cleared, reset the highlights.
-            $(this).children('.highlight').each(function() {
-                $(this).contents().unwrap();
-            });
-        }
-    }
-
-    // when a conversation is expanded, move it to the top of the list
-    $(document).on('show.bs.collapse', '.collapse', function() {
-        var card = $(this).closest('.card');
-        card.prependTo("#conversations-container");
-    });
-});
-
-
-</script>
+</style>

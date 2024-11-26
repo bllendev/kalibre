@@ -5,44 +5,67 @@
 
 {% block content %}
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card p-5 bg-light shadow-sm">
-                <h2 class="mb-4 text-center">My Profile</h2>
-                <p class="text-center">Welcome, <strong>{{ username }}</strong>!</p>
-                <hr>
+<style>
+    /* Base button style with smaller padding and font size */
+    .contrast.outline {
+        padding: 0.4rem 0.8rem; /* Reduced padding for smaller buttons */
+        font-size: 0.9rem; /* Smaller text size */
+        transition: background-color 0.3s, transform 0.2s; /* Smooth transition for color and transform */
+    }
 
-                <!-- Button Group -->
-                <div class="btn-group btn-group-lg d-flex justify-content-around mb-4" role="group" aria-label="Profile options">
-                    <button id="btnBooks" class="btn btn-outline-primary">
-                        <i class="bi bi-book"></i> My Books
-                    </button>
-                    <button id="btnEmails" class="btn btn-outline-primary">
-                        <i class="bi bi-envelope"></i> My Emails
-                    </button>
-                    <button id="btnAI" class="btn btn-outline-primary">
-                        <i class="bi bi-robot"></i> My Kalibre AI
-                    </button>
-                    <button id="btnSearches" class="btn btn-outline-primary">
-                        <i class="bi bi-search"></i> My Searches
-                    </button>
+    /* Hover effect */
+    .contrast.outline:hover {
+        background-color: rgba(0, 0, 0, 0.1); /* Slight darkening on hover */
+    }
+
+    /* Active (click) effect */
+    .contrast.outline:active {
+        transform: scale(0.95); /* Slight shrink effect on click */
+    }
+
+    /* Icon inside buttons */
+    .contrast.outline i {
+        margin-right: 0.4rem; /* Spacing between icon and text */
+        font-size: 1.2rem; /* Slightly smaller icon size */
+    }
+</style>
+
+<div class="container-flex mt-5">
+    <div class="grid">
+        <div class="card p-5 shadow-sm">
+            <h2 class="mb-4 text-center">My Profile</h2>
+            <p class="text-center">Welcome, <strong>{{ username }}</strong>!</p>
+            <hr>
+
+            <!-- Button Group -->
+            <div class="grid" style="--columns: 1" role="group">
+                <button id="btnBooks" class="contrast outline">
+                    <i class="bi bi-book"></i> My Books
+                </button>
+                <button id="btnEmails" class="contrast outline">
+                    <i class="bi bi-envelope"></i> My Emails
+                </button>
+                <button id="btnAI" class="contrast outline">
+                    <i class="bi bi-robot"></i> My Kalibre AI
+                </button>
+                <button id="btnSearches" class="contrast outline">
+                    <i class="bi bi-search"></i> My Searches
+                </button>
+            </div>
+
+            <!-- Dynamic Content Section -->
+            <div class="card p-4 shadow-sm">
+                <div id="dynamicBooks" class="dynamic-content" style="display: none;">
+                    {% include "users/my_books.html" %}
                 </div>
-
-                <!-- Dynamic Content Section -->
-                <div class="card p-4 bg-white shadow-sm">
-                    <div id="dynamicBooks" class="dynamic-content" style="display: none;">
-                        {% include "users/my_books.html" %}
-                    </div>
-                    <div id="dynamicEmails" class="dynamic-content" style="display: none;">
-                        {% include "users/my_emails.html" %}
-                    </div>
-                    <div id="dynamicAI" class="dynamic-content" style="display: none;">
-                        {% include "users/my_ai_conversations.html" %}
-                    </div>
-                    <div id="dynamicSearches" class="dynamic-content" style="display: none;">
-                        {% include "users/my_search_history.html" %}
-                    </div>
+                <div id="dynamicEmails" class="dynamic-content" style="display: none;">
+                    {% include "users/my_emails.html" %}
+                </div>
+                <div id="dynamicAI" class="dynamic-content" style="display: none;">
+                    {% include "users/my_ai_conversations.html" %}
+                </div>
+                <div id="dynamicSearches" class="dynamic-content" style="display: none;">
+                    {% include "users/my_search_history.html" %}
                 </div>
             </div>
         </div>
@@ -52,35 +75,28 @@
 <!-- JavaScript for Button Functionality -->
 <script>
     $(document).ready(function () {
-        var defaultText = $("#defaultText");
-        var dynamicBooks = $("#dynamicBooks");
-        var dynamicEmails = $("#dynamicEmails");
-        var dynamicAI = $("#dynamicAI");
-        var dynamicSearches = $("#dynamicSearches");
-
         function closeDynamicDivs() {
-            defaultText.hide("fast");
             $(".dynamic-content").hide("fast");
         }
 
         $("#btnBooks").click(function () {
             closeDynamicDivs();
-            dynamicBooks.fadeIn("slow");
+            $("#dynamicBooks").fadeIn("slow");
         });
 
         $("#btnEmails").click(function () {
             closeDynamicDivs();
-            dynamicEmails.fadeIn("slow");
+            $("#dynamicEmails").fadeIn("slow");
         });
 
         $("#btnAI").click(function () {
             closeDynamicDivs();
-            dynamicAI.fadeIn("slow");
+            $("#dynamicAI").fadeIn("slow");
         });
 
         $("#btnSearches").click(function () {
             closeDynamicDivs();
-            dynamicSearches.fadeIn("slow");
+            $("#dynamicSearches").fadeIn("slow");
         });
     });
 </script>
