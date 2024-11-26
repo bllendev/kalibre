@@ -43,20 +43,6 @@
         border-radius: 0.5rem;
     }
 
-    /* Loading Indicator Styling */
-    .htmx-indicator {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 2rem;
-        margin-top: 1rem;
-    }
-
-    .htmx-indicator img {
-        max-width: 40px;
-        max-height: 40px;
-        object-fit: contain;
-    }
 </style>
 
 <div class="container mt-4">
@@ -94,7 +80,8 @@
     <!-- scrollable table section -->
     <div id="div-search-result" class="mt-5">
         <!-- loading notification -->
-        <div class="htmx-indicator" id="loading_notification">
+        <div class="htmx-indicator" id="libgen_loading_indicator"
+        style="max-height: 40px; max-width:40px">
             <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
         </div>
 

@@ -1,129 +1,49 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block extra_style %}
-<style>
-
-    /* Icon Buttons */
-    .icon-buttons {
-        position: absolute;
-        bottom: 1rem;
-        right: 1rem;
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .icon-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border: none;
-        border-radius: 50%;
-        background-color: var(--pico-color-primary);
-        color: var(--pico-color-background);
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-
-    .icon-btn:hover {
-        background-color: var(--pico-color-secondary);
-        transform: scale(1.1);
-    }
-
-    .icon-btn i {
-        font-size: 1.2rem;
-    }
-    /* Card Styling */
-    .card {
-        display: grid; /* Use grid for layout */
-        grid-template-columns: auto 1fr; /* Two columns: image (auto), text (flexible) */
-        gap: 1rem; /* Space between image and text */
-        align-items: start; /* Align items to the top */
-        padding: 1rem;
-        margin: 1rem auto;
-        border-radius: var(--pico-border-radius);
-        border: 1px solid var(--pico-color-border);
-        background-color: var(--pico-color-background);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        max-width: 800px; /* Constrain width for readability */
-    }
-
-    /* Book Cover Image */
-    .card img {
-        width: 100%; /* Ensure image fills its grid cell */
-        max-width: 300px; /* Constrain maximum width for image */
-        height: auto; /* Maintain aspect ratio */
-        border-radius: var(--pico-border-radius);
-    }
-
-    /* Card Body Styling */
-    .card-body {
-        display: flex;
-        flex-direction: column; /* Stack text and button */
-        gap: 0.5rem; /* Space between items */
-    }
-
-    /* Title and Text */
-    .card-title {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: var(--pico-color-primary);
-        margin: 0.5rem 0;
-    }
-
-    .card-text {
-        color: var(--pico-color-muted);
-        font-size: 1rem;
-    }
-
-    /* Refresh Button Styling */
-    .refresh-btn {
-        padding: 0.6rem 1.2rem;
-        border: 1px solid var(--pico-color-primary);
-        background-color: var(--pico-color-primary);
-        color: var(--pico-color-background);
-        border-radius: var(--pico-border-radius);
-        cursor: pointer;
-        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        margin-top: 1rem; /* Add spacing from the text */
-    }
-
-    .refresh-btn:hover {
-        background-color: var(--pico-color-secondary);
-        color: var(--pico-color-background);
-        border-color: var(--pico-color-secondary);
-    }
-
-    /* Additional Details Styling */
-    .text-muted {
-        font-size: 0.9rem;
-        color: var(--pico-color-muted);
-    }
-</style>
-{% endblock extra_style %}
-
 {% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
-<article class="container mt-5">
-    <div class="card grid">
-        <!-- Book Cover Image -->
+<style>
+.card.grid {
+    display: grid;
+    gap: 2.5rem;
+    padding: 1rem;
+    grid-template-columns: 1fr 2fr;
+}
+
+.card-body {
+    overflow: hidden;
+    position: relative; /* Position relative to help contain updates */
+}
+
+</style>
+<article class="container">
+    <div class="card grid" style="gap: 2.5rem; padding: 2rem;">
+        <!-- book cover image -->
         <figure>
             <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
         </figure>
 
-        <!-- Card Body -->
+        <!-- card Body -->
         <div class="card-body">
-            <!-- Book Title -->
+            <!-- book Title -->
             <h5 class="card-title">{{ book.title }}</h5>
 
-            <!-- Book Author -->
-            <p class="card-text">Author: {{ book.author }}</p>
+            <!-- book Author -->
+            <p class="card-text">
+                Author(s): 
+                {% if book.authors.all %}
+                    {% for author in book.authors.all %}
+                        {{ author.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                    No authors listed
+                    {% endfor %}
+                {% endif %}
+            </p>
 
-            <!-- Replace the existing button with icons -->
-            <div class="icon-buttons">
+            <!-- replace the existing button with icons -->
+            <div class="icon-buttons grid">
                 <button 
                   hx-get="{% url 'get-cover' book.id %}"
                   hx-trigger="click"
@@ -132,18 +52,34 @@
                   title="Refresh"><i class="fas fa-sync"></i>
                 </button>
 
-                <button title="Download">
+                <button title="Download" class="contrast"
+                    hx-trigger="click"
+                    hx-get="{% url 'get-libgen-links' book.id %}"
+                    hx-swap="innerHTML transition:true"
+                    hx-indicator="#loading_notification"
+                    hx-target="#libgen-links"
+                >
                   <i class="fas fa-download"></i> <!-- Download Icon -->
                 </button>
 
-                <button title="Chat">
-                  <i class="fas fa-comments"></i> <!-- Chat Icon -->
-                </button>
+                <!-- loading notification -->
+                <div class="htmx-indicator" id="loading_notification"
+                style="max-height: 40px; max-width:40px">
+                    <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
+                </div>
 
-                <button title="Bookmark">
-                  <i class="fas fa-bookmark"></i> <!-- Bookmark Icon -->
-                </button>
+                <!--<button title="Chat">-->
+                <!--  <i class="fas fa-comments"></i> <!-- Chat Icon -->
+                <!--</button>-->
+                <!---->
+                <!--<button title="Bookmark">-->
+                <!--  <i class="fas fa-bookmark"></i> <!-- Bookmark Icon -->
+                <!--</button>-->
             </div>
+
+            <!--dynamic div-->
+            <div id="libgen-links" style="height:20vh;"></div>
+
         </div>
     </div>
 </article>

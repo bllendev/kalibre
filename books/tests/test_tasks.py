@@ -11,9 +11,6 @@ import importlib
 from users.tests.factories import CustomUserFactory, EmailFactory
 from books.tests.factories import BookFactory
 
-# local
-from books.tasks import send_book_email_task
-
 
 CustomUser = get_user_model()
 

@@ -49,6 +49,22 @@ button:hover {
   border: 1px solid var(--pico-color-border);
 }
 
+/* Loading Indicator Styling */
+.htmx-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 2rem;
+    margin-top: 1rem;
+}
+
+.htmx-indicator img {
+    max-width: 40px;
+    max-height: 40px;
+    object-fit: contain;
+}
+
+/*navbar styling*/
 nav ul li a {
   position: relative;
   display: inline-block;

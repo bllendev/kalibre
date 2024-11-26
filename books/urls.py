@@ -40,4 +40,9 @@ urlpatterns = [
     path("get-cover/<uuid:pk>/", views.GetCoverView.as_view(), name="get-cover"),
     # ajax
     path("send-book/<uuid:pk>/", views.SendBookView.as_view(), name="send-book"),
+    path(
+        "get-libgen-links/<uuid:pk>/",
+        views.GetLibgenLinksView.as_view(),
+        name="get-libgen-links",
+    ),
 ]

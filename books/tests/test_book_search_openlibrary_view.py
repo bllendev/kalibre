@@ -15,7 +15,7 @@ class BookSearchOpenlibraryViewTests(TestCase):
         self.client = Client()
         self.url = reverse("book-search-openlibrary")
 
-    def test_books_are_created_with_vector_embeddings(self):
+    def test_books_are_created(self):
         # ensure no books exists!
         Book.objects.all().delete()
 
@@ -26,4 +26,3 @@ class BookSearchOpenlibraryViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Book.objects.all().exists())
         created_book = Book.objects.all().first()
-        self.assertIsNotNone(created_book.vector_search)

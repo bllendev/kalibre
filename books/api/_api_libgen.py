@@ -14,6 +14,25 @@ logger = logging.getLogger(__name__)
 
 MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Infura"]
 
+LibgenBook = collections.namedtuple(
+    "Book",
+    [
+        "ID",
+        "Author",
+        "Title",
+        "Publisher",
+        "Year",
+        "Pages",
+        "Language",
+        "Size",
+        "Extension",
+        "Mirror_1",
+        "Mirror_2",
+        "Mirror_3",
+        "json_links",
+    ],
+)
+
 
 class LibgenAPI:
     LIBGEN_COLS = [
@@ -41,15 +60,21 @@ class LibgenAPI:
 
     def fetch_books(self, query):
         book_search_results = list()
+        books = list()
         try:
             titles = self.libgen.search_title(query)
             authors = self.libgen.search_author(query)
             book_search_results = [
                 api_book for api_book in chain(titles, authors)
             ]  # chains iterables' elements into single iterable
+            for b in book_search_results:
+                json_links = [b["Mirror_1"], b["Mirror_2"], b["Mirror_3"]]
+                b["json_links"] = json_links
+                book = LibgenBook(**b)
+                books.append(book)
         except Exception as e:
             logger.error(f"_api_libgen | {e}")
-        return book_search_results
+        return books
 
 
 class LibgenSearch:
@@ -122,9 +147,10 @@ class SearchRequest:
         while (search_page is None or search_page.status_code != 200) and i < len(
             self.LIBGEN_MIRRORS
         ):
-            libgen_mirror = self.LIBGEN_MIRRORS[i]
-            search_url = f"{
-                libgen_mirror}/search.php?req={query_parsed}&column={self.search_type}"
+            url = self.LIBGEN_MIRRORS[i]
+            search_url = (
+                f"{url}/search.php?req={query_parsed}&column={self.search_type}"
+            )
             search_page = requests.get(search_url)
             i += 1
 
