@@ -192,15 +192,23 @@
            "https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_5_uo1feu.png"
         ];
 
-        // Image hover functionality
-        $('#toggle-ai-librarian').mouseover(function () {
-           let randomIndex = Math.floor(Math.random() * kalibre_faces.length);
-           $('#toggle-ai-image').attr('src', kalibre_faces[randomIndex]);
-        });
+        let currentIndex = 0;
+        const changeInterval = 1000; // Change image every 1000 milliseconds (1 second)
+
+        // Function to change the image source
+        function cycleFace() {
+            // Update the image source using the current index from the array
+            $('#toggle-ai-image').attr('src', kalibre_faces[currentIndex]);
+            // Increment the index, and wrap around if necessary
+            currentIndex = (currentIndex + 1) % kalibre_faces.length;
+        }
+
+        // Set up the interval to change the face images continuously
+        setInterval(cycleFace, changeInterval);
 
         // Initialize dynamics
         loadImage('#blue_reading_div');
-        
+
         function loadImage(containerSelector) {
             const imageExists = $(containerSelector).find('#blue_reading_img').length > 0;
             if (!imageExists) {
