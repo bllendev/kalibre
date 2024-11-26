@@ -1,49 +1,128 @@
-<div class="container">
-  <div class="row align-items-center">
-    <div class="col-8 mt-5">
-      <div class="row">
-        <div class="col-12 text-center">
-          <h3 class="p-2">Add emails you'd like to send your books to!</h3>
-        </div>
-      </div>
+<style>
+    /* Responsive and consistent layout adjustments */
+    .email-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr; /* Form takes 2 parts, image takes 1 part */
+        gap: 2rem;
+        align-items: center; /* Vertically align items */
+    }
 
-      <div class="mb-3">
-        <form id="add_email_form"
-              hx-post="{% url 'add_email' %}"
-              hx-target="#email_cards"
-              hx-swap="beforeend"
-              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
-              hx-boost="true">
-                <div class="input-group mb-3">
-                  <input id="email" name="email_input[]" type="text" class="form-control" placeholder="Enter emails here!">
-                  <div class="input-group-append">
-                      <button class="btn btn-outline-secondary" type="submit">Submit</button>
-                  </div>
+    /* Email form styling */
+    .email-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .email-form .input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .email-form input {
+        flex-grow: 1; /* Make input field take all available space */
+        padding: 0.5rem;
+        border-radius: var(--pico-border-radius);
+    }
+
+    .email-form button {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--pico-color-secondary);
+        background-color: var(--pico-color-primary);
+        color: var(--pico-color-background);
+        border-radius: var(--pico-border-radius);
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.3s;
+    }
+
+    .email-form button:hover {
+        background-color: var(--pico-color-secondary);
+        transform: scale(1.05);
+    }
+
+    /* Image adjustments */
+    #peas_div img {
+        max-width: 100%;
+        height: auto; /* Maintain aspect ratio */
+        border-radius: var(--pico-border-radius);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Email cards styling */
+    #email_cards {
+        margin-top: 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Dynamic responsive grid */
+        gap: 1rem; /* Space between cards */
+    }
+
+    .email-card {
+        padding: 1rem;
+        border: 1px solid var(--pico-color-muted);
+        border-radius: var(--pico-border-radius);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .email-card button {
+        padding: 0.5rem 0.75rem;
+        border: none;
+        background-color: var(--pico-color-secondary);
+        color: var(--pico-color-background);
+        border-radius: var(--pico-border-radius);
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.3s;
+    }
+
+    .email-card button:hover {
+        background-color: var(--pico-color-primary);
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="container mt-5">
+    <!-- Main Content -->
+    <div class="email-container">
+        <!-- Email Form Section -->
+        <div>
+            <h3 class="text-center p-2">Add emails you'd like to send your books to!</h3>
+            <form id="add_email_form"
+                  class="email-form"
+                  hx-post="{% url 'add_email' %}"
+                  hx-target="#email_cards"
+                  hx-swap="beforeend"
+                  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
+                  hx-boost="true">
+                <div class="input-group">
+                    <input id="email" name="email_input[]" type="text" class="form-control" placeholder="Enter email here!">
+                    <button type="submit">Submit</button>
                 </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="col-4 mt-2" id="peas_div">
-      <!-- Peas image will now be within this div and responsive -->
-      <img id="peas" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif" style="max-width:100%; background-color:transparent;" class="img-fluid">
-    </div>
-
-  </div>
-
-    <div class="mt-4 mb-5">
-      <div class="row">
-        <div class="col-12">
-          
-          <!--Email Cards-->
-          <div id="email_cards" class="d-block">
-            {% for email in email_addresses %}
-                {% include "users/components/email_entry.html" %}
-            {% endfor %}
-          </div>
-
+            </form>
         </div>
-      </div>
+
+        <!-- Image Section -->
+        <div id="peas_div">
+            <img id="peas" src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1669002136/Animated-GIF-Export_2_jprvz9.gif" alt="Animated Image" class="img-fluid">
+        </div>
     </div>
 
+    <!-- Email Cards -->
+    <div id="email_cards">
+        {% for email in email_addresses %}
+    <div class="email-card" id="email_card_{{ email.id }}">
+                <p>{{ email.address }}</p>
+                <button class="contrast" 
+                        hx-delete="{% url 'delete_email' email.id %}"
+                        hx-target="#email_card_{{ email.id }}"
+                        hx-swap="outerHTML"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    *Remove
+                </button>
+            </div>
+        {% endfor %}
+    </div>
 </div>

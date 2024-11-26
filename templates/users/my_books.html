@@ -1,40 +1,95 @@
-{% load static %}
-
 <style>
+    /* Book grid container */
+    .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Ensure consistent column size */
+        gap: 1rem; /* Space between items */
+        height: 50vh; /* Example height; adjust as needed */
+        justify-items: center; /* Center the grid items horizontally */
+        margin: 1rem 0;
+    }
+
+    /* Book cover card */
     .book-cover {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
         transition: transform 0.3s ease-in-out;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 5px;
-        overflow: hidden;  /* To ensure rounded corners on images too */
+        border-radius: var(--pico-border-radius);
+        overflow: hidden;
+        width: 150px; /* Fixed width for consistency */
+        height: 230px; /* Fixed height to standardize card sizes */
+        background-color: var(--pico-color-background); /* Add background for consistency */
     }
-    
-    .book-cover img {
-        display: block;
-        width: 75%;
-        margin: 0 auto;
-        border-radius: 5px;  /* Optional, if you want rounded corners on images */
-    }
-    
+
+    /* Hover effect for book covers */
     .book-cover:hover {
-        transform: scale(1.08);
+        transform: scale(1.05);
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-        z-index: 1;  /* To ensure the hovered book is above its neighbors */
     }
-    
+
+    /* Book cover image */
+    .book-cover img {
+        width: 100%; /* Make images responsive to the card width */
+        height: 70%; /* Fixed height relative to card */
+        object-fit: cover; /* Maintain aspect ratio and crop overflow */
+        border-bottom: 1px solid var(--pico-color-muted);
+    }
+
+    /* Book title */
     .book-title {
         font-weight: bold;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: hidden; /* Hide overflowing text */
+        text-overflow: ellipsis; /* Add ellipsis for long titles */
+        width: 100%; /* Ensure ellipsis works properly */
+        text-align: center; /* Center-align text */
+    }
+
+    /* Scrollable table container */
+    .table-container {
+        max-height: 40vh; /* Set a fixed height for the scrollable area */
+        overflow-y: auto; /* Enable vertical scrolling */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for emphasis */
+        margin-top: 1rem;
+    }
+
+    /* Table styling */
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .table-container th,
+    .table-container td {
+        padding: 0.5rem;
+        border: 1px solid var(--pico-color-muted);
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+
+    .table-container th {
+        background-color: var(--pico-color-secondary);
+        color: var(--pico-color-background);
+        position: sticky; /* Keep the header fixed while scrolling */
+        top: 0;
+        z-index: 1;
     }
 </style>
 
-<div class="container mt-5">
-    <div class="row">
-        {% for book in my_books %}
-            <div class="col-md-3 mb-4">
-                <div class="book-cover">
-                    <img src="{{book.get_cover_url}}" alt="{{book.title}}" class="img-fluid">
-                    <div class="book-title text-center mt-2">{{book.title}}</div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+<div class="book-grid">
+    {% for book in my_books %}
+        <div class="book-cover" 
+                hx-get="{{ book.get_absolute_url }}"
+                hx-swap="outerHTML"
+                hx-push-url="true"
+                hx-target="body">
+            <img src="{{ book.get_cover_url }}" alt="{{ book.title }}">
+            <div class="book-title">{{ book.title }}</div>
+        </div>
+    {% endfor %}
 </div>
