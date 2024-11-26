@@ -26,4 +26,4 @@ class EmailFactory(factory.django.DjangoModelFactory):
         model = "users.Email"
 
     address = factory.Faker("email")
-    translate_file = random.choice(list(LANGUAGES.keys()))
+    # translate_file = random.choice(list(LANGUAGES.keys()))

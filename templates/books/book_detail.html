@@ -1,83 +1,86 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block extra_style %}
-<style>
-.card-img-top {
-  height: auto;
-  max-height: 33%; /* Ensures consistent size */
-  object-fit: cover; /* Ensures the cover fits the area nicely */
-  border-bottom: 1px solid #eee; /* Separates image from card body */
-}
-
-.card-title {
-  color: maroon;
-}
-
-.card-text {
-  color: #333;
-}
-
-.refresh-btn {
-  transition: all 0.3s ease;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.card-img-top:hover + .card-body .refresh-btn {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Ensure the button is hidden until the image is hovered */
-.card-body:hover .refresh-btn {
-  opacity: 1;
-  visibility: visible;
-}
-</style>
-{% endblock extra_style %}
-
 {% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-6 offset-lg-3">
-            <div class="card mb-4 shadow-sm">
-                <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="card-img-top img-fluid bookcover">
-                
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <p class="card-text">Author: {{ book.author }}</p>
-                    <p class="card-text">ISBN: {{ book.isbns }}</p>
-                    <!-- The Refresh Button with HTMX -->
-                    <div class="text-center">
-                        <button class="btn btn-sm btn-info refresh-btn"
-                          hx-get="{% url 'get-cover' book.id %}"
-                          hx-trigger="mouseenter"
-                          hx-target="#book-cover"
-                          hx-swap="outerHTML">Refresh Image</button>
-                    </div>
+<style>
+.card.grid {
+    display: grid;
+    gap: 2.5rem;
+    padding: 1rem;
+    grid-template-columns: 1fr 2fr;
+}
+
+.card-body {
+    overflow: hidden;
+    position: relative; /* Position relative to help contain updates */
+}
+
+</style>
+<article class="container">
+    <div class="card grid" style="gap: 2.5rem; padding: 2rem;">
+        <!-- book cover image -->
+        <figure>
+            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
+        </figure>
+
+        <!-- card Body -->
+        <div class="card-body">
+            <!-- book Title -->
+            <h5 class="card-title">{{ book.title }}</h5>
+
+            <!-- book Author -->
+            <p class="card-text">
+                Author(s): 
+                {% if book.authors.all %}
+                    {% for author in book.authors.all %}
+                        {{ author.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                    No authors listed
+                    {% endfor %}
+                {% endif %}
+            </p>
+
+            <!-- replace the existing button with icons -->
+            <div class="icon-buttons grid">
+                <button 
+                  hx-get="{% url 'get-cover' book.id %}"
+                  hx-trigger="click"
+                  hx-target="#book-cover"
+                  hx-swap="outerHTML"
+                  title="Refresh"><i class="fas fa-sync"></i>
+                </button>
+
+                <button title="Download" class="contrast"
+                    hx-trigger="click"
+                    hx-get="{% url 'get-libgen-links' book.id %}"
+                    hx-swap="innerHTML transition:true"
+                    hx-indicator="#loading_notification"
+                    hx-target="#libgen-links"
+                >
+                  <i class="fas fa-download"></i> <!-- Download Icon -->
+                </button>
+
+                <!-- loading notification -->
+                <div class="htmx-indicator" id="loading_notification"
+                style="max-height: 40px; max-width:40px">
+                    <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
                 </div>
 
-                <ul class="list-group list-group-flush">
-                    <!-- Display JSON links more cleanly -->
-                    {% if book.json_links %}
-                        <li class="list-group-item">Additional Details:</li>
-                        {% for link in book.json_links %}
-                            <li class="list-group-item">
-                                <a href="{{ link }}" target="_blank">Download Book</a>
-                            </li>
-                        {% endfor %}
-                    {% endif %}
-                </ul>
-<!-- 
-                <div class="card-footer">
-                    <small class="text-muted">Last updated 3 mins ago</small>
-                </div> -->
+                <!--<button title="Chat">-->
+                <!--  <i class="fas fa-comments"></i> <!-- Chat Icon -->
+                <!--</button>-->
+                <!---->
+                <!--<button title="Bookmark">-->
+                <!--  <i class="fas fa-bookmark"></i> <!-- Bookmark Icon -->
+                <!--</button>-->
             </div>
+
+            <!--dynamic div-->
+            <div id="libgen-links" style="height:20vh;"></div>
+
         </div>
     </div>
-</div>
-
+</article>
 {% endblock %}

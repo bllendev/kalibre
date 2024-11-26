@@ -259,27 +259,6 @@ class Book(models.Model):
             logger.error(f"get_cover_url | {self} | {e} | {cover_url}")
         return cover_url
 
-    def send(self, emails, language="en"):
-        """
-        sends the book file to the specified emails.
-
-        params:
-            - emails: List of email addresses to send the book file to.
-            - language: Language for translation (default is 'en').
-
-        returns:
-            Status of the email sending process.
-        """
-        book_file_buffer = get_book_file_path(self, language)
-
-        status = False
-        if book_file_buffer:
-            msg = copy.deepcopy(EMAIL_TEMPLATE_LIST)
-            msg[3] = emails
-            status = send_emails(msg, book_file_buffer, self.title)
-
-        return status
-
 
 class Review(models.Model):
     book = models.ForeignKey(

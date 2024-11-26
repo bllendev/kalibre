@@ -22,12 +22,27 @@ urlpatterns = [
         name="book-search",
     ),
     path(
+        "book-search/<str:query>/",
+        views.BookSearchView.as_view(),
+        name="book-search",
+    ),
+    path(
         "book-search-openlibrary/",
         views.BookSearchOpenlibraryView.as_view(),
         name="book-search-openlibrary",
+    ),
+    path(
+        "book-save-vector/<uuid:pk>/",
+        views.BookSaveVectorView.as_view(),
+        name="book-save-vector",
     ),
     # book
     path("get-cover/<uuid:pk>/", views.GetCoverView.as_view(), name="get-cover"),
     # ajax
     path("send-book/<uuid:pk>/", views.SendBookView.as_view(), name="send-book"),
+    path(
+        "get-libgen-links/<uuid:pk>/",
+        views.GetLibgenLinksView.as_view(),
+        name="get-libgen-links",
+    ),
 ]

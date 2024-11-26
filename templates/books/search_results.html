@@ -4,78 +4,114 @@
 {% block title %}Search{% endblock title %}
 {% block content %}
 <style>
-    .book-row {
-        transition: opacity 0.3s ease-out;
+    .search-input-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        width: 100%;
     }
 
-    {% comment %}
-        #div-search-result {
-            max-height: 80vh;
-            overflow-y: auto; /* Enables vertical scrolling */
-            transition: opacity 1s ease;
-        }
-    {% endcomment %}
+    input.form-control {
+        flex: 1;  /* Changed from flex-grow: 1 */
+        height: 48px;  /* Consistent height with button */
+        padding: 0 1.5rem;
+    }
+
+    button#div-fetch-books {
+        height: 2rem; /* Match input height */
+        padding: 0 1.5rem; /* Adjust padding for balance */
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        background-color: #81a1c1;
+        margin-bottom: 1rem;
+        color: #2e3440;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button#div-fetch-books:hover {
+        background-color: #5e81ac;
+        transform: translateY(-2px);
+    }
+
+    /* Scrollable section */
+    .scrollable-table-container {
+        max-height: 60vh;
+        overflow-y: auto;
+        border-radius: 0.5rem;
+    }
+
 </style>
 
-
-<div class="row justify-content-center">
-    <!-- Search Bar -->
-    <div class="col-10">
-        <input name="q" class="form-control mr-sm-2" type="text" placeholder="try filtering here if you like!" aria-label="try filtering here if you like!"
-            class="form-control mb-4"
-            hx-get="{% url 'book-search' %}"  
-            hx-vals="{'trigger': '', 'query': '{{query}}'}"
+<div class="container mt-4">
+    <!-- Search Bar and Refresh Button -->
+    <div class="search-input-container">
+        <!-- Search Input -->
+        <input
+            name="q"
+            class="form-control"
+            type="search"
+            placeholder="Search books or filter here..."
+            aria-label="Search books or filter here..."
+            hx-get="{% url 'book-search' query %}"  
+            hx-vals="{'trigger': '', 'query': '{{ query }}'}"
             hx-trigger="keyup changed delay:250ms"
             hx-target="#book_entry_list"
             hx-swap="innerHTML" 
-        >
-    </div>
+        />
 
-    <!--hard query refresh open library api -->
-    <div class="col-2">
-        <!--refresh books btn via api-->
-        <button class="btn btn-outline-primary my-2 my-sm-0" 
+        <!-- refresh button -->
+        <button
             id="div-fetch-books"
             hx-post="{% url 'book-search-openlibrary' %}"
+            hx-get="{% url 'book-search' %}"
             hx-trigger="click"
             hx-target="#book_entry_list"
             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-vals='{"query": "{{ query }}"}'
             hx-indicator="#loading_notification"
-            hx-swap="beforeend"
-            hx-swap="innerHTML">Refresh Search
+            hx-swap="innerHTML">
+            Refresh
         </button>
-   </div>
-
-
-<div id="div-search-result" class="row mt-5" style="transition: opacity 1s ease;">
-
-    <!-- Loading Notification -->
-    <div class="htmx-indicator" id="loading_notification">
-        <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading..." class="img-fluid">
     </div>
 
-    <!-- fetch books via vector search -->
-    <div id="div-fetch-books"
-        hx-get="{% url 'book-search' %}"
-        hx-trigger="load"
-        hx-target="#book_entry_list"
-        hx-vals='{"query": "{{ query }}", "trigger": "refresh-forms-openlibrary-api"}'
-        hx-indicator="#loading_notification"
-        hx-swap="beforeend">
-    </div>
+    <!-- scrollable table section -->
+    <div id="div-search-result" class="mt-5">
+        <!-- loading notification -->
+        <div class="htmx-indicator" id="libgen_loading_indicator"
+        style="max-height: 40px; max-width:40px">
+            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
+        </div>
 
-    <!-- NOTE: gets targeted by all div-fetch-books* -->
-    <div id="book_entry_list" class="col-12 row"
+        <!--ping openlibrary-->
+        <div
+            id="div-fetch-books"
             hx-post="{% url 'book-search-openlibrary' %}"
-            hx-trigger="refresh-forms-openlibrary-api from:body"
-            hx-target="#div-fetch-books-openlibrary"
+            hx-trigger="load"
+            hx-target="#book_entry_list"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-vals='{"query": "{{ query }}"}'
             hx-indicator="#loading_notification"
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            hx-swap="innerHTML">
+            hx-swap="innerHTML transition:true">
+        </div>
+        <!-- Book Entry List -->
+        <div id="book_entry_list" class="mt-4 scrollable-table-container"> </div>
     </div>
-
 </div>
+<script>
 
+    // Listen for the custom event `book-save-vector`
+    $(document).on("book-save-vector", function(evt) {
+        const bookIds = evt.originalEvent.detail.value; // should be array of book IDs
+
+        $.each(bookIds, function(index, pk) {
+            console.log('Triggering view for book with PK:', pk);
+            const url = `/book-save-vector/${pk}/`;
+            htmx.ajax('POST', url, "#book_entry_list");
+        });
+    });
+
+</script>
 {% endblock %}

@@ -55,9 +55,10 @@ class TestOpenLibraryAPI(TestCase):
 
     def test_create_book_and_author(self):
         # call the function that should create a Book and Author
-        book = create_or_get_book_from_api(self.api_response)
+        book, created = create_or_get_book_from_api(self.api_response)
 
         # verify that the Book was created with correct attributes
+        self.assertTrue(created)
         self.assertIsInstance(book, Book)
         self.assertEqual(book.title, self.api_response["title"])
         self.assertListEqual(book.isbns, self.api_response["isbn"])

@@ -10,7 +10,10 @@
         <ul>
             {% for book in book_list %}
                 <li>
-                    <a href="{{ book.get_absolute_url }}">{{ book.title }}</a>
+                    <p hx-get="{{ book.get_absolute_url }}"
+                        hx-swap="outerHTML"
+                        hx-target="body"
+                    >{{ book.title }}</p>
                 </li>
             {% endfor %}
         </ul>

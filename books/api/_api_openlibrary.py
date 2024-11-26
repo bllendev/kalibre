@@ -13,6 +13,7 @@ def create_or_get_book_from_api(api_book):
 
     Returns:
         Book: Created or existing Book instance.
+        created: bool
     """
     from books.models import Book
     from authors.models import Author
@@ -63,7 +64,7 @@ def create_or_get_book_from_api(api_book):
             # Linked authors need to be set only for newly created books
             book.authors.set(collected_authors)
 
-    return book
+    return book, created
 
 
 class OpenLibraryAPI:

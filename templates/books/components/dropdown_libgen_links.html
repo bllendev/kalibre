@@ -1,0 +1,44 @@
+<!--books/components/dropdown_libgen_links.html-->
+<div class="libgen-table" style="max-height: 20vh; overflow-y: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Format</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for libgen_book in libgen_books %}
+                <tr>
+                    <td>{{ libgen_book.Title }}</td>
+                    <td>{{ libgen_book.Extension }}</td>
+                    <td>
+                        <button 
+                          class="outline contrast"
+                          hx-confirm="{{ hx_confirm_str }}"
+                          hx-trigger="click"
+                          hx-indicator="#loading_notification"
+                          hx-post="{% url 'send-book' book.pk %}"
+                          hx-vals='{
+                              "mirror_1": "{{ libgen_book.Mirror_1|escapejs }}",
+                              "mirror_2": "{{ libgen_book.Mirror_2|escapejs }}",
+                              "mirror_3": "{{ libgen_book.Mirror_3|escapejs }}"
+                          }'
+                          hx-headers='{
+                            "X-CSRFToken": "{{ csrf_token }}"
+                          }'
+                          aria-label="Download {{ libgen_book.Title }}">
+                          Send
+                        </button>
+
+                        <div class="htmx-indicator" id="libgen_loading_indicator"
+                        style="max-height: 40px; max-width:40px">
+                            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
