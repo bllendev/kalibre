@@ -85,7 +85,7 @@
     {% for book in my_books %}
         <div class="book-cover" 
                 hx-get="{{ book.get_absolute_url }}"
-                hx-swap="outerHTML"
+                hx-swap="outerHTML transition:true"
                 hx-push-url="true"
                 hx-target="body">
             <img src="{{ book.get_cover_url }}" alt="{{ book.title }}">
