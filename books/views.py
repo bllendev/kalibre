@@ -68,7 +68,6 @@ class BookSearchOpenlibraryView(View):
         if gutenberg:
             gutenberg_books = BookGutenberg.objects.filter(json__icontains=query)
             gutenberg_books = {b.title.lower() for b in gutenberg_books}
-            print(f"gutenberg_books: {gutenberg_books}")
 
         books = list()
         books_to_vector_save = list()
