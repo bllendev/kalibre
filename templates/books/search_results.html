@@ -61,7 +61,7 @@
             placeholder="Search books or filter here..."
             aria-label="Search books or filter here..."
             hx-get="{% url 'book-search' query %}"  
-            hx-vals="{'trigger': '', 'query': '{{ query }}'}"
+            hx-vals='{"trigger": "", "query": "{{ query }}"}'
             hx-trigger="keyup changed delay:250ms"
             hx-target="#book_entry_list"
             hx-swap="innerHTML" 
