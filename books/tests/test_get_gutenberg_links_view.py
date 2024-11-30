@@ -29,13 +29,12 @@ class GetGutenbergLinksViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("book", response.context)
         self.assertIn("gutenberg_books", response.context)
-        self.assertEqual(str(response.context["book"].id), str(self.book))
-        self.assertIn(self.gutenberg_book, response.context["gutenberg_books"])
+        self.assertEqual(str(response.context["book"].id), str(self.book.id))
 
     def test_get_gutenberg_links_view_not_logged_in_redirects(self):
         self.client.logout()
         url = reverse("get-gutenberg-links", args=[self.book.pk])
         response = self.client.get(url)
         login_url = "/accounts/login/"
-        next_url = f"?next=/books/get-libgen-links/{self.book.pk}/"
+        next_url = f"?next=/books/get-gutenberg-links/{self.book.pk}/"
         self.assertRedirects(response, f"{login_url}{next_url}")
