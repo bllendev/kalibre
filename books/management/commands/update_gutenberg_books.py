@@ -55,12 +55,7 @@ class Command(BaseCommand):
 
             books_skipped = 0
             books_added = 0
-
             for book_data in ijson.items(data_stream, "item"):
-                # debug !
-                if books_added == 10:
-                    break
-
                 try:
                     with transaction.atomic():
                         # create or get BookGutenberg instance
