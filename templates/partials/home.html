@@ -74,6 +74,21 @@
         padding: 10px;
     }
 
+    .right-align {
+        display: flex;
+        align-items: center; /* Vertically centers content in the div */
+        justify-content: flex-end; /* Aligns children (text and button) properly */
+        gap: 0.5rem; /* Adds space between text and button */
+    }
+
+    .chat-button {
+        display: flex;
+        align-items: center; /* Centers image vertically */
+        border: none;    /* Removes default button border */
+        background: transparent; /* Makes button background transparent */
+        cursor: pointer; /* Changes cursor to pointer for usability */
+    }
+
     #message-container {
         overflow-y: auto;
         flex: 1;
@@ -123,27 +138,30 @@
     <div class="text-center">
         <div>
             <div>
-            <h1 class="kalibre-title" style="font-size: 3rem; color: var(--primary);">kalibre</h1>
-            <p class="pronunciation" style="font-size: 1.5rem; color: var(--secondary);">
-                <em>pronounced:</em> <strong>ka-libb-er</strong>
-            </p>
-            {% if request.user.is_authenticated %}
-                <button
-                    class="grid"
-                    id="toggle-ai-librarian"
-                    title="Toggle AI Librarian"
-                    type="button"
-                >
-                    <img
-                        id="toggle-ai-image"
-                        src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png"
-                        alt="AI Librarian Icon"
-                        width="40"
-                        height="40"
-                    />
-                </button>
-            {% endif %}
-        </div>
+                <div>
+                    <h1 class="kalibre-title" style="font-size: 3rem; color: var(--primary);">kalibre</h1>
+
+                    {% if request.user.is_authenticated %}
+                        <div class="right-align">
+                            <p>Chat?</p>
+                            <button
+                                class="chat-button"
+                                id="toggle-ai-librarian"
+                                title="Toggle AI Librarian"
+                                type="button"
+                            >   
+                                <img
+                                    id="toggle-ai-image"
+                                    src="https://res.cloudinary.com/dmh0kulu1/image/upload/c_thumb,w_200,g_face/v1685492031/kalibre_head_0_c4ln7c.png"
+                                    alt="AI Librarian Icon"
+                                    width="40"
+                                    height="40"
+                                />
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
 
         <div id="main-card-content">
             <div id="search-view" class="visible">

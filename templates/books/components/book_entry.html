@@ -33,20 +33,6 @@
             </h5>
             <!-- Book Author -->
             <p class="card-text small text-muted mb-1">{{ book.author }}</p>
-            <!-- Send Button -->
-            {% comment %}  <!--NOTE: will need to setup special permissions for libgen send-->
-                <button type="button"
-                        hx-post="{% url 'send-book' book.pk %}"
-                        hx-trigger="click"
-                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                        hx-target="#book_{{ book.pk }}"
-                        hx-indicator="#loading_notification"
-                        hx-boost="true"
-                        hx-confirm="{{ hx_confirm_str }}"
-                        class="btn btn-sm btn-primary mt-auto">
-                    Send
-                </button>
-            {% endcomment %}
         </div>
     </div>
 </div>

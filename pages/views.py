@@ -1,5 +1,5 @@
 # django
-from books.utils import send_emails
+from users.utils import send_emails
 from pages.constants import ERROR_EMAIL_TEMPLATE_LIST
 from ai.constants import AI_PROMPT
 import sys
@@ -79,8 +79,7 @@ def handler500(request):
         template_message[1] = error_str
         status = send_emails(template_message)
 
-    response = HttpResponseServerError(
-        render(request, "error_page.html", context))
+    response = HttpResponseServerError(render(request, "error_page.html", context))
     response.status_code = 500
     return response
 

@@ -1,7 +1,7 @@
 from django.test import TestCase
 from books.api._api_openlibrary import (
     OpenLibraryAPI,
-    create_or_get_book_from_api,
+    get_or_create_book_from_api,
 )
 from books.tests.constants import (
     TEST_QUERY,
@@ -9,7 +9,7 @@ from books.tests.constants import (
     TEST_AUTHOR_KEY,
 )
 from authors.factory.author import AuthorFactory
-from books.tests.factories import BookFactory
+from books.factory import BookFactory
 
 from books.models import Book
 
@@ -55,7 +55,7 @@ class TestOpenLibraryAPI(TestCase):
 
     def test_create_book_and_author(self):
         # call the function that should create a Book and Author
-        book, created = create_or_get_book_from_api(self.api_response)
+        book, created = get_or_create_book_from_api(self.api_response)
 
         # verify that the Book was created with correct attributes
         self.assertTrue(created)

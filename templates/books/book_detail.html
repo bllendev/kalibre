@@ -69,7 +69,7 @@
             <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
         </figure>
 
-        <!-- Card Body -->
+        <!-- card -->
         <div class="card-body">
             <!-- Book Title -->
             <h5 class="card-title">{{ book.title }}</h5>
@@ -101,14 +101,25 @@
                     hx-get="{% url 'get-libgen-links' book.id %}"
                     hx-swap="innerHTML transition:true"
                     hx-indicator="#loading_notification"
-                    hx-target="#libgen-links"
+                    hx-target="#links"
+                >
+                  <i class="fas fa-download"></i> <!-- Download Icon -->
+                </button>
+
+                <button title="Download Gutenberg"
+                    hx-trigger="click"
+                    hx-get="{% url 'get-gutenberg-links' book.id %}"
+                    hx-swap="innerHTML transition:true"
+                    hx-indicator="#loading_notification"
+                    hx-target="#links"
                 >
                   <i class="fas fa-download"></i>
                 </button>
             </div>
 
-            <!-- Dynamic Links Table -->
-            <div id="libgen-links"></div>
+            <!--dynamic div-->
+            <div id="links" style="height:20vh;"></div>
+
         </div>
     </div>
 </article>

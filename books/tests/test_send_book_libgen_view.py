@@ -1,6 +1,6 @@
 # from django.test import TestCase, Client
 # from django.urls import reverse
-# from books.tests.factories import BookFactory
+# from books.factory import BookFactory
 # from users.models import CustomUser
 # from users.tests.factories import (
 #     EmailFactory,

@@ -16,6 +16,9 @@ from decouple import config
 # LOGGING
 from bookstore_project.logging import *
 
+# AWS
+from bookstore_project.aws import *
+
 # admins
 ADMINS = [("allen", "bllendev@gmail.com")]
 

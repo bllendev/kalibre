@@ -2,7 +2,7 @@
 # from django.urls import reverse
 # from django.contrib.auth import get_user_model
 #
-# from books.tests.factories import BookFactory
+# from books.factory import BookFactory
 # """
 # docker compose exec web python manage.py test books.tests.test_ajax --noinput --parallel --failfast
 # """

@@ -1,17 +1,18 @@
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseServerError, HttpResponse
+from django.http import (
+    JsonResponse,
+    HttpResponseBadRequest,
+    HttpResponseServerError,
+    HttpResponse,
+)
 from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
-from django.conf import settings
 
 from users.models import Email
-from books.utils import request_is_ajax_bln
 from translate.constants import LANGUAGES
 
-import os
-import json
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,11 +20,12 @@ CustomUser = get_user_model()
 
 
 def add_email(request):
-    is_ajax = request_is_ajax_bln(request)
     try:
-        if request.method == 'POST':
+        if request.method == "POST":
             # organize
-            post_dict = {key: val for key, val in request.POST.items() if "email_input" in key}
+            post_dict = {
+                key: val for key, val in request.POST.items() if "email_input" in key
+            }
             post_dict_values = list(post_dict.values())
 
             # extract email info
@@ -37,12 +39,19 @@ def add_email(request):
             user.email_addresses.add(email)
             user.save()
 
-            if is_ajax:
-                return render(request, 'users/components/email_entry.html', {'email': email, "LANGUAGES": LANGUAGES,})
+            if request.headers.get("HX-Request") == "true":
+                return render(
+                    request,
+                    "users/components/email_entry.html",
+                    {
+                        "email": email,
+                        "LANGUAGES": LANGUAGES,
+                    },
+                )
 
             # For non-HTMX (no JS) requests:
-            return redirect(reverse('my_profile'))
-        
+            return redirect(reverse("my_profile"))
+
         else:
             raise Exception("POST requests only.")
 
@@ -55,7 +64,7 @@ def add_email(request):
 
 def delete_email(request, pk):
     try:
-        if request.method == 'DELETE':
+        if request.method == "DELETE":
             # extract user info
             username = request.user.username
             user = CustomUser.objects.get(username=username)
@@ -75,7 +84,7 @@ def delete_email(request, pk):
 
         else:
             raise Exception("DELETE requests only.")
-        
+
     except Exception as e:
         logger.error(f"ERROR: books.ajax.delete_email | {e}")
         raise e
@@ -97,7 +106,7 @@ def toggle_translate_email(request, pk):
 
     try:
         logger.error(f"request.method: {request.method}")
-        if is_ajax and request.method == 'POST':
+        if is_ajax and request.method == "POST":
             username = request.user.username
             user = CustomUser.objects.get(username=username)
             email = user.email_addresses.all().get(pk=pk)
@@ -109,16 +118,24 @@ def toggle_translate_email(request, pk):
             email.translate_file = lang_code  # NOTE: translate.constants
             email.save()
 
-            if is_ajax:  # if request is coming via HTMX
-                return render(request, 'users/components/email_entry.html', {'email': email, "LANGUAGES": LANGUAGES,})
+            # if request is coming via HTMX
+            if request.headers.get("HX-Request") == "true":
+                return render(
+                    request,
+                    "users/components/email_entry.html",
+                    {
+                        "email": email,
+                        "LANGUAGES": LANGUAGES,
+                    },
+                )
 
             # for non-HTMX (no JS) requests:
-            return reverse('my_profile')
-        
+            return reverse("my_profile")
+
         raise Exception("POST requests only.")
 
     except Exception as e:
         logger.error(f"ERROR: books.ajax.toggle_translate_email | {e}")
         raise e
 
-    return JsonResponse({'status': False}, status=400)
+    return JsonResponse({"status": False}, status=400)

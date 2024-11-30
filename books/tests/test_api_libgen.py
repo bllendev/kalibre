@@ -8,7 +8,7 @@ from books.tests.constants import (
     TEST_AUTHOR_KEY,
 )
 from authors.factory.author import AuthorFactory
-from books.tests.factories import BookFactory
+from books.factory import BookFactory
 
 from books.models import Book
 

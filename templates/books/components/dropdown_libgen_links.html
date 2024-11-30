@@ -19,7 +19,7 @@
                           hx-confirm="{{ hx_confirm_str }}"
                           hx-trigger="click"
                           hx-indicator="#loading_notification"
-                          hx-post="{% url 'send-book' book.pk %}"
+                          hx-post="{% url 'send-book-libgen' book.pk %}"
                           hx-vals='{
                               "mirror_1": "{{ libgen_book.Mirror_1|escapejs }}",
                               "mirror_2": "{{ libgen_book.Mirror_2|escapejs }}",

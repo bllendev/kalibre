@@ -2,7 +2,7 @@
 from django.test import SimpleTestCase
 
 # local
-from books.tests.factories import BookFactory
+from books.factory import BookFactory
 from translate._translate import Translate
 from translate.constants import LANGUAGES
 from books.tests.test_book_model import TEST_BOOK_PKL_PATH
