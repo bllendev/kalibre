@@ -1,65 +1,17 @@
-from django.db import transaction
-from django.shortcuts import redirect
-from django.core import mail
 from decouple import config
+from books.constants import EMAIL_TEMPLATE_LIST
 from bs4 import BeautifulSoup
 import copy
 import requests
 import urllib
 import os
 import io
-# import nltk
-# # from textblob import TextBlob
-# from nltk.corpus import stopwords
-# from nltk.tokenize import word_tokenize
-# from nltk.stem import PorterStemmer
 
 from books.constants import EMAIL_TEMPLATE_LIST
+from users.utils import send_emails
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-# # Download required resources
-# nltk.download('stopwords')
-# nltk.download('punkt')
-# nltk.download('wordnet')
-# nltk.download('averaged_perceptron_tagger')
-
-
-# TODO: make send_email delayed async with celery
-def send_emails(template_message, file_buffer, file_name):
-    status = None
-    try:
-        # send book as email to recipient
-        with mail.get_connection() as connection:
-            email_message = mail.EmailMessage(
-                *tuple(template_message), connection=connection
-            )
-
-            if not file_buffer:
-                raise ValueError("file_buffer is None")
-
-            # attach file from memory
-            email_message.attach(
-                file_name, file_buffer.read(), "application/octet-stream"
-            )
-            file_buffer.seek(0)  # reset file pointer if needed again
-
-            email_message.send(fail_silently=False)
-            status = True
-
-    except Exception as e:
-        status = False
-        logger.error(f"ERROR: books.utils.send_emails | {e}")
-        raise e
-
-    return status
-
-
-# TODO: remove ajax for htmx
-def request_is_ajax_bln(request):
-    return request.headers.get("HX-Request") == "true"
 
 
 def _create_book_file(json_links, language):
@@ -113,7 +65,7 @@ def _create_book_file(json_links, language):
             continue
 
 
-def _convert_book_file(book, book_file_path, convert_output_format):
+def _convert_book_file(book_file_path, convert_output_format):
     """
     converts the book file format using an external microservice.
 
@@ -141,7 +93,7 @@ def _convert_book_file(book, book_file_path, convert_output_format):
     # handle the response
     output_path = f"output.{convert_output_format}"
     if response.status_code == 200:
-        # Optionally, handle the file response, e.g., save it to disk
+        # optionally, handle the file response, e.g., save it to disk
         with open(output_path, "wb") as out:
             out.write(response.content)
         logging.info("Success: File converted and saved.")
@@ -171,7 +123,7 @@ def get_book_file_path(json_links, language=None, convert_output_format=""):
         book_file_buffer = _create_book_file(json_links, language)
         # if convert_output_format:
         #     book_file_buffer = _convert_book_file(
-        #         book, book_file_buffer, convert_output_format
+        #         book_file_buffer, convert_output_format
         #     )
     except Exception as e:
         logging.error(f"Error processing book file: {e}")

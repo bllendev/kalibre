@@ -68,36 +68,38 @@
         />
 
         <!-- refresh button -->
-        <button
-            id="div-fetch-books"
-            hx-post="{% url 'book-search-openlibrary' %}"
-            hx-get="{% url 'book-search' %}"
-            hx-trigger="click"
-            hx-target="#book_entry_list"
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            hx-vals='{"query": "{{ query }}"}'
-            hx-indicator="#loading_notification"
-            hx-swap="innerHTML">
-            Refresh
-        </button>
+        <!--<button-->
+        <!--    id="div-fetch-books"-->
+        <!--    hx-post="{% url 'book-search-openlibrary' %}"-->
+        <!--    hx-get="{% url 'book-search' %}"-->
+        <!--    hx-trigger="click"-->
+        <!--    hx-target="#book_entry_list"-->
+        <!--    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'-->
+        <!--    hx-vals='{"query": "{{ query }}"}'-->
+        <!--    hx-indicator="#loading_notification"-->
+        <!--    hx-swap="innerHTML">-->
+        <!--    Refresh-->
+        <!--</button>-->
     </div>
 
     <!-- scrollable table section -->
     <div class="mt-5">
         <!-- loading notification -->
-        <div class="htmx-indicator" id="loading_notification"
-        style="max-height: 40px; max-width:40px">
-            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
-        </div>
+        <center>
+            <div class="htmx-indicator" id="loading_notification"
+            style="max-height: 40px; max-width:40px">
+                <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
+            </div>
+        </center>
 
-        <!--ping openlibrary-->
+        <!--ping openlibrary / filters gutenberg books -->
         <div
             id="div-fetch-books"
             hx-post="{% url 'book-search-openlibrary' %}"
             hx-trigger="load"
             hx-target="#book_entry_list"
             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            hx-vals='{"query": "{{ query }}"}'
+            hx-vals='{"query": "{{ query }}", "gutenberg": "true"}'
             hx-indicator="#loading_notification"
             hx-swap="innerHTML transition:true">
         </div>

@@ -26,6 +26,9 @@ services:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - KALIBRE_PRIVADO=${KALIBRE_PRIVADO}
       - KALIBRE_EBOOK_CONVERT_URL=${KALIBRE_EBOOK_CONVERT_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID_KALIBRE}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY_KALIBRE}
+      - AWS_REGION=${AWS_REGION_KALIBRE}
     volumes:
       - .:/code
     ports:

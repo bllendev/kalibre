@@ -1,0 +1,42 @@
+<!--books/components/dropdown_gutenberg_links.html-->
+<div class="gutenberg-table" style="max-height: 20vh; overflow-y: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Format</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for gutenberg_book in gutenberg_books %}
+                {% for file_type, link in gutenberg_book.get_links.items %}
+                <tr>
+                    <td>{{ gutenberg_book.title }}</td>
+                    <td>{{file_type}}</td>
+                    <td>
+                        <button 
+                          class="outline contrast"
+                          hx-confirm="{{ hx_confirm_str }}"
+                          hx-trigger="click"
+                          hx-indicator="#loading_notification"
+                          hx-post="{% url 'send-book-gutenberg' book.pk %}"
+                          hx-vals='{"link": "{{link}}"}'
+                          hx-headers='{
+                            "X-CSRFToken": "{{ csrf_token }}"
+                          }'
+                          aria-label="Download {{ gutenberg_book.title }}">
+                          Send
+                        </button>
+
+                        <div class="htmx-indicator" id="gutenberg_loading_indicator"
+                        style="max-height: 40px; max-width:40px">
+                            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

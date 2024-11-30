@@ -9,14 +9,13 @@ import json
 
 # factories
 from users.tests.factories import CustomUserFactory
-from books.tests.factories import BookFactory
+from books.factory import BookFactory
 from books.tests.constants import TEST_QUERY
 
 # local
 from books.models import Book
 
-TEST_BOOK_PKL_PATH = os.path.join(
-    settings.BASE_DIR, "books", "tests", "_test_book.pkl")
+TEST_BOOK_PKL_PATH = os.path.join(settings.BASE_DIR, "books", "tests", "_test_book.pkl")
 
 TEST_EMBEDDINGS_PATH = os.path.join(
     settings.BASE_DIR, "books", "tests", "_test_query_embeddings.json"
@@ -47,8 +46,7 @@ class BookTest(TestCase):
         cls.test_user = CustomUserFactory.create()
 
         # create test book
-        cls.test_book = BookFactory.create(
-            test_book=True)  # orange tree book :)
+        cls.test_book = BookFactory.create(test_book=True)  # orange tree book :)
         # cls.test_book.save(
         #     save_vector=True
         # )  # NOTE: explicit save vector to set embeddings
@@ -67,8 +65,7 @@ class BookTest(TestCase):
     def test_search(self):
         """checks db first (bypass api query if record exists)"""
         # NOTE: test_embeddings associated with TEST_QUERY
-        test_books = Book.search(
-            query=TEST_QUERY, embeddings=self.test_embeddings)
+        test_books = Book.search(query=TEST_QUERY, embeddings=self.test_embeddings)
         self.assertTrue(test_books)
         self.assertEqual(
             self.test_book,

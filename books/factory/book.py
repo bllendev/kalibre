@@ -28,7 +28,6 @@ class BookFactory(factory.django.DjangoModelFactory):
                 "9781782692454",
                 "9781536203288",
             ],
-            json_links=[],
         )
 
     id = factory.Faker("uuid4")

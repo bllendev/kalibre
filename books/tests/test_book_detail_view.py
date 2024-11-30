@@ -5,7 +5,7 @@ from django.http import Http404
 
 from books.models import Book
 from users.tests.factories import CustomUserFactory
-from books.tests.factories import BookFactory
+from books.factory import BookFactory
 
 
 """
@@ -36,8 +36,7 @@ class BookDetailViewTestCase(TestCase):
     def test_book_detail_view_not_logged_in_redirects(self):
         self.client.logout()
         response = self.client.get(reverse("book-detail", args=[self.book.pk]))
-        self.assertRedirects(
-            response, f"/accounts/login/?next=/books/{self.book.pk}")
+        self.assertRedirects(response, f"/accounts/login/?next=/books/{self.book.pk}")
 
     # def test_book_detail_with_nonexistent_book_raises_404(self):
     #     with self.assertRaises(Http404):

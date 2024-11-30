@@ -9,7 +9,7 @@ import importlib
 
 # factories
 from users.tests.factories import CustomUserFactory, EmailFactory
-from books.tests.factories import BookFactory
+from books.factory import BookFactory
 
 
 CustomUser = get_user_model()
@@ -26,4 +26,3 @@ class SendBookAjaxTaskTest(TestCase):
         self.username = "testuser"
         self.book = BookFactory.create()
         self.book_title = "some_book"
-        self.json_links = "some_links"

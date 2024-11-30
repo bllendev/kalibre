@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def create_or_get_book_from_api(api_book):
+def get_or_create_book_from_api(api_book):
     """
     Create or get a Book instance from an API response dictionary.
 

@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin,
 )
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.db import transaction, models
 from django.http import (
     HttpResponseServerError,
     HttpResponse,
@@ -17,16 +17,15 @@ from django.contrib.auth import get_user_model
 import json
 
 # localviews
-from books.models import Book
+from books.models import Book, BookGutenberg
 from books.api._api_openlibrary import (
     OpenLibraryAPI,
-    create_or_get_book_from_api,
+    get_or_create_book_from_api,
 )
-from books.api._api_libgen import LibgenAPI, LibgenBook
+from books.api._api_libgen import LibgenAPI
 from books.tasks import (
-    books_save_vector,
-    send_book_libgen_email_task,
     send_book_libgen_email,
+    send_book_gutenberg_email,
 )
 
 # logging
@@ -49,26 +48,36 @@ class BookSaveVectorView(View):
 class BookSearchOpenlibraryView(View):
     """
     pings openlibrary api with query
-    ... books are saved to db along with embeddings,
-    authors, and publications (soon)
     ... conditional if inital response on search results was too
     few, seperate process to populate list asynchronouly"
+    ... filters out books which exist as gutenberg book
     """
 
     def post(self, request, *args, **kwargs):
         logger.info("BookSearchOpenlibraryView...")
         query = request.POST.get("query")
+        # request.POST.get("gutenberg")  # TODO: filter gutenberg books only
+        gutenberg = False
+
         open_library_api = OpenLibraryAPI()
         book_list = open_library_api.fetch_books(query)[:20]
         if not book_list:
             return HttpResponseServerError(405, "no books found!")
 
+        gutenberg_books = list()
+        if gutenberg:
+            gutenberg_books = BookGutenberg.objects.filter(json__icontains=query)
+            gutenberg_books = {b.title.lower() for b in gutenberg_books}
+            print(f"gutenberg_books: {gutenberg_books}")
+
         books = list()
         books_to_vector_save = list()
         with transaction.atomic():
             for b in book_list:
-                b, created = create_or_get_book_from_api(b)
-                books.append(b)
+                b, created = get_or_create_book_from_api(b)
+
+                if not gutenberg_books or b.title.lower() in gutenberg_books:
+                    books.append(b)
 
                 # add to vector save list
                 if created:
@@ -77,13 +86,11 @@ class BookSearchOpenlibraryView(View):
         # prepare list of ids of books we want to vector save
         books_to_vector_save_ids = []
         if books_to_vector_save:
-            books_to_vector_save_ids = [str(b.id)
-                                        for b in books_to_vector_save]
+            books_to_vector_save_ids = [str(b.id) for b in books_to_vector_save]
 
         # render response
         response = render(
-            request, "books/components/book_entry_list.html", {
-                "book_list": books}
+            request, "books/components/book_entry_list.html", {"book_list": books}
         )
 
         # trigger vector save background process!
@@ -98,7 +105,7 @@ class BookSearchOpenlibraryView(View):
 @method_decorator(never_cache, name="dispatch")
 class BookSearchView(View):
     """
-    - searches via pg_vector, trigger BookSearchOpenlibraryView if few results
+    - searches via pg_vector
     """
 
     def get(self, request, query=None, *args, **kwargs):
@@ -121,8 +128,7 @@ class BookSearchView(View):
 
         # render books html
         response = render(
-            request, "books/components/book_entry_list.html", {
-                "book_list": book_list}
+            request, "books/components/book_entry_list.html", {"book_list": book_list}
         )
 
         response["HX-Trigger-After-Swap"] = trigger
@@ -190,7 +196,101 @@ class GetCoverView(LoginRequiredMixin, View):
 
 
 @method_decorator(never_cache, name="dispatch")
-class SendBookView(LoginRequiredMixin, View):
+class SendBookGutenbergView(LoginRequiredMixin, View):
+    """
+    - books from libgen are allocated earlier in the flow,
+    see LibgenAPI.
+    """
+
+    def post(self, request, pk, *args, **kwargs):
+        # check authenticated user, send to login w/ next if not authenticated
+        if not request.user.is_authenticated:
+            # TODO: fix this such that we use hidden input, not rely on user entered url
+            next_url = request.get_full_path()
+            login_with_next_url = f"{reverse('account_login')}?next={next_url}"
+            return redirect(login_with_next_url)
+
+        # unpack request.POST.get()... get libgen book
+        # add code here...
+        try:
+            link = request.POST.get("link", None)
+            if not link:
+                logger.error("No book data found in the request.")
+                error = "Missing link from Gutenberg Book."
+                return HttpResponseServerError(error)
+
+            # get book
+            book = Book.objects.get(pk=pk)
+
+            # get user info
+            username = request.user.username
+            user = CustomUser.objects.get(username=username)
+
+            # book send task here
+            status_bln = send_book_gutenberg_email(book.title, username, link)
+
+            # if book sent - add to users my_books ! else raise error
+            if status_bln:
+                user.my_books.add(book)
+                user.save()
+
+            return HttpResponse("Successfully Sent!", status=200)
+
+        except CustomUser.DoesNotExist as e:
+            logger.error(e)
+            signup_url = f"{reverse('account_signup')}"
+            signup_url += f"?next={request.get_full_path()}"
+            return redirect(signup_url)
+
+        except Book.DoesNotExist as e:
+            logger.error(e)
+            return HttpResponseServerError(
+                "Error sending book, the book didn't seem to 'exist'."
+            )
+
+        except Exception as e:
+            logger.error(f"ERROR: SendBookGutenbergView {e}")
+            return HttpResponseServerError("Error sending book.")
+
+
+@method_decorator(never_cache, name="dispatch")
+class GetGutenbergLinksView(LoginRequiredMixin, View):
+    template_name = "books/components/dropdown_gutenberg_links.html"
+
+    def get_context_data(self, *args, **kwargs):
+        context = dict()
+
+        # prepare translate_book_bln alert for when user sends
+        translate_book_bln = False
+        if self.request.user.is_authenticated:
+            translate_book_bln = self.request.user.translate_book_bln
+
+        # create an hx_confirm_str message
+        hx_confirm_str = "Be sure to login to send books to your emails!"
+        if self.request.user.is_authenticated:
+            hx_confirm_str = (
+                "Do you want to attempt to send this book to the following emails?...\n"
+            )
+            hx_confirm_str += self.request.user.email_addresses_str
+
+        # add to the context
+        context["translate_book_bln"] = translate_book_bln
+        context["hx_confirm_str"] = hx_confirm_str
+        return context
+
+    def get(self, request, pk, *args, **kwargs):
+        book = get_object_or_404(Book, pk=pk)
+        # search gutenberg books for links
+        gutenberg_books = BookGutenberg.objects.filter(title__icontains=book.title)
+        # return fuzzy matched book links
+        context = self.get_context_data()
+        context["book"] = book
+        context["gutenberg_books"] = gutenberg_books
+        return render(request, self.template_name, context)
+
+
+@method_decorator(never_cache, name="dispatch")
+class SendBookLibgenView(LoginRequiredMixin, View):
     """
     - books from libgen are allocated earlier in the flow,
     see LibgenAPI.
@@ -231,15 +331,14 @@ class SendBookView(LoginRequiredMixin, View):
             user = CustomUser.objects.get(username=username)
 
             # book send task here
-            status_bln = send_book_libgen_email(
-                book.title, username, json_links)
+            status_bln = send_book_libgen_email(book.title, username, json_links)
 
             # if book sent - add to users my_books ! else raise error
             if status_bln:
                 user.my_books.add(book)
                 user.save()
 
-            return HttpResponse("Succesfully Sent!", status=200)
+            return HttpResponse("Successfully Sent!", status=200)
 
         except CustomUser.DoesNotExist as e:
             logger.error(e)
@@ -255,7 +354,6 @@ class SendBookView(LoginRequiredMixin, View):
 
         except Exception as e:
             logger.error(f"ERROR: SendBookView {e}")
-            raise e
             return HttpResponseServerError("Error sending book.")
 
 
@@ -290,4 +388,5 @@ class GetLibgenLinksView(LoginRequiredMixin, View):
         context = self.get_context_data()
         context["book"] = book
         context["libgen_books"] = libgen_books
+        print(f"libgen books: {libgen_books}")
         return render(request, self.template_name, context)
