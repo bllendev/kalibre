@@ -44,76 +44,46 @@ class Command(BaseCommand):
 
         try:
             self.stdout.write(f"""
-                Fetching file '{file_key}'
-                from bucket '{bucket_name}'...
-            """)
-
+                Fetching file '{file_key}' from bucket '{bucket_name}'...
+                """)
             response = s3.get_object(Bucket=bucket_name, Key=file_key)
             data_stream = response["Body"]
 
-            self.stdout.write("Processing book entries...")
-
-            books_skipped = 0
-            books_added = 0
-            for book_data in ijson.items(data_stream, "item"):
-                try:
-                    with transaction.atomic():
-                        # create or get BookGutenberg instance
-                        book_title = book_data.get("title")
-                        if not book_title:
-                            books_skipped += 1
-                            continue
-
-                        book, created = BookGutenberg.objects.get_or_create(
-                            title=book_title,
-                            defaults={
-                                "json": book_data,
-                                "description": book_data.get("description", ""),
-                                "subjects": book_data.get("subjects", []),
-                                "bookshelves": book_data.get("bookshelves", []),
-                            },
-                        )
-
-                        if created:
-                            books_added += 1
-                            self.stdout.write(
-                                self.style.SUCCESS(
-                                    f"""
-                                    BookGutenberg '{book.title}'
-                                    created successfully
-                                    """
-                                )
-                            )
-                        else:
-                            self.stdout.write(
-                                self.style.WARNING(
-                                    f"""
-                                    BookGutenberg '{book.title}'
-                                    already exists
-                                    """
-                                )
-                            )
-
-                except Exception as e:
-                    book_title = book_data.get("title", "Unknown Title")
-                    self.stdout.write(
-                        self.style.ERROR(f"""
-                            Error processing BookGutenberg
-                            '{book_title}': {e}
-                            """)
-                    )
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"""
-                    All books processed successfully.
-                    {books_added} new books added.
-                    """
+            books_to_create = []
+            existing_titles = set(
+                BookGutenberg.objects.filter(id__isnull=False).values_list(
+                    "title", flat=True
                 )
             )
 
+            for book_data in ijson.items(data_stream, "item"):
+                book_title = book_data.get("title")
+                if not book_title or book_title in existing_titles:
+                    continue
+
+                book = BookGutenberg(
+                    title=book_title,
+                    json=book_data,
+                    description=book_data.get("description", ""),
+                    subjects=book_data.get("subjects", []),
+                    bookshelves=book_data.get("bookshelves", []),
+                )
+                books_to_create.append(book)
+
+                if len(books_to_create) >= 1000:  # Insert in batches
+                    BookGutenberg.objects.bulk_create(books_to_create)
+                    books_to_create = []
+
+            # Insert remaining books
+            if books_to_create:
+                BookGutenberg.objects.bulk_create(books_to_create)
+
+            self.stdout.write(self.style.SUCCESS("All books processed successfully."))
+
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Error accessing S3: {e}"))
+            self.stdout.write(
+                self.style.ERROR(f"Error accessing S3 or writing to DB: {e}")
+            )
 
 
 """
