@@ -48,14 +48,4 @@ urlpatterns = [
         views.GetGutenbergLinksView.as_view(),
         name="get-gutenberg-links",
     ),
-    path(
-        "send-book-libgen/<uuid:pk>/",
-        views.SendBookLibgenView.as_view(),
-        name="send-book-libgen",
-    ),
-    path(
-        "get-libgen-links/<uuid:pk>/",
-        views.GetLibgenLinksView.as_view(),
-        name="get-libgen-links",
-    ),
 ]

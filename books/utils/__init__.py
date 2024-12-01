@@ -1,2 +1,1 @@
-from books.utils.send_libgen_book import send_libgen_book
 from books.utils.send_gutenberg_book import send_gutenberg_book

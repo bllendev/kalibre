@@ -6,7 +6,6 @@ from django.db import transaction
 from celery import shared_task
 from books.api._api_openlibrary import get_or_create_book_from_api
 from books.utils import (
-    send_libgen_book,
     send_gutenberg_book,
 )
 from books.models import Book
@@ -18,45 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 CustomUser = get_user_model()
-
-
-def send_book_libgen_email(book_title, username, json_links):
-    """
-    celery task to send books to associated emails
-    """
-    user = CustomUser.objects.get(username=username)
-    emails = user.email_addresses.all()
-    email_dict = Email.get_email_dict(emails)
-
-    for lang, emails in email_dict.items():
-        book_send_result = send_libgen_book(book_title, json_links, emails, lang)
-
-        # raise Exception error if some result is false
-        if book_send_result is False:
-            logging.error("books.task.send_book_email_task: Book Failed to send !")
-            return False, 400
-
-    return True, 200
-
-
-@shared_task
-def send_book_libgen_email_task(book_title, username, json_links):
-    """
-    celery task to send books to associated emails
-    """
-    user = CustomUser.objects.get(username=username)
-    emails = user.email_addresses.all()
-    email_dict = Email.get_email_dict(emails)
-
-    for lang, emails in email_dict.items():
-        book_send_result = send_libgen_book(book_title, json_links, emails, lang)
-
-        # raise Exception error if some result is false
-        if book_send_result is False:
-            logging.error("books.task.send_book_email_task: Book Failed to send !")
-            return False, 400
-
-    return True, 200
 
 
 def send_book_gutenberg_email(book_title, username, json_links):

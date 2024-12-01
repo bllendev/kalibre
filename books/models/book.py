@@ -24,8 +24,11 @@ logger = logging.getLogger(__name__)
 
 class Book(models.Model):
     """
-    Represents a single book, capturing key data as
-    returned from OpenLibrary API results.
+    Represents a single book, capturing key book metadata
+    ... a single record may contain data from several sources such as,
+    ... gutenberg
+    ... openlibrary
+    ... etc
     """
 
     id = models.UUIDField(

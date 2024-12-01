@@ -1106,18 +1106,10 @@
             "markers": "python_version >= '3.8'",
             "version": "==5.3.2"
         },
-        "libgen-api": {
-            "hashes": [
-                "sha256:db8e6878b853b4588569f41b488357a298864362578ed52b7bc380afb11ab406",
-                "sha256:f568db9c30f5d40bc288ed54e3a2de189d31dff0e1a8603a094d1b1eb6acc9e0"
-            ],
-            "index": "pypi",
-            "version": "==1.0.1"
-        },
         "lxml": {
             "hashes": [
                 "sha256:05186a0f1346ae12553d66df1cfce6f251589fea3ad3da4f3ef4e34b2d58c6a3",
-                "sha256:075b731ddd9e7f68ad24c635374211376aa05a281673ede86cbe1d1b3455279d",
+                "sha256:075b73ddd9e7f68ad24c635374211376aa05a281673ede86cbe1d1b3455279d",
                 "sha256:081d32421db5df44c41b7f08a334a090a545c54ba977e47fd7cc2deece78809a",
                 "sha256:0a3d3487f07c1d7f150894c238299934a2a074ef590b583103a45002035be120",
                 "sha256:0bfd0767c5c1de2551a120673b72e5d4b628737cb05414f03c3277bf9bed3305",

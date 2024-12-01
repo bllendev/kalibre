@@ -21,7 +21,7 @@
                           hx-trigger="click"
                           hx-indicator="#loading_notification"
                           hx-post="{% url 'send-book-gutenberg' book.pk %}"
-                          hx-vals='{"link": "{{link}}"}'
+                          hx-vals='{"link": "{{forloop.counter}}"}'
                           hx-headers='{
                             "X-CSRFToken": "{{ csrf_token }}"
                           }'

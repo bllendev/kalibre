@@ -13,7 +13,7 @@ kalibre-gutenberg-books
 --key
 gutenberg_book_records.json
 
-docker compose exec web python manabe.py update_gutenberg_books --bucket kalibre-gutenberg-books --key gutenberg_book_records.json
+docker compose exec web python manage.py update_gutenberg_books --bucket kalibre-gutenberg-books --key gutenberg_book_records.json
 """
 
 

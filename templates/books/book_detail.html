@@ -22,45 +22,6 @@
     overflow: hidden;
 }
 
-#libgen-links {
-    margin-top: 1rem; /* Add spacing from the buttons */
-    flex-grow: 1; /* Ensure it occupies the remaining space in the card body */
-    overflow-y: auto; /* Vertical scrolling */
-    border: 1px solid var(--pico-color-muted); /* Optional: Add a border for definition */
-    border-radius: var(--pico-border-radius);
-    background-color: var(--pico-color-background); /* Match the card background */
-}
-
-.libgen-table table {
-    width: 100%; /* Ensure the table takes up all available width */
-    border-collapse: collapse;
-}
-
-.libgen-table th, .libgen-table td {
-    text-align: left; /* Align text to the left */
-    padding: 0.5rem; /* Add some padding for readability */
-    border: 1px solid var(--pico-color-muted); /* Optional: Add borders to cells */
-    font-size: 0.9rem; /* Smaller font for a compact view */
-    word-wrap: break-word; /* Ensure long words wrap within cells */
-}
-
-.libgen-table th {
-    background-color: var(--pico-color-secondary);
-    color: var(--pico-color-background);
-}
-
-.libgen-table td button {
-    padding: 0.3rem 0.6rem; /* Compact button styling */
-    font-size: 0.8rem;
-    border-radius: var(--pico-border-radius);
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.libgen-table td button:hover {
-    background-color: var(--pico-color-primary);
-    transform: scale(1.05);
-}
-
 </style>
 <article class="container">
     <div class="card grid" style="gap: 2.5rem; padding: 2rem;">
@@ -96,21 +57,10 @@
                   title="Refresh"><i class="fas fa-sync"></i>
                 </button>
 
-                <button title="Download" class="contrast"
-                    hx-trigger="click"
-                    hx-get="{% url 'get-libgen-links' book.id %}"
-                    hx-swap="innerHTML transition:true"
-                    hx-indicator="#loading_notification"
-                    hx-target="#links"
-                >
-                  <i class="fas fa-download"></i> <!-- Download Icon -->
-                </button>
-
                 <button title="Download Gutenberg"
                     hx-trigger="click"
                     hx-get="{% url 'get-gutenberg-links' book.id %}"
                     hx-swap="innerHTML transition:true"
-                    hx-indicator="#loading_notification"
                     hx-target="#links"
                 >
                   <i class="fas fa-download"></i>
