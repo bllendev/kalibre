@@ -64,5 +64,4 @@ class BookGutenberg(models.Model):
                     links[file_type] = url
                     break
 
-        print(f"links: {links}")
         return links

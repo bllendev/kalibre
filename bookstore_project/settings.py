@@ -121,10 +121,9 @@ INSTALLED_APPS = [
 
 
 SITE_ID = 1
-
 ROOT_URLCONF = "bookstore_project.urls"
 WSGI_APPLICATION = "bookstore_project.wsgi.application"
-
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -139,7 +138,6 @@ EMAIL_HOST_PASSWORD = config("EMAIL_PASS")
 DEFAULT_FROM_EMAIL = "noreply@gmail.com"
 
 ACCOUNT_SESSION_REMEMBER = True
-
 AUTH_USER_MODEL = "users.CustomUser"
 LOGIN_REDIRECT_URL = "home"
 ACCOUNT_LOGOUT_REDIRECT = "home"
@@ -150,7 +148,6 @@ ACCOUNT_UNIQUE_EMAIL = True
 
 MEDIA_URL = "/media/"  # new
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # new
-
 MIDDLEWARE = [
     "django.middleware.cache.UpdateCacheMiddleware",
     "django.middleware.security.SecurityMiddleware",
