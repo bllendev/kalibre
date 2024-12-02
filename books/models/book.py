@@ -103,17 +103,16 @@ class Book(models.Model):
         from ai.models import VectorSearch
 
         authors = [a.name for a in self.authors.all()]
-        # publishers = self.publishers.split(", ")  # TODO: build publishers
+        publishers = self.publishers.split(", ")  # TODO: build publishers
         input_text = " ".join(
             filter(
                 None,
                 [
-                    f"Title: {self.title}.",
-                    f"Description: {self.description}.",
-                    f"Authors: {', '.join(authors)}",
-                    # f"Publishers: {' and '.join(publishers)}.",
-                    # Just keys if subjects is a dict
-                    f"Subjects: {', '.join(self.subjects)}.",
+                    f"{self.title}.",
+                    f"{self.description}.",
+                    f"{', '.join(authors)}",
+                    f"{' and '.join(publishers)}.",
+                    f"{', '.join(self.subjects)}.",
                 ],
             )
         )

@@ -1,5 +1,3 @@
-version: '4.7'
-
 networks:
   backend:
 
