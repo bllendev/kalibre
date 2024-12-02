@@ -38,6 +38,16 @@ class Book(models.Model):
         editable=False,
         help_text="Unique identifier for the book instance.",
     )
+    # fks
+    gutenberg = models.ForeignKey(
+        "books.BookGutenberg",
+        related_name="books",
+        help_text="Link to the related Gutenberg book record.",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
     json = models.JSONField(
         default=dict, blank=True, help_text="The original captured data."
     )
@@ -54,7 +64,6 @@ class Book(models.Model):
         blank=True,  # ex: "/works/OL123456W"
         help_text="Key reference to the OpenLibrary work instance.",
     )
-    cover_url = models.URLField(blank=True, help_text="URL to the book's cover image.")
     description = models.TextField(
         blank=True, null=True, help_text="A description of the book if provided."
     )
@@ -74,7 +83,8 @@ class Book(models.Model):
     subjects = models.JSONField(
         default=list, blank=True, help_text="List of subjects covered by the book."
     )
-    price = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    cover_url = models.URLField(
+        blank=True, help_text="URL to the book's cover image.")
     cover = models.ImageField(upload_to="covers/", blank=True)
     vector_search = models.ForeignKey(
         "ai.VectorSearch",
@@ -250,7 +260,8 @@ class Book(models.Model):
                 cover_url = self.cover.url
 
             else:
-                raise Exception("unable to get final image of saved cover.url !")
+                raise Exception(
+                    "unable to get final image of saved cover.url !")
             logger.info(f"get_cover_url - {cover_url}")
         except Exception as e:
             logger.error(f"get_cover_url | {self} | {e} | {cover_url}")
@@ -258,7 +269,8 @@ class Book(models.Model):
 
 
 class Review(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reviews")
+    book = models.ForeignKey(
+        Book, on_delete=models.CASCADE, related_name="reviews")
     review = models.CharField(max_length=255)
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 

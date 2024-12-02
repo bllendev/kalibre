@@ -16,5 +16,5 @@ class BookGutenbergAdmin(admin.ModelAdmin):
     # inlines = [
     #     ReviewInline,
     # ]
-    list_display = ("pk", "title", "description")
+    list_display = ("pk", "title", "description", "bookshelves")
     search_fields = ("title", "pk", "description", "subjects")
