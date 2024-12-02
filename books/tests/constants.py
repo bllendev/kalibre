@@ -29,15 +29,6 @@ TEST_COLUMNS = [
     "Edit",
 ]
 
-TEST_LIBGEN_MIRRORS = [
-    "https://libgen.is",
-    "http://libgen.gs",
-    "http://gen.lib.rus.ec",
-    "http://libgen.rs",
-    "https://libgen.st",
-    "https://libgen.li",
-]
-
 TEST_EMAIL_TEMPLATE_LIST = [
     "",  # empty subject line
     "",  # empty message line
@@ -46,4 +37,3 @@ TEST_EMAIL_TEMPLATE_LIST = [
 ]
 
 TEST_STABLE_FILE_TYPES = {"epub", "mobi"}
-

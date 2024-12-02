@@ -37,8 +37,8 @@ class BookFactory(factory.django.DjangoModelFactory):
     cover_url = factory.Faker("url")
     description = factory.Faker("paragraph")
     publish_date = factory.LazyFunction(lambda: ["2019", "Mar 16, 2011"])
-    subjects = factory.LazyFunction(lambda: ["Brazil, fiction", "Children's fiction"])
-    price = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
+    subjects = factory.LazyFunction(
+        lambda: ["Brazil, fiction", "Children's fiction"])
     cover = None  # Typically a path to a local or test file
     vector_search = None  # Needs manual association if persisting
 

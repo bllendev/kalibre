@@ -61,7 +61,6 @@
             placeholder="Search books or filter here..."
             aria-label="Search books or filter here..."
             hx-get="{% url 'book-search' query %}"  
-            hx-vals='{"trigger": "", "query": "{{ query }}"}'
             hx-trigger="keyup changed delay:250ms"
             hx-target="#book_entry_list"
             hx-swap="innerHTML" 
@@ -92,33 +91,31 @@
             </div>
         </center>
 
-        <!--ping openlibrary / filters gutenberg books -->
-        <div
-            id="div-fetch-books"
-            hx-post="{% url 'book-search-openlibrary' %}"
-            hx-trigger="load"
-            hx-target="#book_entry_list"
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            hx-vals='{"query": "{{ query }}", "gutenberg": "true"}'
-            hx-indicator="#loading_notification"
-            hx-swap="innerHTML transition:true">
-        </div>
+        {% comment %}
+            <!--ping openlibrary / filters gutenberg books -->
+            <div
+                id="div-fetch-books"
+                hx-post="{% url 'book-search-openlibrary' %}"
+                hx-trigger="load"
+                hx-target="#book_entry_list"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                hx-vals='{"query": "{{ query }}", "gutenberg": "true"}'
+                hx-indicator="#loading_notification"
+                hx-swap="innerHTML transition:true">
+            </div>
+        {% endcomment %}
+            <div
+                id="div-book-search"
+                hx-get="{% url 'book-search' %}"
+                hx-trigger="load"
+                hx-target="#book_entry_list"
+                hx-vals='{"query": "{{ query }}"}'
+                hx-indicator="#loading_notification"
+                hx-swap="innerHTML transition:true">
+            </div>
+
         <!-- Book Entry List -->
         <div id="book_entry_list" class="mt-4 scrollable-table-container"> </div>
     </div>
 </div>
-<script>
-
-    // Listen for the custom event `book-save-vector`
-    $(document).on("book-save-vector", function(evt) {
-        const bookIds = evt.originalEvent.detail.value; // should be array of book IDs
-
-        $.each(bookIds, function(index, pk) {
-            console.log('Triggering view for book with PK:', pk);
-            const url = `/book-save-vector/${pk}/`;
-            htmx.ajax('POST', url, "#book_entry_list");
-        });
-    });
-
-</script>
 {% endblock %}

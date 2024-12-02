@@ -14,17 +14,14 @@ from django.views.generic import DetailView, View, TemplateView
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.contrib.auth import get_user_model
-import json
 
-# localviews
+# local
 from books.models import Book, BookGutenberg
 from books.api._api_openlibrary import (
     OpenLibraryAPI,
     get_or_create_book_from_api,
 )
-from books.api._api_libgen import LibgenAPI
 from books.tasks import (
-    send_book_libgen_email,
     send_book_gutenberg_email,
 )
 
@@ -54,49 +51,33 @@ class BookSearchOpenlibraryView(View):
     """
 
     def post(self, request, *args, **kwargs):
+        """
+        NOTE: post because we get_or_create books from openlibrary
+        ... (as of now)
+        """
         logger.info("BookSearchOpenlibraryView...")
         query = request.POST.get("query")
-        # request.POST.get("gutenberg")  # TODO: filter gutenberg books only
-        gutenberg = False
 
         open_library_api = OpenLibraryAPI()
         book_list = open_library_api.fetch_books(query)[:20]
         if not book_list:
             return HttpResponseServerError(405, "no books found!")
 
-        gutenberg_books = list()
-        if gutenberg:
-            gutenberg_books = BookGutenberg.objects.filter(json__icontains=query)
-            gutenberg_books = {b.title.lower() for b in gutenberg_books}
-
         books = list()
         books_to_vector_save = list()
         with transaction.atomic():
             for b in book_list:
                 b, created = get_or_create_book_from_api(b)
-
-                if not gutenberg_books or b.title.lower() in gutenberg_books:
-                    books.append(b)
+                books.append(b)
 
                 # add to vector save list
                 if created:
                     books_to_vector_save.append(b)
 
-        # prepare list of ids of books we want to vector save
-        books_to_vector_save_ids = []
-        if books_to_vector_save:
-            books_to_vector_save_ids = [str(b.id) for b in books_to_vector_save]
-
         # render response
         response = render(
             request, "books/components/book_entry_list.html", {"book_list": books}
         )
-
-        # trigger vector save background process!
-        if books_to_vector_save_ids:
-            response["HX-Trigger-After-Settle"] = json.dumps(
-                {"book-save-vector": books_to_vector_save_ids}
-            )
 
         return response
 
@@ -107,35 +88,31 @@ class BookSearchView(View):
     - searches via pg_vector
     """
 
-    def get(self, request, query=None, *args, **kwargs):
-        # get book list
-        query = request.GET.get("query", query)
-        q = request.GET.get("q", "")
-        trigger = request.GET.get("trigger", "")
+    template_name = "books/components/book_entry_list.html"
 
-        book_list = list()
+    def get(self, request, query=None, *args, **kwargs):
+        query = request.GET.get("query", query)
+        q = request.GET.get("q", "")  # further filter query
+        books = list()
+
         if query:
-            # query and filter
-            book_list = Book.search(query)
+            books = Book.search(query)
 
         if q:
-            book_list = Book.search(q, book_list)
-
-        # trigger setup
-        if len(book_list) > 5 or trigger:
-            trigger = ""
+            # TODO: consider fuzzy match for further filtering
+            books = Book.search(q, books)
 
         # render books html
-        response = render(
-            request, "books/components/book_entry_list.html", {"book_list": book_list}
-        )
-
-        response["HX-Trigger-After-Swap"] = trigger
-        return response
+        return render(request, self.template_name, {"book_list": books})
 
 
 @method_decorator(never_cache, name="dispatch")
 class SearchResultsView(TemplateView):
+    """
+    the main search result template view, we then load in respective
+    search result apis via decoupled components upon load
+    """
+
     template_name = "books/search_results.html"
 
     def get_context_data(self, *args, **kwargs):
@@ -196,20 +173,9 @@ class GetCoverView(LoginRequiredMixin, View):
 
 @method_decorator(never_cache, name="dispatch")
 class SendBookGutenbergView(LoginRequiredMixin, View):
-    """
-    - books from libgen are allocated earlier in the flow,
-    see LibgenAPI.
-    """
+    """ """
 
     def post(self, request, pk, *args, **kwargs):
-        # check authenticated user, send to login w/ next if not authenticated
-        if not request.user.is_authenticated:
-            # TODO: fix this such that we use hidden input, not rely on user entered url
-            next_url = request.get_full_path()
-            login_with_next_url = f"{reverse('account_login')}?next={next_url}"
-            return redirect(login_with_next_url)
-
-        # unpack request.POST.get()... get libgen book
         # add code here...
         try:
             link = request.POST.get("link", None)
@@ -285,107 +251,4 @@ class GetGutenbergLinksView(LoginRequiredMixin, View):
         context = self.get_context_data()
         context["book"] = book
         context["gutenberg_books"] = gutenberg_books
-        return render(request, self.template_name, context)
-
-
-@method_decorator(never_cache, name="dispatch")
-class SendBookLibgenView(LoginRequiredMixin, View):
-    """
-    - books from libgen are allocated earlier in the flow,
-    see LibgenAPI.
-    """
-
-    def post(self, request, pk, *args, **kwargs):
-        # check authenticated user, send to login w/ next if not authenticated
-        if not request.user.is_authenticated:
-            # TODO: fix this such that we use hidden input, not rely on user entered url
-            next_url = request.get_full_path()
-            login_with_next_url = f"{reverse('account_login')}?next={next_url}"
-            return redirect(login_with_next_url)
-
-        # unpack request.POST.get()... get libgen book
-        # add code here...
-        json_links = list()
-        try:
-            mirror_1 = request.POST.get("mirror_1", None)
-            if mirror_1:
-                json_links.append(mirror_1)
-            mirror_2 = request.POST.get("mirror_2", None)
-            if mirror_2:
-                json_links.append(mirror_2)
-            mirror_3 = request.POST.get("mirror_3", None)
-            if mirror_3:
-                json_links.append(mirror_3)
-
-            # validate json_links
-            if not json_links:
-                logger.error("No book data found in the request.")
-                return HttpResponseServerError("Invalid book data.")
-
-            # get book
-            book = Book.objects.get(pk=pk)
-
-            # get user info
-            username = request.user.username
-            user = CustomUser.objects.get(username=username)
-
-            # book send task here
-            status_bln = send_book_libgen_email(book.title, username, json_links)
-
-            # if book sent - add to users my_books ! else raise error
-            if status_bln:
-                user.my_books.add(book)
-                user.save()
-
-            return HttpResponse("Successfully Sent!", status=200)
-
-        except CustomUser.DoesNotExist as e:
-            logger.error(e)
-            signup_url = f"{reverse('account_signup')}"
-            signup_url += f"?next={request.get_full_path()}"
-            return redirect(signup_url)
-
-        except Book.DoesNotExist as e:
-            logger.error(e)
-            return HttpResponseServerError(
-                "Error sending book, the book didn't seem to 'exist'."
-            )
-
-        except Exception as e:
-            logger.error(f"ERROR: SendBookView {e}")
-            return HttpResponseServerError("Error sending book.")
-
-
-@method_decorator(never_cache, name="dispatch")
-class GetLibgenLinksView(LoginRequiredMixin, View):
-    template_name = "books/components/dropdown_libgen_links.html"
-
-    def get_context_data(self, *args, **kwargs):
-        context = dict()
-
-        # prepare translate_book_bln alert for when user sends
-        translate_book_bln = False
-        if self.request.user.is_authenticated:
-            translate_book_bln = self.request.user.translate_book_bln
-
-        # create an hx_confirm_str message
-        hx_confirm_str = "Be sure to login to send books to your emails!"
-        if self.request.user.is_authenticated:
-            hx_confirm_str = (
-                "Do you want to attempt to send this book to the following emails?...\n"
-            )
-            hx_confirm_str += self.request.user.email_addresses_str
-
-        # add to the context
-        context["translate_book_bln"] = translate_book_bln
-        context["hx_confirm_str"] = hx_confirm_str
-        return context
-
-    def get(self, request, pk, *args, **kwargs):
-        book = get_object_or_404(Book, pk=pk)
-        libgen_books = LibgenAPI().fetch_books(book.title)
-        context = self.get_context_data()
-        context["book"] = book
-        context["libgen_books"] = libgen_books
-        print(f"libgen books: {libgen_books}")
         return render(request, self.template_name, context)
