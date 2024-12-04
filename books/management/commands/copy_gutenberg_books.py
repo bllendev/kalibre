@@ -29,23 +29,14 @@ class Command(BaseCommand):
         updates existing book records first
         creates new book records second
         """
-        # prepare lists for bulk operations
-        books_with_missing_data = []
-
         # create or update
-        self.update_books(books_with_missing_data)
-        self.create_books(books_with_missing_data)
+        self.update_books()
+        self.create_books()
 
         # log
-        self.stdout.write(
-            f"""
-                There were {len(books_with_missing_data)}
-                books with missing data
-            """
-        )
         self.stdout.write("Done !")
 
-    def update_books(self, books_with_missing_data):
+    def update_books(self):
         books_to_update = []
         num_books_updated = 0
         index = 0
@@ -61,9 +52,6 @@ class Command(BaseCommand):
             title = gutenberg_book.title
             description = gutenberg_book.description
             subjects = ", ".join(gutenberg_book.subjects)
-            all_keys_exist = all([title, description, subjects])
-            if not all_keys_exist:
-                books_with_missing_data.append(gutenberg_book.id)
 
             # case: update
             # get fk to existing book record
@@ -99,7 +87,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Updated {num_books_updated} existing Books.")
         self.stdout.write("Book model population completed.")
 
-    def create_books(self, books_with_missing_data):
+    def create_books(self):
         # create new books
         books_to_create = []
         num_books_created = 0
@@ -113,9 +101,6 @@ class Command(BaseCommand):
             description = gutenberg_book.description
             bookshelves = ", ".join(gutenberg_book.bookshelves)
             subjects = ", ".join(gutenberg_book.subjects) + bookshelves
-            all_keys_exist = all([title, description, subjects])
-            if not all_keys_exist:
-                books_with_missing_data.append(gutenberg_book.id)
 
             # chunk by 1000
             if index % 1000 == 0:  # NOTE: debug will remove when working

@@ -76,7 +76,8 @@ class BookSearchOpenlibraryView(View):
 
         # render response
         response = render(
-            request, "books/components/book_entry_list.html", {"book_list": books}
+            request, "books/components/book_entry_list.html", {
+                "book_list": books}
         )
 
         return response
@@ -86,9 +87,10 @@ class BookSearchOpenlibraryView(View):
 class BookSearchView(View):
     """
     - searches via pg_vector
+    - NOTE: returns only gutenberg open source books as labeled in db
     """
 
-    template_name = "books/components/book_entry_list.html"
+    template_name = "books/components/book_entry_list.html"  # includes book_entry.html
 
     def get(self, request, query=None, *args, **kwargs):
         query = request.GET.get("query", query)
@@ -96,11 +98,11 @@ class BookSearchView(View):
         books = list()
 
         if query:
-            books = Book.search(query)
+            books = Book.search(query, gutenberg=True)
 
         if q:
             # TODO: consider fuzzy match for further filtering
-            books = Book.search(q, books)
+            books = Book.search(q, books, gutenberg=True)
 
         # render books html
         return render(request, self.template_name, {"book_list": books})
@@ -246,7 +248,8 @@ class GetGutenbergLinksView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         book = get_object_or_404(Book, pk=pk)
         # search gutenberg books for links
-        gutenberg_books = BookGutenberg.objects.filter(title__icontains=book.title)
+        gutenberg_books = BookGutenberg.objects.filter(
+            title__icontains=book.title)
         # return fuzzy matched book links
         context = self.get_context_data()
         context["book"] = book

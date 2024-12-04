@@ -58,9 +58,12 @@ class Command(BaseCommand):
         self.stdout.write(f"Found {len(book_ids)} books for processing.")
 
         # batch process
-        chunk_size = 300
+        chunk_size = 200
         for i in range(0, len(book_ids), chunk_size):
             batch = book_ids[i: i + chunk_size]
-            books_save_vector.delay(list(batch))
+            self.stdout.write(
+                f"{chunk_size} Vector processing tasks have been dispatched."
+            )
+            books_save_vector.delay(batch)
 
-        self.stdout.write("Vector processing tasks have been dispatched.")
+        self.stdout.write("All Vector processing tasks have been dispatched.")

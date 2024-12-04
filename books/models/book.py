@@ -174,6 +174,7 @@ class Book(models.Model):
         cls,
         query,
         books=None,
+        gutenberg=True,  # force only gutenberg books to be included
         top_n=20,
         embeddings=None,
     ):
@@ -205,6 +206,11 @@ class Book(models.Model):
 
         # fetch books linked to these vectors
         books = cls.objects.filter(vector_search__in=similar_vectors)
+
+        # gutenberg only?
+        if gutenberg:
+            books = books.exclude(gutenberg__isnull=True)
+
         return books
 
     def _set_cover_url(self):

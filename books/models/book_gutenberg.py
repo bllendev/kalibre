@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class BookGutenberg(models.Model):
     """
-    Represents a single book, capturing key data as
+    represents a single book, capturing key data as
     returned from Gutenberg results.
     """
 

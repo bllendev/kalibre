@@ -78,7 +78,8 @@ class Command(BaseCommand):
             if books_to_create:
                 BookGutenberg.objects.bulk_create(books_to_create)
 
-            self.stdout.write(self.style.SUCCESS("All books processed successfully."))
+            self.stdout.write(self.style.SUCCESS(
+                "All books processed successfully."))
 
         except Exception as e:
             self.stdout.write(
