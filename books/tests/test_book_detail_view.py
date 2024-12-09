@@ -37,10 +37,3 @@ class BookDetailViewTestCase(TestCase):
         self.client.logout()
         response = self.client.get(reverse("book-detail", args=[self.book.pk]))
         self.assertRedirects(response, f"/accounts/login/?next=/books/{self.book.pk}")
-
-    # def test_book_detail_with_nonexistent_book_raises_404(self):
-    #     with self.assertRaises(Http404):
-    #         # fake book pk
-    #         pk = self.book.pk
-    #         self.book.delete()
-    #         self.client.get(reverse("book-detail", args=[pk]))

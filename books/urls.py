@@ -5,7 +5,8 @@ from books import views
 urlpatterns = [
     # core views
     # path('', include(router.urls)),
-    path("<uuid:pk>", views.BookDetailView.as_view(), name="book-detail"),
+    path("<uuid:pk>/", views.BookDetailView.as_view(), name="book-detail"),
+    path("book/<uuid:pk>/", views.BookView.as_view(), name="book"),
     path(
         "search-results/",
         views.SearchResultsView.as_view(),
@@ -30,6 +31,11 @@ urlpatterns = [
         "book-search-openlibrary/",
         views.BookSearchOpenlibraryView.as_view(),
         name="book-search-openlibrary",
+    ),
+    path(
+        "book-openlibrary/<uuid:pk>/",
+        views.BookOpenlibraryView.as_view(),
+        name="book-openlibrary",
     ),
     path(
         "book-save-vector/<uuid:pk>/",

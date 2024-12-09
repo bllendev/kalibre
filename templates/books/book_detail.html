@@ -4,73 +4,24 @@
 {% block title %}{{ book.title }} - Detail{% endblock title %}
 
 {% block content %}
-<style>
-.card.grid {
-    display: grid;
-    gap: 2.5rem;
-    padding: 1rem;
-    grid-template-columns: 1fr 2fr;
-    align-items: start; /* Align items to the top */
-}
 
-.card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    height: 100%; /* Ensure it stretches to fill the card height */
-    overflow: hidden;
-}
+<div>
+    <div id="book-detail-{{ book.id }}"
+        hx-post="{% url 'book' book.id %}"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        hx-target="#book-detail-{{ book.id }}"
+        hx-push-url="false"
+        hx-swap="outerHTML transition:true"
+        hx-trigger="load"
+        hx-indicator="#loading-indicator"
+    ></div>
 
-</style>
-<article class="container">
-    <div class="card grid" style="gap: 2.5rem; padding: 2rem;">
-        <!-- Book Cover Image -->
-        <figure>
-            <img src="{{ book.get_cover_url }}" alt="{{ book.title }} Cover" class="bookcover" id="book-cover">
-        </figure>
-
-        <!-- card -->
-        <div class="card-body">
-            <!-- Book Title -->
-            <h5 class="card-title">{{ book.title }}</h5>
-
-            <!-- Book Author -->
-            <p class="card-text">
-                Author(s): 
-                {% if book.authors.all %}
-                    {% for author in book.authors.all %}
-                        {{ author.name }}{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                    No authors listed
-                    {% endfor %}
-                {% endif %}
-            </p>
-
-            <!-- Replace the existing button with icons -->
-            <div class="icon-buttons grid">
-                <button 
-                  hx-get="{% url 'get-cover' book.id %}"
-                  hx-trigger="click"
-                  hx-target="#book-cover"
-                  hx-swap="outerHTML"
-                  title="Refresh"><i class="fas fa-sync"></i>
-                </button>
-
-                <button title="Download Gutenberg"
-                    hx-trigger="click"
-                    hx-get="{% url 'get-gutenberg-links' book.id %}"
-                    hx-swap="innerHTML transition:true"
-                    hx-target="#links"
-                >
-                  <i class="fas fa-download"></i>
-                </button>
-            </div>
-
-            <!--dynamic div-->
-            <div id="links" style="height:20vh;"></div>
-
+    <center>
+        <div class="htmx-indicator" id="loading-indicator"
+        style="max-height: 40px; max-width:40px">
+            <img src="https://res.cloudinary.com/dmh0kulu1/image/upload/v1668730701/loading_no_background_lu50jo.gif" alt="Loading...">
         </div>
-    </div>
-</article>
+    </center>
+</div>
+
 {% endblock %}
