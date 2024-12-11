@@ -9,6 +9,9 @@ class BookAdmin(admin.ModelAdmin):
     # ]
     list_display = ("pk", "title", "description", "cover_url")
     search_fields = ("title", "isbns", "pk")
+    list_filter = [
+        ("isbns", admin.EmptyFieldListFilter),
+    ]
 
 
 @admin.register(BookGutenberg)

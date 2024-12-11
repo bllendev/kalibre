@@ -1,17 +1,14 @@
 from django.test import TestCase
+from books.factory import BookFactory
+from books.models import Book
 from books.api._api_openlibrary import (
     OpenLibraryAPI,
     get_or_create_book_from_api,
 )
 from books.tests.constants import (
     TEST_QUERY,
-    TEST_QUERY_AUTHOR,
     TEST_AUTHOR_KEY,
 )
-from authors.factory.author import AuthorFactory
-from books.factory import BookFactory
-
-from books.models import Book
 
 
 """
@@ -70,6 +67,27 @@ class TestOpenLibraryAPI(TestCase):
         # )  # NOTE: publish_date is on hold for now dataset is too big...
         self.assertListEqual(book.subjects, self.api_response["subject"])
 
+        # verify that Author was created and linked
+        self.assertEqual(book.authors.count(), 1)
+        author = book.authors.first()
+        self.assertEqual(author.name, self.api_response["author_name"][0])
+
+    def test_create_book_and_author_with_existing_book(self):
+        test_book = BookFactory(title="My Sweet-orange Tree")
+
+        # call the function that should create a Book and Author
+        book, created = get_or_create_book_from_api(
+            self.api_response, test_book)
+
+        # verify that the Book was created with correct attributes
+        self.assertFalse(created)
+        self.assertIsInstance(book, Book)
+        self.assertEqual(book, test_book)
+        self.assertEqual(book.title, self.api_response["title"])
+        self.assertListEqual(book.isbns, self.api_response["isbn"])
+        self.assertTrue(
+            book.cover_url.endswith(f"{self.api_response['cover_i']}-L.jpg")
+        )
         # verify that Author was created and linked
         self.assertEqual(book.authors.count(), 1)
         author = book.authors.first()

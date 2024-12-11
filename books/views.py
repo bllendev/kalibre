@@ -24,6 +24,7 @@ from books.api._api_openlibrary import (
 from books.tasks import (
     send_book_gutenberg_email,
 )
+from books.tasks import books_save_vector
 
 # logging
 import logging
@@ -42,53 +43,13 @@ class BookSaveVectorView(View):
 
 
 @method_decorator(never_cache, name="dispatch")
-class BookSearchOpenlibraryView(View):
-    """
-    pings openlibrary api with query
-    ... conditional if inital response on search results was too
-    few, seperate process to populate list asynchronouly"
-    ... filters out books which exist as gutenberg book
-    """
-
-    def post(self, request, *args, **kwargs):
-        """
-        NOTE: post because we get_or_create books from openlibrary
-        ... (as of now)
-        """
-        logger.info("BookSearchOpenlibraryView...")
-        query = request.POST.get("query")
-
-        open_library_api = OpenLibraryAPI()
-        book_list = open_library_api.fetch_books(query)[:20]
-        if not book_list:
-            return HttpResponseServerError(405, "no books found!")
-
-        books = list()
-        books_to_vector_save = list()
-        with transaction.atomic():
-            for b in book_list:
-                b, created = get_or_create_book_from_api(b)
-                books.append(b)
-
-                # add to vector save list
-                if created:
-                    books_to_vector_save.append(b)
-
-        # render response
-        response = render(
-            request, "books/components/book_entry_list.html", {"book_list": books}
-        )
-
-        return response
-
-
-@method_decorator(never_cache, name="dispatch")
 class BookSearchView(View):
     """
     - searches via pg_vector
+    - NOTE: returns only gutenberg open source books as labeled in db
     """
 
-    template_name = "books/components/book_entry_list.html"
+    template_name = "books/components/book_entry_list.html"  # includes book_entry.html
 
     def get(self, request, query=None, *args, **kwargs):
         query = request.GET.get("query", query)
@@ -96,11 +57,11 @@ class BookSearchView(View):
         books = list()
 
         if query:
-            books = Book.search(query)
+            books = Book.search(query, gutenberg=True)
 
         if q:
             # TODO: consider fuzzy match for further filtering
-            books = Book.search(q, books)
+            books = Book.search(q, books, gutenberg=True)
 
         # render books html
         return render(request, self.template_name, {"book_list": books})
@@ -146,9 +107,82 @@ class SearchResultsView(TemplateView):
 # book views
 @method_decorator(never_cache, name="dispatch")
 class BookDetailView(LoginRequiredMixin, DetailView):
-    model = Book
-    context_object_name = "book"
     template_name = "books/book_detail.html"
+    context_object_name = "book"
+    model = Book
+
+
+@method_decorator(never_cache, name="dispatch")
+class BookView(LoginRequiredMixin, TemplateView):
+    """
+    lazily called in the BookDetailView
+    ... if isbns does not exist we assume to do a fresh query to openlibrary...
+    """
+
+    template_name = "books/components/book_detail.html"
+
+    def get_context_data(self, *args, **kwargs):
+        return {"book": self.obj}
+
+    def post(self, request, pk, *args, **kwargs):
+        trigger_openlibrary = request.POST.get("trigger_openlibrary")
+
+        self.obj = get_object_or_404(Book, pk=pk)
+
+        # super response
+        response = super().get(request, *args, **kwargs)
+
+        if not self.obj.isbns:
+            response["HX-Trigger"] = "trigger_openlibrary"
+
+        # trigger lazy openlibrary fetch to update data
+        if trigger_openlibrary or not self.obj.isbns:
+            open_library_api = OpenLibraryAPI()
+            books = open_library_api.fetch_books(self.obj.title)
+
+            # case: no openlibrary record found
+            if not books:
+                return response
+
+            # update vector embeddings if we indeed call openlibrary
+            b = books[0]
+            b, _ = get_or_create_book_from_api(b, self.obj)
+            _ = books_save_vector([b.id])
+
+        return response
+
+
+@method_decorator(never_cache, name="dispatch")
+class BookOpenlibraryView(View):
+    """
+    pings openlibrary api with query
+    ... conditional if inital response on search results was too
+    few, seperate process to populate list asynchronouly"
+    ... filters out books which exist as gutenberg book
+    """
+
+    def post(self, request, pk, *args, **kwargs):
+        """
+        NOTE: post because we get_or_create books from openlibrary
+        ... (as of now)
+        """
+        open_library_api = OpenLibraryAPI()
+        b = open_library_api.fetch_books(book.title)[0]
+        if not b:
+            return HttpResponseServerError(405, "no books found!")
+
+        books_to_vector_save = []
+        with transaction.atomic():
+            b, created = get_or_create_book_from_api(b, book)
+
+            # add to vector save list
+            if created:
+                books_to_vector_save.append(b)
+
+        # render response
+        response = render(request, "books/components/book_detail.html", {"book": book})
+
+        return response
 
 
 @method_decorator(never_cache, name="dispatch")
@@ -252,3 +286,45 @@ class GetGutenbergLinksView(LoginRequiredMixin, View):
         context["book"] = book
         context["gutenberg_books"] = gutenberg_books
         return render(request, self.template_name, context)
+
+
+@method_decorator(never_cache, name="dispatch")
+class BookSearchOpenlibraryView(View):
+    """
+    This view is not used as of now
+    pings openlibrary api with query
+    ... conditional if inital response on search results was too
+    few, seperate process to populate list asynchronouly"
+    ... filters out books which exist as gutenberg book
+    """
+
+    def post(self, request, *args, **kwargs):
+        """
+        NOTE: post because we get_or_create books from openlibrary
+        ... (as of now)
+        """
+        logger.info("BookSearchOpenlibraryView...")
+        query = request.POST.get("query")
+
+        open_library_api = OpenLibraryAPI()
+        book_list = open_library_api.fetch_books(query)[:20]
+        if not book_list:
+            return HttpResponseServerError(405, "no books found!")
+
+        books = list()
+        books_to_vector_save = list()
+        with transaction.atomic():
+            for b in book_list:
+                b, created = get_or_create_book_from_api(b)
+                books.append(b)
+
+                # add to vector save list
+                if created:
+                    books_to_vector_save.append(b)
+
+        # render response
+        response = render(
+            request, "books/components/book_entry_list.html", {"book_list": books}
+        )
+
+        return response

@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_or_create_book_from_api(api_book):
+def get_or_create_book_from_api(api_book, book=None):
     """
     Create or get a Book instance from an API response dictionary.
 
@@ -19,14 +19,21 @@ def get_or_create_book_from_api(api_book):
     from authors.models import Author
     from django.db import transaction
 
-    collected_authors = []
+    # log!
+    logger.info(f"""
+        get_or_create_book_from_api...
+        api_book: {api_book.get('title')}
+        existing book: {book}
+        """)
 
+    collected_authors = []
     with transaction.atomic():
         # extract relevant details from the API response
         title = api_book.get("title", "")
         isbns = api_book.get("isbn", [])
         work_key = api_book.get("key", "")
         cover_id = api_book.get("cover_i", "")
+        description = api_book.get("description", "")
         cover_url = "http://covers.openlibrary.org/b/id/"
         cover_url += f"{cover_id}-L.jpg" if cover_id else ""
         # NOTE: publish_dates can be a bigass list of all publication and not 1-1 with rest of data, just not gonna worry about it.
@@ -48,21 +55,36 @@ def get_or_create_book_from_api(api_book):
             collected_authors.append(author)
 
         # get or create the book instance
-        book, created = Book.objects.get_or_create(
-            key=work_key,
-            defaults={
-                "title": title,
-                "isbns": isbns,
-                "cover_url": cover_url,
-                # "publish_date": publish_date,
-                "subjects": subjects,
-                "json": api_book,
-            },
-        )
+        created = None
+        if not book:
+            book, created = Book.objects.get_or_create(
+                key=work_key,
+                defaults={
+                    "title": title,
+                    "isbns": isbns,
+                    "cover_url": cover_url,
+                    "description": description,
+                    # "publish_date": publish_date,
+                    "subjects": subjects,
+                    "json": api_book,
+                },
+            )
 
-        if created:
-            # Linked authors need to be set only for newly created books
-            book.authors.set(collected_authors)
+        elif book:
+            # NOTE: we save vector via celery task
+            # ... outside of this scope
+            created = False
+            og_description = book.description if book.description else ""
+            subject_list = list(book.subjects)
+            subject_list += subjects
+            book.isbns = isbns
+            book.cover_url = cover_url
+            book.subjects = subject_list
+            book.description = og_description + description
+            book.json = api_book
+            book.save()
+
+        book.authors.set(collected_authors)
 
     return book, created
 

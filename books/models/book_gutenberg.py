@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class BookGutenberg(models.Model):
     """
-    Represents a single book, capturing key data as
+    represents a single book, capturing key data as
     returned from Gutenberg results.
     """
 
@@ -41,7 +41,10 @@ class BookGutenberg(models.Model):
         default="", blank=True, help_text="The title of the book", null=False
     )
     description = models.TextField(
-        blank=True, null=True, help_text="A description of the book if provided."
+        default="",
+        blank=True,
+        null=False,
+        help_text="A description of the book if provided.",
     )
 
     subjects = models.JSONField(

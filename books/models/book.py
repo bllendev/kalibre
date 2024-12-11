@@ -83,8 +83,7 @@ class Book(models.Model):
     subjects = models.JSONField(
         default=list, blank=True, help_text="List of subjects covered by the book."
     )
-    cover_url = models.URLField(
-        blank=True, help_text="URL to the book's cover image.")
+    cover_url = models.URLField(blank=True, help_text="URL to the book's cover image.")
     cover = models.ImageField(upload_to="covers/", blank=True)
     vector_search = models.ForeignKey(
         "ai.VectorSearch",
@@ -174,6 +173,7 @@ class Book(models.Model):
         cls,
         query,
         books=None,
+        gutenberg=True,  # force only gutenberg books to be included
         top_n=20,
         embeddings=None,
     ):
@@ -205,6 +205,11 @@ class Book(models.Model):
 
         # fetch books linked to these vectors
         books = cls.objects.filter(vector_search__in=similar_vectors)
+
+        # gutenberg only?
+        if gutenberg:
+            books = books.exclude(gutenberg__isnull=True)
+
         return books
 
     def _set_cover_url(self):
@@ -259,8 +264,7 @@ class Book(models.Model):
                 cover_url = self.cover.url
 
             else:
-                raise Exception(
-                    "unable to get final image of saved cover.url !")
+                raise Exception("unable to get final image of saved cover.url !")
             logger.info(f"get_cover_url - {cover_url}")
         except Exception as e:
             logger.error(f"get_cover_url | {self} | {e} | {cover_url}")
@@ -268,8 +272,7 @@ class Book(models.Model):
 
 
 class Review(models.Model):
-    book = models.ForeignKey(
-        Book, on_delete=models.CASCADE, related_name="reviews")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reviews")
     review = models.CharField(max_length=255)
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 
