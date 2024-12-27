@@ -1,24 +1,59 @@
+
 <style>
-.card.grid {
-    display: grid;
-    gap: 2.5rem;
-    padding: 1rem;
-    grid-template-columns: 1fr 2fr;
-    align-items: start; /* Align items to the top */
-}
+    .card.grid {
+        /* Modified grid setup might be necessary if width constraints cause overflow */
+        display: grid;
+        gap: 2.5rem;
+        padding: 1rem;
+        grid-template-columns: 1fr 2fr;
+        align-items: start;
+        max-width: 100%; /* ensure the grid doesn't exceed parent container's width */
+    }
 
-.card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    height: 100%; /* Ensure it stretches to fill the card height */
-    overflow: hidden;
-}
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        height: 100%;
+        overflow: hidden; /* ensure no extra content leaks out unexpectedly */
+    }
 
+    #kalibre-frame {
+        border: 2px solid var(--secondary);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        margin: 2rem auto;
+        max-width: 80vw; /* use a percentage relative to screen width */
+        background-color: var(--background);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow-x: hidden; /* prevent horizontal overflow */
+    }
+
+    #kalibre-frame:hover {
+        transform: scale(1.01);
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
+    }
+
+    .gutenberg-table {
+        max-height: 20vh;
+        overflow-y: auto; /* allow vertical scrolling if content overflows vertically */
+        overflow-x: hidden; /* add to hide any horizontal overflow */
+    }
+
+    table {
+        width: 100%; /* ensure the table fills available space without overflowing */
+        table-layout: fixed; /* allow for more consistent table behavior, stopping excessive width growth by any single column */
+    }
+
+    th, td {
+        word-wrap: break-word; /* ensure content wraps to prevent wide table cells */
+        padding: 0.5rem; /* basic padding for better readability */
+    }
 </style>
 
-<article class="container">
+<article id="kalibre-frame" class="container">
     <div class="card grid" style="gap: 2.5rem; padding: 2rem;">
         <!-- Book Cover Image -->
         <figure>
@@ -32,38 +67,28 @@
 
             <!-- Book Author -->
             <p class="card-text">
-                Author(s): 
                 {% if book.authors.all %}
+                    Author(s): 
                     {% for author in book.authors.all %}
                         {{ author.name }}{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                        No authors listed
                     {% endfor %}
+                {% else %}
+                    No Authors listed.
                 {% endif %}
             </p>
 
-            <!-- replace the existing button with icons -->
-            <div class="icon-buttons grid">
-                <button 
-                  hx-get="{% url 'get-cover' book.id %}"
-                  hx-trigger="click"
-                  hx-target="#book-cover"
-                  hx-swap="outerHTML"
-                  title="Refresh"><i class="fas fa-sync"></i>
-                </button>
-
-                <button title="Download Gutenberg"
-                    hx-trigger="click"
-                    hx-get="{% url 'get-gutenberg-links' book.id %}"
-                    hx-swap="innerHTML transition:true"
-                    hx-target="#links"
-                >
-                  <i class="fas fa-download"></i>
-                </button>
-            </div>
 
             <!--dynamic div-->
-            <div id="links" style="height:20vh;"></div>
+            <br>
+            <p class="card-text">
+                Download(s): 
+            </p>
+            <div id="links"
+                hx-trigger="load"
+                hx-get="{% url 'get-gutenberg-links' book.id %}"
+                hx-swap="innerHTML transition:true"
+                hx-target="#links"
+            ></div>
 
         </div>
     </div>

@@ -1,33 +1,37 @@
-/* Light Mode */
 :root {
-  --pico-color-primary: #8fbcbb; /* Light teal */
-  --pico-color-secondary: #88c0d0; /* Soft blue-teal */
-  --pico-color-accent: #d08770; /* Muted orange */
-  --pico-color-muted: #4c566a; /* Midnight purple */
-  --pico-color-foreground: #eceff4; /* Light text */
-  --pico-color-background: #2e3440; /* Dark background */
-  --pico-color-border: #5e81ac; /* Deep purple border */
-  --pico-color-backdrop: rgba(46, 52, 64, 0.5); /* Transparent dark */
-}
-
-/* Dark Mode */
-[data-theme="dark"] {
   --pico-color-primary: #88c0d0;
   --pico-color-secondary: #8fbcbb;
   --pico-color-accent: #bf616a; /* Soft pink */
   --pico-color-muted: #3b4252;
   --pico-color-foreground: #eceff4;
-  --pico-color-background: #2e3440;
-  --pico-color-border: #d08770;
+  --pico-color-background: #2e3440; /* Dark background */
+  --pico-color-border: #d08770; 
   --pico-color-backdrop: rgba(46, 52, 64, 0.8);
 }
 
+/* Ensure all styles directly reflect the dark theme */
+body {
+  background-color: var(--pico-color-background);
+  color: var(--pico-color-foreground);
+}
+
+nav {
+  background-color: var(--pico-color-background);
+  color: var(--pico-color-foreground);
+  border-bottom: 1px solid var(--pico-color-border);
+}
+
+nav ul li a {
+  color: var(--pico-color-foreground);
+  text-decoration: none;
+}
 
 /* Button Styling */
 button {
   background-color: var(--pico-color-primary);
   color: var(--pico-color-foreground);
-  border-radius: var(--pico-border-radius);
+  /* Ensure border radius is defined if it's variable-based */
+  border-radius: 0.5rem;
 }
 
 button:hover {
@@ -172,3 +176,18 @@ img.bookcover {
   animation: fade-in 0.2s ease-in forwards;
 }
 
+
+.kalibre-frame {
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 80vh;
+  background-color: var(--pico-color-muted);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+}
+
+.kalibre-frame:hover {
+  transform: scale(1.01);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
+}
