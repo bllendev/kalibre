@@ -1,9 +1,6 @@
 import dj_database_url
 import socket
 import os
-import cloudinary
-import cloudinary_storage
-import django
 from os import listdir
 from os.path import (
     basename,
@@ -96,14 +93,16 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Third-Party
+    "debug_toolbar",
     "crispy_forms",
     "crispy_bootstrap4",
     "rest_framework",
     # "crispy_bootstrap5",
+    # auth !
     "allauth",
     "allauth.account",
-    "debug_toolbar",
     "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     # Local
     "users.apps.UsersConfig",
     "pages.apps.PagesConfig",
@@ -244,6 +243,20 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+# allauth social accounts
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": True,
+    }
+}
 
 
 # Internationalization
