@@ -57,11 +57,11 @@ class BookSearchView(View):
         books = list()
 
         if query:
-            books = Book.search(query, gutenberg=True)
+            books = Book.search(query, gutenberg=True, vector_search=False)
 
         if q:
             # TODO: consider fuzzy match for further filtering
-            books = Book.search(q, books, gutenberg=True)
+            books = Book.search(q, books, gutenberg=True, vector_search=False)
 
         # render books html
         return render(request, self.template_name, {"book_list": books})

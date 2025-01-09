@@ -176,6 +176,7 @@ class Book(models.Model):
         gutenberg=True,  # force only gutenberg books to be included
         top_n=20,
         embeddings=None,
+        vector_search=True,
     ):
         """
         search for books based on vector similarity to the query text.
@@ -185,6 +186,21 @@ class Book(models.Model):
         """
         if not query:
             raise RuntimeError("no query was entered")
+
+        if not vector_search:
+            text_search_query = (
+                models.Q(title__icontains=query) |
+                models.Q(description__icontains=query) |
+                models.Q(json__icontains=query)
+            )
+
+            books = cls.objects.filter(text_search_query)
+
+            # Gutenberg only filter logic
+            if gutenberg:
+                books = books.exclude(gutenberg__isnull=True)
+
+            return books.order_by('title')[:top_n]
 
         # generate vector embedding for the query
         # ... (if embeddings not already passed)
