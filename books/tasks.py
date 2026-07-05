@@ -28,14 +28,14 @@ def send_book_gutenberg_email(book_title, username, links):
     for lang, emails in email_dict.items():
         book_send_result = send_gutenberg_book(book_title, links, emails, lang)
 
-        # raise Exception error if some result is false
+        # bail out if some result is false
         if book_send_result is False:
             logging.error("""
                 books.task.send_book_gutenberg_email: Book failed to send !
             """)
-            return False, 400
+            return False
 
-    return True, 200
+    return True
 
 
 @shared_task
