@@ -24,59 +24,74 @@
     <script src="{% static 'js/base.js' %}"></script>
  
     <!-- Custom Styles -->
-    <style>
-      body {
-        font-family: 'Rubik', sans-serif;
-      }
+  <style>
+    body {
+      font-family: 'Rubik', sans-serif;
+      margin: 0; /* Remove default body margin */
+    }
 
-      /* Navbar Styling */
-      nav {
-        background: linear-gradient(135deg, var(--background-dark), var(--midnight-purple));
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        border-radius: 0.5rem;
-      }
+    /* Optimized space around navigation */
+    nav {
+      background: linear-gradient(135deg, var(--background-dark), var(--midnight-purple));
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      border-radius: 0.5rem;
+      margin: 0; /* Reduce margin or use consistent spacing */
+      padding: 1vh 2vw; /* Use viewport units for responsive padding */
+    }
 
-      nav ul li a {
-        font-weight: 500;
-        border-radius: 5px;
-        color: var(--background-light);
-        transition: background-color 0.3s, color 0.3s ease;
-        cursor: pointer;
-      }
+    nav ul {
+      margin: 0; /* Remove default UL margin */
+      padding: 0; /* Remove default UL padding */
+      list-style: none; /* Remove bullets for better alignment */
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Center navigation items horizontally */
+      gap: 2vw; /* Adjust spacing between links */
+    }
 
-      nav ul li a:hover {
-        background-color: var(--deep-purple);
-        color: var(--soft-pink);
-        text-decoration: none;
-      }
+    nav ul li a {
+      font-weight: 500;
+      border-radius: 0.5rem;
+      color: var(--background-light);
+      transition: background-color 0.3s, color 0.3s ease;
+      cursor: pointer;
+      padding: 0.7vh 1.5vw; /* Smaller padding for links */
+    }
 
-      nav ul li a.active {
-        background-color: var(--accent-color);
-        color: var(--background-dark);
-      }
+    nav ul li a:hover {
+      background-color: var(--deep-purple);
+      color: var(--soft-pink);
+      text-decoration: none;
+    }
 
-      /* Footer Styling */
-      footer {
-        text-align: center;
-        padding: 1rem 0;
-        background-color: var(--background-dark);
-        color: var(--background-light);
-      }
+    /* Main content area */
+    main#body.section {
+      padding: 2vh 2vw; /* Control main area padding */
+    }
 
-      /* Input Styling */
-      input#search-query:focus {
-        border: 2px solid var(--deep-purple);
-        box-shadow: 0 0 10px rgba(94, 129, 172, 0.5);
-      }
-    </style>
+    /* Footer Styling */
+    footer {
+      text-align: center;
+      padding: 1vh 0; /* Minimized vertical padding */
+      background-color: var(--background-dark);
+      color: var(--background-light);
+    }
+
+    /* Input styling for potential search bar in main content */
+    input#search-query:focus {
+      border: 2px solid var(--deep-purple);
+      box-shadow: 0 0 10px rgba(94, 129, 172, 0.5);
+    }
+  </style>
   </head>
-  <body>
+  <body class="dark-mode">
     <header class="container">
-      <nav class="grid" style="padding-left: 11px">
+      <nav class="grid">
         <ul>
+          <!-- Navigation Items -->
           <li><strong><a 
             hx-get="{% url 'home' %}" 
-            hx-target="#body" 
+            hx-target="#b<body class="dark-mode"ody" 
             hx-swap="innerHTML transition:true"
             hx-push-url="true">kalibre</a></strong></li>
           {% if user.is_authenticated %}

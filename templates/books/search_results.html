@@ -4,12 +4,28 @@
 {% block title %}Search{% endblock title %}
 {% block content %}
 <style>
+    .kalibre-frame {
+    b   border: 2px solid var(--secondary);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3); 
+        margin: 2rem auto;
+        max-width: 80vh;
+        background-color: var(--background);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .kalibre-frame:hover {
+        transform: scale(1.01);
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35); /* Further increased for hover effect */
+    }
     .search-input-container {
         display: flex;
         align-items: center;
         gap: 1rem;
         padding: 1rem 0;
         width: 100%;
+        margin: 0px;
     }
 
     input.form-control {
@@ -50,7 +66,7 @@
 
 </style>
 
-<div class="container mt-4">
+<div class="container">
     <!-- Search Bar and Refresh Button -->
     <div class="search-input-container">
         <!-- Search Input -->
@@ -82,7 +98,7 @@
     </div>
 
     <!-- scrollable table section -->
-    <div class="mt-5">
+    <div id="kalibre-frame" style="max-heigh:30vh; padding:0px" class="kalibre-frame">
         <!-- loading notification -->
         <center>
             <div class="htmx-indicator" id="loading_notification"
@@ -116,7 +132,7 @@
             </div>
 
         <!-- Book Entry List -->
-        <div id="book_entry_list" class="mt-4 scrollable-table-container"> </div>
+        <div id="book_entry_list" class="scrollable-table-container"> </div>
     </div>
 </div>
 {% endblock %}
